@@ -1,4 +1,12 @@
 LOGISTICS
+
+Group VictoriOS Secret
+Team members:
+Jonathan Mullen (jtmulle2)
+__
+__
+__
+
 -----
 ECE 391 MP3 
 
