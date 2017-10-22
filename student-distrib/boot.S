@@ -5,6 +5,7 @@
 
 #include "multiboot.h"
 #include "x86_desc.h"
+#include "idt_init.h"
 
 .text
 
@@ -24,7 +25,13 @@ _start:
     jmp     continue
 
 continue:
-    # Load the GDT
+    # Load the GDT ~Sam 
+    lgdt    (gdt_desc)
+
+    # Fill the IDT ~Jonathan
+    pusha
+    call idt_init
+    popa
 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
