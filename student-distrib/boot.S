@@ -25,13 +25,15 @@ _start:
     jmp     continue
 
 continue:
+
     # Load the GDT ~Sam 
-    lgdt    (gdt_desc)
+    lgdt    gdt_desc_ptr
 
     # Fill the IDT ~Jonathan
     pusha
     call idt_init
     popa
+
 
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
