@@ -94,12 +94,6 @@ gdt_bottom:
 
 #struct to use in lgdt in boot.S file ~Sam
     .align 4
-gdt_desc:
-    .word gdt_bottom - gdt - 1
-    .long gdt
-
-
-    .align 16
 #added for cp 1
 #ptr to start of gdt
 #Author: Jonathan
