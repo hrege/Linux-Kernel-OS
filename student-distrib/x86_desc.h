@@ -19,6 +19,9 @@
 /* Size of the task state segment (TSS) */
 #define TSS_SIZE    104
 
+/* Number of segment descriptors in GDT */
+#define NUM_GDT    6
+
 /* Number of vectors in the interrupt descriptor table (IDT) */
 #define NUM_VEC     256
 
@@ -187,6 +190,8 @@ do {                                    \
             : "memory", "cc"            \
     );                                  \
 } while (0)
+
+
 
 /* Load the interrupt descriptor table (IDT).  This macro takes a 32-bit
  * address which points to a 6-byte structure.  The 6-byte structure

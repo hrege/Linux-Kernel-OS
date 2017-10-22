@@ -5,6 +5,7 @@
 
 #include "multiboot.h"
 #include "x86_desc.h"
+#include "idt_init.h"
 
 .text
 
@@ -24,13 +25,14 @@ _start:
     jmp     continue
 
 continue:
-    # Load the GDT
-    # lgdt using the ptr to the gdt specified in x86_desc.S
-    # Author: Jonathan
-    lgdt gdt_desc_ptr
 
-    #load idt
-    lidt idt_desc_ptr
+    # Load the GDT ~Sam 
+    lgdt    gdt_desc_ptr
+
+    # Fill the IDT ~Jonathan
+    pusha
+    call idt_init
+    popa
 
 
     # Load CS with the new descriptor value

@@ -34,7 +34,9 @@ _tss:
     .endr
 tss_bottom:
 
+
     .align  16
+
 gdt:
 _gdt:
 
@@ -43,6 +45,12 @@ _gdt:
 
     # NULL entry
     .quad 0
+
+    #Initialize pointers to 5 segment descriptors CS kernel, CS user,
+    #DS kernel, DS user, kernel TSS, kernel LDT ~Sam EDIT:Don'tWantThis
+    #.rept NUM_GDT
+    #.quad 0
+    #.endr
 
     # Segmentation will not be used
     # CS and DS both are 0-4GB r/w segments
@@ -84,6 +92,13 @@ ldt_desc_ptr:
 
 gdt_bottom:
 
+#struct to use in lgdt in boot.S file ~Sam
+    .align 4
+gdt_desc:
+    .word gdt_bottom - gdt - 1
+    .long gdt
+
+
     .align 16
 #added for cp 1
 #ptr to start of gdt
@@ -100,7 +115,7 @@ ldt:
     .endr
 ldt_bottom:
 
-.align 4
+    .align 4
     .word 0 # Padding
 idt_desc_ptr:
     .word idt_bottom - idt - 1
@@ -115,3 +130,5 @@ _idt:
     .endr
 
 idt_bottom:
+
+
