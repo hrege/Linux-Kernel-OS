@@ -6,6 +6,25 @@ char exceptions[20];
 
 
 void idt_init() {
+	/*Initialize all IDT entries to default unused*/
+	for(i = 0; i < 256; i++){
+		idt[i].seg_selector = 0; //gedt_desc_ptr
+		//set reserved bits
+		idt[i].reserved0 = 0;
+		idt[i].reserved1 = 1;
+		idt[i].reserved2 = 1;
+		idt[i].reserved3 = 0;
+		idt[i].reserved4 = 0;
+		//set size bit
+		idt[i].size = 1;
+		//set dpl bits
+		idt[i].dpl = 0;
+		//Ignore initialization for 15
+			idt[i].present = 0;
+
+
+	}
+	/*Set exception IDT entries*/
 	for(i = 0; i < 20; i ++){
 
 		if(i != 15){

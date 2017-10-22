@@ -1,4 +1,4 @@
-##ifndef EXCEPTIONS_H
+#ifndef EXCEPTIONS_H
 #define EXCEPTIONS_H
 
 void divide_by_zero();
