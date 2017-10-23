@@ -129,98 +129,303 @@ void idt_init() {
 
 
 
-
+/*Assembly linkage for C handlers*/
 void divide_by_zero(){
-	printf("divide_by_zero");
-	while(1);
+	__asm__("pusha\n\t"
+			"call divide_by_zero_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
 
 }
 
 //vector # 1 reserved for Intel use
 void debug(){
+	__asm__("pusha\n\t"
+			"call debug_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void nmi_interrupt(){
+	__asm__("pusha\n\t"
+			"call nmi_interrupt_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void breakpoint(){
+	__asm__("pusha\n\t"
+			"call breakpoint_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void overflow(){
+	__asm__("pusha\n\t"
+			"call overflow_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+
+void bound_range_exceeded(){
+	__asm__("pusha\n\t"
+			"call bound_range_exceeded_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+
+void invalid_opcode(){
+	__asm__("pusha\n\t"
+			"call invalid_opcode_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+
+void device_not_available(){
+	__asm__("pusha\n\t"
+			"call device_not_available_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void double_fault(){
+	__asm__("pusha\n\t"
+			"call double_fault_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+
+void coprocessor_segment_overrun(){
+	__asm__("pusha\n\t"
+			"call coprocessor_segment_overrun_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+
+void invalid_tss(){
+	__asm__("pusha\n\t"
+			"call invalid_tss_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void segment_not_present(){
+	__asm__("pusha\n\t"
+			"call segment_not_present_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void stack_segment(){
+	__asm__("pusha\n\t"
+			"call stack_segment_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void general_protection(){
+	__asm__("pusha\n\t"
+			"call general_protection_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void page_fault(){
+	__asm__("pusha\n\t"
+			"call page_fault_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+//vector 15 reserved for Intel use
+
+void fpu_floating_point_exception(){
+	__asm__("pusha\n\t"
+			"call fpu_floating_point_exception_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+
+void alignment_check(){
+	__asm__("pusha\n\t"
+			"call alignment_check_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void machine_check(){
+	__asm__("pusha\n\t"
+			"call machine_check_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void simd_floating_point_exception(){
+	__asm__("pusha\n\t"
+			"call simd_floating_point_exception_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void sys_call(){
+	__asm__("pusha\n\t"
+			"call sys_call_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+void get_char(){
+	__asm__("pusha\n\t"
+			"call get_char_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+
+}
+
+void rtc_int(){
+	__asm__("pusha\n\t"
+			"call rtc_int_hlp\n\t"
+			"popa\n\t"
+			"IRET\n\t");
+
+}
+
+
+/*C handlers*/
+/*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*
+*/
+
+void divide_by_zero_hlp(){
+	printf("divide_by_zero");
+	//while(1);
+
+}
+
+//vector # 1 reserved for Intel use
+void debug_hlp(){
 	printf("debug exception");
 	while(1);
 
 }
 
-void nmi_interrupt(){
+void nmi_interrupt_hlp(){
 	printf("nmi_interrupt");
 	while(1);
 
 }
 
-void breakpoint(){
+void breakpoint_hlp(){
 	printf("breakpoint");
 	while(1);
 
 }
 
-void overflow(){
+void overflow_hlp(){
 	printf("divide_by_zero");
 	while(1);
 
 }
 
 
-void bound_range_exceeded(){
+void bound_range_exceeded_hlp(){
 	printf("bound_range_exceeded");
 	while(1);
 
 }
 
 
-void invalid_opcode(){
+void invalid_opcode_hlp(){
 	printf("invalid_opcode");
 	while(1);
 
 }
 
 
-void device_not_available(){
+void device_not_available_hlp(){
 	printf("device_not_available");
 	while(1);
 
 }
 
-void double_fault(){
+void double_fault_hlp(){
 	printf("this is a double_fault");
 	while(1);
 
 }
 
 
-void coprocessor_segment_overrun(){
+void coprocessor_segment_overrun_hlp(){
 	printf("coprocessor_segment_overrun");
 	while(1);
 
 }
 
 
-void invalid_tss(){
+void invalid_tss_hlp(){
 	printf("invalid_tss");
 	while(1);
 
 }
 
-void segment_not_present(){
+void segment_not_present_hlp(){
 	printf("segment_not_present");
 	while(1);
 
 }
 
-void stack_segment(){
+void stack_segment_hlp(){
 	printf("stack_segment_fault");
 	while(1);
 
 }
 
-void general_protection(){
+void general_protection_hlp(){
 	printf("general_protection");
 	while(1);
 
 }
 
-void page_fault(){
+void page_fault_hlp(){
 	printf("page_fault");
 	while(1);
 
@@ -228,42 +433,45 @@ void page_fault(){
 
 //vector 15 reserved for Intel use
 
-void fpu_floating_point_exception(){
+void fpu_floating_point_exception_hlp(){
 	printf("floating_point_exception");
 	while(1);
 
 }
 
 
-void alignment_check(){
+void alignment_check_hlp(){
 	printf("alignment_check");
 	while(1);
 
 }
 
-void machine_check(){
+void machine_check_hlp(){
 	printf("machine_check");
 	while(1);
 
 }
 
-void simd_floating_point_exception(){
+void simd_floating_point_exception_hlp(){
 	printf("divide_by_zero");
 	while(1);
 
 }
 
-void sys_call(){
+void sys_call_hlp(){
 	printf("This is a system call");
 
 }
 
-void get_char(){
-	printf("This is a keyboard interrupt");
+void get_char_hlp(){
+	char keyboard_input;
+	keyboard_input = inb(0x60);
+	printf(keyboard_input);
 
+	
 }
 
-void rtc_int(){
+void rtc_int_hlp(){
 	printf("This is an RTC interrupt");
 
 }
