@@ -73,7 +73,7 @@ int paging_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("div_zero_test", div_zero_test());
+	//TEST_OUTPUT("div_zero_test", div_zero_test());
 	//TEST_OUTPUT("keyboard_test", keyboard_test());
 	// launch your tests here
 	return;

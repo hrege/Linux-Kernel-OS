@@ -127,7 +127,8 @@ void idt_init() {
 void divide_by_zero(){
 	__asm__("pusha\n\t"
 			"call divide_by_zero_hlp\n\t"
-			"popa\n\t");
+			"popa\n\t"
+			"IRET\n\t");
 }
 
 //vector # 1 reserved for Intel use
