@@ -141,23 +141,64 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     /* Austin
-        uint32_t page_directory[1024] __attribute__((aligned (4))); // Construct a page directory
-        uint32_t page_table[1024] __attribute__((aligned (4)));     // Construct a page table
-        tss.cr3 = page_directory;           // Put directory address in CR3             
-        paging_enable();                    // Set PG Flag (CR0[0]) and PE Flag (CR0[31])               
-        tss.cr4 = 0x00000010;               // Set Page Size Extension (CR4[4])
+        PDE and PTE bits based on ISA Vol.3, pg. 3-32
+            PDE for 4MB-Page
+                [31:22] - Page Base Address
+                [21:13] - Reserved (set to 0)
+                [12] - Page Table Attribute Index
+                [11:9] - Available for system use
+                [8] - Global page
+                [7] Page size (1 = 4MB-pages)
+                [6] - Dirty
+                [5] - Accessed
+                [4] - Cache disabled
+                [3] - Write-through
+                [2] - User/Supervisor
+                [1] - Read/Write
+                [0] - Present
+            PDE for 4kB-Page Table
+                [31:12] - Page-Table Base Address
+                [11:9] - Available for system use
+                [8] - Global page (ignored)
+                [7] Page size (0 = 4kB-pages)
+                [6] - Reserved (set to 0)
+                [5] - Accessed
+                [4] - Cache disabled
+                [3] - Write-through
+                [2] - User/Supervisor
+                [1] - Read/Write
+                [0] - Present
+            PTE for 4kB-Page
+                [31:12] - Page Base Address
+                [11:9] - Available for system use
+                [8] - Global page
+                [7] Page Table Attribute Index
+                [6] - Dirty
+                [5] - Accessed
+                [4] - Cache disabled
+                [3] - Write-through
+                [2] - User/Supervisor
+                [1] - Read/Write
+                [0] - Present
+
+        uint32_t page_directory[1024] __attribute__((aligned (4)));         // Construct a page directory
+        uint32_t page_table[1024] __attribute__((aligned (4)));             // Construct a page table                        
+        paging_enable(&(tss.cr0), &(tss.cr3), &(tss.cr4), page_directory);  // Put directory address in CR3
+                                                                            // Set PG Flag (CR0[0]) and PE Flag (CR0[31])               
+                                                                            // Set Page Size Extension (CR4[4])
     
-        Set PDEs based on ISA vol. 3, page 3-32
+        page_directory[0] = [31:22] addr to start of kernel + [21:13] 0 + 
+        page_directory[1] = 
             Set a PDE for the 4MB kernel page for 4MB-8MB in Physical Memory
             Set a PDE for the Page Table for 0MB-8MB in Physical Memory
             Rest of PDEs are not present
-        Set PTEs based on ISA vol. 3, page 3-32
             Set a PTE for the Video memory
             Rest of PTEs are not present
      */
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
+    
      rtc_init();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

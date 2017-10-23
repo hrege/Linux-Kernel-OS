@@ -476,11 +476,11 @@ void test_interrupts(void) {
 }
 
 /* Austin
- * void paging_enable(uint32_t* reg)
+ * void paging_enable(uint32_t* reg0, uint32_t* reg3, uint32_t* reg4, uint32_t* pdir_addr)
  *      Inputs: reg - pointer to the CR0 control register
  *      Output: void
  *      Function: Enables CR0[31] and CR0[0] for 4kB and 4MB paging
- *      Side effects: Alters value of CR0
+ *      Side effects: Alters value of CR0[0] and CR[31] (rest are preserved)
  */
 /*void paging_enable(uint32_t* reg){
     asm volatile ("                 \n\
