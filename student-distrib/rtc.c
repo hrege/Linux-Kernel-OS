@@ -6,6 +6,15 @@
 #include "lib.h"
 #include "rtc.h"
 
+/*
+  Description: Initialize RTC clock interrupt.
+  Author: Hershel
+  Input: none
+  Output: Initializes RTC clock registers.
+  Return: none
+  Side Effects: RTC is initialized.
+ */
+
 void rtc_init() {
   /* Initialize registers used for RTC and CMOS. */
   cli();
