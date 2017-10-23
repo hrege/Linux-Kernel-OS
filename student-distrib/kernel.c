@@ -140,11 +140,12 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     /* Austin
-        Initialize a Page Directory
-        Put address in cr3
-        Call paging_enable(); // Outlined in lib.c/h
-        Set CR4[4] -> 1 //Sets Page Size Extensions
-        Initialize a Page Table
+        uint32_t page_directory[1024] __attribute__((aligned (4))); // Construct a page directory
+        uint32_t page_table[1024] __attribute__((aligned (4)));     // Construct a page table
+        tss.cr3 = page_directory;           // Put directory address in CR3             
+        paging_enable();                    // Set PG Flag (CR0[0]) and PE Flag (CR0[31])               
+        tss.cr4 = 0x00000010;               // Set Page Size Extension (CR4[4])
+    
         Set PDEs based on ISA vol. 3, page 3-32
             Set a PDE for the 4MB kernel page for 4MB-8MB in Physical Memory
             Set a PDE for the Page Table for 0MB-8MB in Physical Memory
@@ -152,8 +153,6 @@ void entry(unsigned long magic, unsigned long addr) {
         Set PTEs based on ISA vol. 3, page 3-32
             Set a PTE for the Video memory
             Rest of PTEs are not present
-
-        int some_variable __attribute__((aligned (BYTES_TO_ALIGN_TO)));
      */
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
