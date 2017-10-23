@@ -37,7 +37,7 @@ void idt_init() {
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 1;
 		idt[i].reserved2 = 1;
-		idt[i].reserved3 = 0;
+		idt[i].reserved3 = 1;
 		idt[i].reserved4 = 0;
 		//set size bit
 		idt[i].size = 1;
@@ -77,7 +77,7 @@ void idt_init() {
 		idt[0x80].reserved0 = 0;
 		idt[0x80].reserved1 = 1;
 		idt[0x80].reserved2 = 1;
-		idt[0x80].reserved3 = 0;
+		idt[0x80].reserved3 = 1;
 		idt[0x80].reserved4 = 0;
 		//set size bit
 		idt[0x80].size = 1;
