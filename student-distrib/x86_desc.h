@@ -73,7 +73,10 @@ typedef struct __attribute__((packed)) tss_t {
     uint32_t esp2;
     uint16_t ss2;
     uint16_t ss2_pad;
-
+/* Austin
+    uint16_t cr0;
+    uint16_t cr4;
+ */
     uint32_t cr3;
 
     uint32_t eip;
@@ -113,6 +116,14 @@ typedef struct __attribute__((packed)) tss_t {
     uint16_t io_pad     : 15;
     uint16_t io_base_addr;
 } tss_t;
+
+/* Austin
+    Declare page directory struct
+    */
+
+/* Austin
+    Declare page table struct
+    */
 
 /* Some external descriptors declared in .S files */
 extern x86_desc_t gdt_desc;

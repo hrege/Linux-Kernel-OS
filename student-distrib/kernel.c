@@ -140,6 +140,23 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the PIC */
     i8259_init();
 
+    /* Austin
+        Initialize a Page Directory
+        Put address in cr3
+        Call paging_enable(); // Outlined in lib.c/h
+        Set CR4[4] -> 1 //Sets Page Size Extensions
+        Initialize a Page Table
+        Set PDEs based on ISA vol. 3, page 3-32
+            Set a PDE for the 4MB kernel page for 4MB-8MB in Physical Memory
+            Set a PDE for the Page Table for 0MB-8MB in Physical Memory
+            Rest of PDEs are not present
+        Set PTEs based on ISA vol. 3, page 3-32
+            Set a PTE for the Video memory
+            Rest of PTEs are not present
+
+        int some_variable __attribute__((aligned (BYTES_TO_ALIGN_TO)));
+     */
+
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
      rtc_init();
@@ -147,8 +164,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
+    printf("Enabling Interrupts\n");
+    sti();
 
 #ifdef RUN_TESTS
     /* Run tests */
