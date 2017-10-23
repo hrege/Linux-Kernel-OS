@@ -33,6 +33,7 @@ int idt_test(){
 	TEST_HEADER;
 
 	int i;
+	i = 5/0;
 	int result = PASS;
 	for (i = 0; i < 10; ++i){
 		if ((idt[i].offset_15_00 == NULL) && 
@@ -41,7 +42,6 @@ int idt_test(){
 			result = FAIL;
 		}
 	}
-
 	return result;
 }
 

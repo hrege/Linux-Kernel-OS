@@ -87,7 +87,7 @@ void idt_init() {
 		idt[0x80].present = 1;
 		SET_IDT_ENTRY(idt[0x80], &sys_call);
 
-		/*Initialize interrupt IDT entries*/
+		/*Initialize keyboard interrupt IDT entry*/
 		idt[0x21].seg_selector = KERNEL_CS; 
 		//set reserved bits
 		idt[0x21].reserved0 = 0;
@@ -103,6 +103,8 @@ void idt_init() {
 		idt[0x21].present = 1;
 		SET_IDT_ENTRY(idt[0x21], &get_char);
 
+
+		/*Initialize RTC interrupt IDT entry*/
 		idt[0x28].seg_selector = KERNEL_CS; 
 		//set reserved bits
 		idt[0x28].reserved0 = 0;
@@ -181,7 +183,7 @@ void device_not_available(){
 }
 
 void double_fault(){
-	printf("double_fault");
+	printf("this is a double_fault");
 	while(1);
 
 }
