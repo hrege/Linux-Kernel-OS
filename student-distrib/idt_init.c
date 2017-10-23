@@ -3,6 +3,7 @@
 #include "idt_init.h"
 #include "lib.h"
 #include "types.h"
+#include "i8259.h"
 
 int i, addr; // loop variable
 char exceptions[20];
@@ -23,13 +24,11 @@ void idt_init() {
 		//set dpl bits
 		idt[i].dpl = 0;
 		//Ignore initialization for 15
-			idt[i].present = 0;
-
-
+		idt[i].present = 0;
 	}
+
 	/*Set exception IDT entries*/
 	for(i = 0; i < 20; i ++){
-
 		if(i != 15){
 		//set seg_selector bits
 		idt[i].seg_selector = KERNEL_CS; 
@@ -44,7 +43,7 @@ void idt_init() {
 		//set dpl bits
 		idt[i].dpl = 0;
 		//Ignore initialization for 15
-			idt[i].present = 1;
+		idt[i].present = 1;
 		}
 	}
 
@@ -127,15 +126,12 @@ void idt_init() {
 
 }
 
-
-
 /*Assembly linkage for C handlers*/
 void divide_by_zero(){
 	__asm__("pusha\n\t"
 			"call divide_by_zero_hlp\n\t"
 			"popa\n\t"
 			"IRET\n\t");
-
 }
 
 //vector # 1 reserved for Intel use
@@ -144,7 +140,6 @@ void debug(){
 			"call debug_hlp\n\t"
 			"popa\n\t"
 			"IRET\n\t");
-
 }
 
 void nmi_interrupt(){
@@ -152,7 +147,6 @@ void nmi_interrupt(){
 			"call nmi_interrupt_hlp\n\t"
 			"popa\n\t"
 			"IRET\n\t");
-
 }
 
 void breakpoint(){
@@ -160,7 +154,6 @@ void breakpoint(){
 			"call breakpoint_hlp\n\t"
 			"popa\n\t"
 			"IRET\n\t");
-
 }
 
 void overflow(){
@@ -337,22 +330,19 @@ void rtc_int(){
 
 void divide_by_zero_hlp(){
 	printf("divide_by_zero\n");
-
-
-
+	printf("Hello");
+	while(1);
 }
 
 //vector # 1 reserved for Intel use
 void debug_hlp(){
 	printf("debug exception\n");
 	while(1);
-
 }
 
 void nmi_interrupt_hlp(){
 	printf("nmi_interrupt\n");
 	while(1);
-
 }
 
 void breakpoint_hlp(){
@@ -422,7 +412,7 @@ void stack_segment_hlp(){
 
 void general_protection_hlp(){
 	printf("general_protection\n");
-	//while(1);
+	while(1);
 
 }
 
@@ -467,8 +457,8 @@ void sys_call_hlp(){
 void get_char_hlp(){
 	char keyboard_input;
 	keyboard_input = inb(0x60);
-	printf(keyboard_input);
-	printf("\n");
+	//printf(keyboard_input);
+	printf("keyboard_handler\n");
 
 	send_eoi(0x21);
 
