@@ -475,33 +475,5 @@ void test_interrupts(void) {
     }
 }
 
-/* Austin
- * void* paging_enable(uint32_t* pdir_addr)
- *      Inputs: pdir_addr - pointer to the page directory
- *      Return Value: void
- *      Function: Enables PE Flag (CR0[0]) for protection enabling.
- *                Enables PG Flag (CR0[31]) for paging.
- *                Enables PSE Flag (CR4[4]) for size extensions.
- *                Sets CR3 to pdir_addr value.
- *      Side effects: Alters CR0, CR3 and CR4
- */
-/*
-void paging_enable(uint32_t* pdir_addr){
-    asm volatile ("                   \n\
-            .petop:                   \n\
-            movl %eax, cr0           \n\
-            orl  %eax, 0x80000001    \n\
-            movl cr0, %eax           \n\
-            jmp pemid                 \n\
-            .pemid:                   \n\
-            movl %eax, cr4           \n\
-            orl  %eax, 0x00000010    \n\
-            movl cr4, %eax           \n\
-            movl %eax, pdir_addr     \n\
-            movl cr3, %eax           \n\
-            .pedone:                  \n\
-            ");
-    return;
-}
-*/
+
 
