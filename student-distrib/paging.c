@@ -60,7 +60,7 @@
  *                flags to proper values. 
  *      Side effects: Alters CR0, CR3 and CR4
  */
-/*
+
 void paging_init(){
     uint32_t page_directory[1024] __attribute__((aligned (4096)));         // Construct a page directory
     uint32_t page_table[1024] __attribute__((aligned (4096)));             // Construct a page table                        
@@ -85,7 +85,7 @@ void paging_init(){
     //Set PTE for the Video memory at 0xB8000 bytes addressable = index 184 in table
     page_table[184] = 0x000B811B;
 }
-*/
+
 
 
 /* Author: Austin
@@ -98,8 +98,9 @@ void paging_init(){
  *                Sets CR3 to pdir_addr value.
  *      Side effects: Alters CR0, CR3 and CR4
  */
-/*
+
 void paging_enable(uint32_t* pdir_addr){
+    /*
     asm volatile ("                   \n\
             .petop:                   \n\
             movl %eax, cr0           \n\
@@ -114,8 +115,9 @@ void paging_enable(uint32_t* pdir_addr){
             movl cr3, %eax           \n\
             .pedone:                  \n\
             ");
+    */
     return;
 }
-*/
+
 
 

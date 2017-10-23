@@ -139,9 +139,8 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     //Initialize paging
-    /*
     paging_init();
-    */
+    
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
