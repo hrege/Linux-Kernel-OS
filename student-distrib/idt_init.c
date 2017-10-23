@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "idt_init.h"
 #include "lib.h"
+#include "types.h"
 
 int i, addr; // loop variable
 char exceptions[20];
@@ -31,7 +32,7 @@ void idt_init() {
 
 		if(i != 15){
 		//set seg_selector bits
-		idt[i].seg_selector = gdt_desc_ptr; //gedt_desc_ptr
+		idt[i].seg_selector = ((((uint16_t)gdt_desc_ptr.base_31_24) << 8) | (uint16_t)gdt_desc_ptr.base_23_16); //gedt_desc_ptr
 		//set reserved bits
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 1;

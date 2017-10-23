@@ -16,7 +16,7 @@ void double_fault();
 void coprocessor_segment_overrun();
 void invalid_tss();
 void segment_not_present();
-void stack_segement();
+void stack_segment();
 void general_protection();
 void page_fault();
 void fpu_floating_point_exception();
