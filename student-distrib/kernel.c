@@ -180,31 +180,31 @@ void entry(unsigned long magic, unsigned long addr) {
                 [2] - User/Supervisor
                 [1] - Read/Write
                 [0] - Present
-
-        uint32_t page_directory[1024] __attribute__((aligned (4096)));         // Construct a page directory
-        uint32_t page_table[1024] __attribute__((aligned (4096)));             // Construct a page table                        
-        paging_enable(uint32_t* page_directory);  // Set control registers to enable paging.
+    */
+/*
+    uint32_t page_directory[1024] __attribute__((aligned (4096)));         // Construct a page directory
+    uint32_t page_table[1024] __attribute__((aligned (4096)));             // Construct a page table                        
+    void paging_enable(uint32_t* page_directory);                          // Set control registers to enable paging.
     
-        //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-        page_directory[0] = ((page_table & 0xFFFFF000) | 0x01B);
+    //Set PDE for the Page Table for 0MB-4MB in Physical Memory
+    page_directory[0] = (((int)page_table & 0xFFFFF000) | 0x01B);
 
-        //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
-        page_directory[1] = 0x0400019B;
+    //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
+    page_directory[1] = 0x0400019B;
 
-        //Set rest of PDEs to "not present"
-        int i;
-        for(i = 2; i < 1024; i++)
-            page_directory[i] = 0x00000000;
+    //Set rest of PDEs to "not present"
+    int i;
+    for(i = 2; i < 1024; i++)
+        page_directory[i] = 0x00000000;
 
-        //Set rest of PTEs to "not present"
-        int j;
-        for(j = 0; j < 1024; j++)
-            page_table[j] = 0x00000000;
+    //Set rest of PTEs to "not present"
+    int j;
+    for(j = 0; j < 1024; j++)
+        page_table[j] = 0x00000000;
         
-        //Set PTE for the Video memory at 0xB8000 bytes addressable = index 184 in table
-        page_table[184] = 0x000B811B;
-
-     */
+    //Set PTE for the Video memory at 0xB8000 bytes addressable = index 184 in table
+    page_table[184] = 0x000B811B;
+    */
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */

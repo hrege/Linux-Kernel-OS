@@ -40,7 +40,6 @@ int idt_test(){
 			assertion_failure();
 			result = FAIL;
 		}
-		//printf("Still working in there?%d\n", i);
 	}
 	return result;
 }
@@ -48,20 +47,20 @@ int idt_test(){
 int keyboard_test(){
 	TEST_HEADER;
 	printf("PLZ WORK MR. KEYBOARD");
-	while(1){
-
-	}
+	while(1);
 	return 0;
-
 }
-
-// add more tests here
 
 int div_zero_test(){
 	TEST_HEADER;
 	int i;
 	i=5/0;
-	printf("hola2");
+	return PASS;
+}
+
+int paging_test(){
+	TEST_HEADER;
+	
 	return PASS;
 }
 
@@ -77,4 +76,5 @@ void launch_tests(){
 	TEST_OUTPUT("div_zero_test", div_zero_test());
 	//TEST_OUTPUT("keyboard_test", keyboard_test());
 	// launch your tests here
+	return;
 }
