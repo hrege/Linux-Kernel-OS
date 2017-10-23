@@ -15,7 +15,7 @@ int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
 void clear(void);
 /* Austin
-void paging_enable(uint32_t* reg0, uint32_t* reg3, uint32_t* reg4, uint32_t* pdir_addr);
+void paging_enable(uint32_t* pdir_addr);
 */
 
 void* memset(void* s, int32_t c, uint32_t n);
