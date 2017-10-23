@@ -16,20 +16,19 @@ void i8259_init(void) {
 
 	//Start initialization sequence with 0x11
 	outb(ICW1, MASTER_8259_PORT);
-	outb(ICW1, SLAVE_8259_PORT);
-
-	//Write ICW2
 	outb(ICW2_MASTER, MASTER_DATA_PORT);
-	outb(ICW2_SLAVE, SLAVE_DATA_PORT);
-
-	//Write ICW3
-	// if((ICW1 & 0x02) == 0) {
-		outb(ICW3_MASTER, MASTER_DATA_PORT);
-		outb(ICW3_SLAVE, SLAVE_DATA_PORT);
-	// }
-
+	outb(ICW3_MASTER, MASTER_DATA_PORT);
 	outb(ICW4, MASTER_DATA_PORT);
+
+	outb(ICW1, SLAVE_8259_PORT);
+	outb(ICW2_SLAVE, SLAVE_DATA_PORT);
+	outb(ICW3_SLAVE, SLAVE_DATA_PORT);
 	outb(ICW4, SLAVE_DATA_PORT);
+
+	master_mask &= ~(0x4);
+	outb(master_mask, MASTER_DATA_PORT);
+	outb(slave_mask, SLAVE_DATA_PORT);
+
 }
 
 /* Enable (unmask) the specified IRQ */
@@ -45,7 +44,13 @@ void enable_irq(uint32_t irq_num) {
 		irq_num -= 8;
 	}
 	value = inb(port) & ~(1 << irq_num);
-	outb(port, value);
+	if(irq_num < 8) {
+		master_mask = value;
+	}
+	else {
+		slave_mask = value;
+	}
+	outb(value, port);
 }
 
 /* Disable (mask) the specified IRQ */
@@ -62,13 +67,19 @@ void disable_irq(uint32_t irq_num) {
 	}
 
 	value = inb(port) | (1 << irq_num);
-	outb(port, value);
+	if(irq_num < 8) {
+		master_mask = value;
+	}
+	else {
+		slave_mask = value;
+	}
+	outb(value, port);
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
 	if(irq_num >= 8) {
-		outb(EOI, SLAVE_8259_PORT);
+		outb(EOI | irq_num, SLAVE_8259_PORT);
 	}
-	outb(EOI, MASTER_8259_PORT);
+	outb(EOI | irq_num, MASTER_8259_PORT);
 }
