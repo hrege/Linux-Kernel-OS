@@ -11,27 +11,29 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
-	cli();
+
+	outb(0xFF, MASTER_DATA_PORT);
+	outb(0xFF, SLAVE_DATA_PORT);
+
+
 	//Start initialization sequence with 0x11
-	outb(MASTER_8259_PORT, ICW1);
-	outb(SLAVE_8259_PORT, ICW1);
+	outb(ICW1, MASTER_8259_PORT);
+	outb(ICW1, SLAVE_8259_PORT);
 
 	//Write ICW2
-	outb(MASTER_DATA_PORT, ICW2_MASTER);
-	outb(SLAVE_DATA_PORT, ICW2_SLAVE);
+	outb(ICW2_MASTER, MASTER_DATA_PORT);
+	outb(ICW2_SLAVE, SLAVE_DATA_PORT);
 
 	//Write ICW3
-	if((ICW1 & 0x02) == 0) {
-		outb(MASTER_DATA_PORT, ICW3_MASTER);
-		outb(SLAVE_DATA_PORT, ICW3_SLAVE);
-	}
+	// if((ICW1 & 0x02) == 0) {
+		outb(ICW3_MASTER, MASTER_DATA_PORT);
+		outb(ICW3_SLAVE, SLAVE_DATA_PORT);
+	// }
 
-	outb(MASTER_DATA_PORT, ICW4);
-	outb(SLAVE_DATA_PORT, ICW4);
 
-	//Do we need to clear the ports after initialized?
+	outb(ICW4, MASTER_DATA_PORT);
+	outb(ICW4, SLAVE_DATA_PORT);
 
-	sti();
 }
 
 /* Enable (unmask) the specified IRQ */
@@ -46,8 +48,7 @@ void enable_irq(uint32_t irq_num) {
 		port = SLAVE_DATA_PORT;
 		irq_num -= 8;
 	}
-
-	value = inb(port) | (1 << irq_num);
+	value = inb(port) & ~(1 << irq_num);
 	outb(port, value);
 }
 
@@ -64,14 +65,14 @@ void disable_irq(uint32_t irq_num) {
 		irq_num -= 8;
 	}
 
-	value = inb(port) & ~(1 << irq_num);
+	value = inb(port) | (1 << irq_num);
 	outb(port, value);
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num) {
-	if(irq_num > 7) {
-		outb(SLAVE_8259_PORT, EOI);
+	if(irq_num >= 8) {
+		outb(EOI, SLAVE_8259_PORT);
 	}
-	outb(MASTER_8259_PORT, EOI);
+	outb(EOI, MASTER_8259_PORT);
 }
