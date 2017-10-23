@@ -148,7 +148,7 @@ void entry(unsigned long magic, unsigned long addr) {
                 [12] - Page Table Attribute Index
                 [11:9] - Available for system use
                 [8] - Global page (1 = global, 0 = not global)
-                [7] Page size (1 = 4MB-page, 0 = 4kB-page table)
+                [7] - Page size (1 = 4MB-page, 0 = 4kB-page table)
                 [6] - Dirty (1 = Written to, 0 = Clean or initialized)
                 [5] - Accessed (1 = Accessed, 0 = Not accessed or initialized)
                 [4] - Cache disabled (1 = Cache disabled, 0 = enabled)
@@ -160,7 +160,7 @@ void entry(unsigned long magic, unsigned long addr) {
                 [31:12] - Page-Table Base Address
                 [11:9] - Available for system use
                 [8] - Global page (ignored)
-                [7] Page size
+                [7] - Page size
                 [6] - Reserved (set to 0)
                 [5] - Accessed
                 [4] - Cache disabled
@@ -172,7 +172,7 @@ void entry(unsigned long magic, unsigned long addr) {
                 [31:12] - Page Base Address
                 [11:9] - Available for system use
                 [8] - Global page
-                [7] Page Table Attribute Index
+                [7] - Page Table Attribute Index
                 [6] - Dirty
                 [5] - Accessed
                 [4] - Cache disabled
@@ -180,26 +180,31 @@ void entry(unsigned long magic, unsigned long addr) {
                 [2] - User/Supervisor
                 [1] - Read/Write
                 [0] - Present
-
-        uint32_t page_directory[1024] __attribute__((aligned (4)));         // Construct a page directory
-        uint32_t page_table[1024] __attribute__((aligned (4)));             // Construct a page table                        
-        paging_enable(&(tss.cr0), &(tss.cr3), &(tss.cr4), page_directory);  // Set control registers to enable paging.
+    */
+/*
+    uint32_t page_directory[1024] __attribute__((aligned (4096)));         // Construct a page directory
+    uint32_t page_table[1024] __attribute__((aligned (4096)));             // Construct a page table                        
+    void paging_enable(uint32_t* page_directory);                          // Set control registers to enable paging.
     
-        //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-        page_directory[0] = ((page_table & 0xfffff000) | 0x01b);
+    //Set PDE for the Page Table for 0MB-4MB in Physical Memory
+    page_directory[0] = (((int)page_table & 0xFFFFF000) | 0x01B);
 
-        //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
-        page_directory[1] = 0x0400019b;
+    //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
+    page_directory[1] = 0x0400019B;
 
-        //Set rest of PDEs to "not present"
-        int i;
-        for(i = 2; i < 1024; i++)
-            page_directory[i] = 0x00000001;
+    //Set rest of PDEs to "not present"
+    int i;
+    for(i = 2; i < 1024; i++)
+        page_directory[i] = 0x00000000;
 
-        //Set PTE for the Video memory
-
-        //Set rest of PTEs to "not present"
-     */
+    //Set rest of PTEs to "not present"
+    int j;
+    for(j = 0; j < 1024; j++)
+        page_table[j] = 0x00000000;
+        
+    //Set PTE for the Video memory at 0xB8000 bytes addressable = index 184 in table
+    page_table[184] = 0x000B811B;
+    */
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */

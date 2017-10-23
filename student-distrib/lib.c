@@ -476,27 +476,32 @@ void test_interrupts(void) {
 }
 
 /* Austin
- * void paging_enable(uint32_t* reg0, uint32_t* reg3, uint32_t* reg4, uint32_t* pdir_addr)
- *      Inputs: reg0 - pointer to the CR0 control register
- *              reg3 - pointer to the CR3 control register
- *              reg4 - pointer to the CR4 control register
- *              pdir_addr - pointer to the page directory
- *      Output: void
- *      Function: Sets CR3 to pdir_addr value.
+ * void* paging_enable(uint32_t* pdir_addr)
+ *      Inputs: pdir_addr - pointer to the page directory
+ *      Return Value: void
+ *      Function: Enables PE Flag (CR0[0]) for protection enabling.
  *                Enables PG Flag (CR0[31]) for paging.
- *                Enables PE Flag (CR0[0]) for paging.
  *                Enables PSE Flag (CR4[4]) for size extensions.
- *                Disables PAE Flag (CR4[5]) to prevent address extensions.
- *      Side effects: Alters CR0, CR3, and CR4
+ *                Sets CR3 to pdir_addr value.
+ *      Side effects: Alters CR0, CR3 and CR4
  */
-/*void paging_enable(uint32_t* reg0, uint32_t* reg3, uint32_t* reg4, uint32_t* pdir_addr){
-    asm volatile ("                 \n\
-            .pe_top:                \n\
-            MOV CR0, REG            \n\
-            JMP memset_done         \n\
-            .pe_done:               \n\
-            "
-            : 
-    );
-    return ;
-}*/
+/*
+void paging_enable(uint32_t* pdir_addr){
+    asm volatile ("                   \n\
+            .petop:                   \n\
+            movl %eax, cr0           \n\
+            orl  %eax, 0x80000001    \n\
+            movl cr0, %eax           \n\
+            jmp pemid                 \n\
+            .pemid:                   \n\
+            movl %eax, cr4           \n\
+            orl  %eax, 0x00000010    \n\
+            movl cr4, %eax           \n\
+            movl %eax, pdir_addr     \n\
+            movl cr3, %eax           \n\
+            .pedone:                  \n\
+            ");
+    return;
+}
+*/
+

@@ -19,6 +19,7 @@ void segment_not_present();
 void stack_segment();
 void general_protection();
 void page_fault();
+void assertion_fail();
 void fpu_floating_point_exception();
 void alignment_check();
 void machine_check();
