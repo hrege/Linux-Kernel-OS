@@ -477,12 +477,19 @@ void test_interrupts(void) {
 
 /* Austin
  * void paging_enable(uint32_t* reg0, uint32_t* reg3, uint32_t* reg4, uint32_t* pdir_addr)
- *      Inputs: reg - pointer to the CR0 control register
+ *      Inputs: reg0 - pointer to the CR0 control register
+ *              reg3 - pointer to the CR3 control register
+ *              reg4 - pointer to the CR4 control register
+ *              pdir_addr - pointer to the page directory
  *      Output: void
- *      Function: Enables CR0[31] and CR0[0] for 4kB and 4MB paging
- *      Side effects: Alters value of CR0[0] and CR[31] (rest are preserved)
+ *      Function: Sets CR3 to pdir_addr value.
+ *                Enables PG Flag (CR0[31]) for paging.
+ *                Enables PE Flag (CR0[0]) for paging.
+ *                Enables PSE Flag (CR4[4]) for size extensions.
+ *                Disables PAE Flag (CR4[5]) to prevent address extensions.
+ *      Side effects: Alters CR0, CR3, and CR4
  */
-/*void paging_enable(uint32_t* reg){
+/*void paging_enable(uint32_t* reg0, uint32_t* reg3, uint32_t* reg4, uint32_t* pdir_addr){
     asm volatile ("                 \n\
             .pe_top:                \n\
             MOV CR0, REG            \n\
