@@ -474,3 +474,22 @@ void test_interrupts(void) {
         video_mem[i << 1]++;
     }
 }
+
+/* Austin
+ * void paging_enable();
+ *      Inputs: none
+ *      Output: void
+ *      Function: Enables CR[31] and CR[0] for 4kB and 4MB paging
+ *      Side effects: Alters values of CR0 and CR3
+ */
+/*void paging_enable(){
+    asm volatile ("                 \n\
+            .pe_top:                \n\
+            MOV CR0, REG            \n\
+            JMP memset_done         \n\
+            .pe_done:               \n\
+            "
+            : 
+    );
+    return ;
+}*/

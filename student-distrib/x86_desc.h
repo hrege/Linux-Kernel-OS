@@ -117,6 +117,14 @@ typedef struct __attribute__((packed)) tss_t {
     uint16_t io_base_addr;
 } tss_t;
 
+/* Austin
+    Declare page directory struct
+    */
+
+/* Austin
+    Declare page table struct
+    */
+
 /* Some external descriptors declared in .S files */
 extern x86_desc_t gdt_desc;
 
