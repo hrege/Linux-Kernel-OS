@@ -11,7 +11,7 @@ uint8_t slave_mask;  /* IRQs 8-15 */
 
 /* Initialize the 8259 PIC */
 void i8259_init(void) {
-	cli();
+	//cli();
 	//Start initialization sequence with 0x11
 	outb(MASTER_8259_PORT, ICW1);
 	outb(SLAVE_8259_PORT, ICW1);
@@ -31,7 +31,7 @@ void i8259_init(void) {
 
 	//Do we need to clear the ports after initialized?
 
-	sti();
+	//sti();
 }
 
 /* Enable (unmask) the specified IRQ */
