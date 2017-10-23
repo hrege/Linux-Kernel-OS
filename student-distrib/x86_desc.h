@@ -73,7 +73,10 @@ typedef struct __attribute__((packed)) tss_t {
     uint32_t esp2;
     uint16_t ss2;
     uint16_t ss2_pad;
-
+/* Austin
+    uint16_t cr0;
+    uint16_t cr4;
+ */
     uint32_t cr3;
 
     uint32_t eip;

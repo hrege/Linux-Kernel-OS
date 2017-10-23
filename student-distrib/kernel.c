@@ -139,6 +139,16 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Init the PIC */
     i8259_init();
 
+    /* Austin
+        Construct a static array for the Page Directory 
+        int some_variable __attribute__((aligned (BYTES_TO_ALIGN_TO)));
+        int 
+     */
+
+    /* Austin
+        Construct a static array for the Page Tables
+     */
+
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
 
