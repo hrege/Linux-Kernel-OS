@@ -147,20 +147,20 @@ void entry(unsigned long magic, unsigned long addr) {
                 [21:13] - Reserved (set to 0)
                 [12] - Page Table Attribute Index
                 [11:9] - Available for system use
-                [8] - Global page
-                [7] Page size (1 = 4MB-pages)
-                [6] - Dirty
-                [5] - Accessed
-                [4] - Cache disabled
-                [3] - Write-through
-                [2] - User/Supervisor
-                [1] - Read/Write
-                [0] - Present
+                [8] - Global page (1 = global, 0 = not global)
+                [7] Page size (1 = 4MB-page, 0 = 4kB-page table)
+                [6] - Dirty (1 = Written to, 0 = Clean or initialized)
+                [5] - Accessed (1 = Accessed, 0 = Not accessed or initialized)
+                [4] - Cache disabled (1 = Cache disabled, 0 = enabled)
+                [3] - Write-through (1 = Enable, 0 = Disable)
+                [2] - User/Supervisor (0 = Supervisor, 1 = User)
+                [1] - Read/Write (1 = R/W, 0 = R)
+                [0] - Present (1 = Present, 0 = Absent)
             PDE for 4kB-Page Table
                 [31:12] - Page-Table Base Address
                 [11:9] - Available for system use
                 [8] - Global page (ignored)
-                [7] Page size (0 = 4kB-pages)
+                [7] Page size
                 [6] - Reserved (set to 0)
                 [5] - Accessed
                 [4] - Cache disabled
@@ -183,22 +183,27 @@ void entry(unsigned long magic, unsigned long addr) {
 
         uint32_t page_directory[1024] __attribute__((aligned (4)));         // Construct a page directory
         uint32_t page_table[1024] __attribute__((aligned (4)));             // Construct a page table                        
-        paging_enable(&(tss.cr0), &(tss.cr3), &(tss.cr4), page_directory);  // Put directory address in CR3
-                                                                            // Set PG Flag (CR0[0]) and PE Flag (CR0[31])               
-                                                                            // Set Page Size Extension (CR4[4])
+        paging_enable(&(tss.cr0), &(tss.cr3), &(tss.cr4), page_directory);  // Set control registers to enable paging.
     
-        page_directory[0] = [31:22] addr to start of kernel + [21:13] 0 + 
-        page_directory[1] = 
-            Set a PDE for the 4MB kernel page for 4MB-8MB in Physical Memory
-            Set a PDE for the Page Table for 0MB-8MB in Physical Memory
-            Rest of PDEs are not present
-            Set a PTE for the Video memory
-            Rest of PTEs are not present
+        //Set PDE for the Page Table for 0MB-4MB in Physical Memory
+        page_directory[0] = ((page_table & 0xfffff000) | 0x01b);
+
+        //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
+        page_directory[1] = 0x0400019b;
+
+        //Set rest of PDEs to "not present"
+        int i;
+        for(i = 2; i < 1024; i++)
+            page_directory[i] = 0x00000001;
+
+        //Set PTE for the Video memory
+
+        //Set rest of PTEs to "not present"
      */
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
-    
+
      rtc_init();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

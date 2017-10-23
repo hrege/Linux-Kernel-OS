@@ -33,7 +33,6 @@ int idt_test(){
 	TEST_HEADER;
 
 	int i;
-	i = 5/0;
 	int result = PASS;
 	for (i = 0; i < 10; ++i){
 		if ((idt[i].offset_15_00 == NULL) && 
@@ -41,8 +40,19 @@ int idt_test(){
 			assertion_failure();
 			result = FAIL;
 		}
+		//printf("Still working in there?%d\n", i);
 	}
 	return result;
+}
+
+int keyboard_test(){
+	TEST_HEADER;
+	printf("PLZ WORK MR. KEYBOARD");
+	while(1){
+
+	}
+	return 0;
+
 }
 
 // add more tests here
@@ -56,5 +66,6 @@ int idt_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("keyboard_test", keyboard_test());
 	// launch your tests here
 }

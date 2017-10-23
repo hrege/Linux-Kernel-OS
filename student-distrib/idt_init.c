@@ -421,7 +421,7 @@ void stack_segment_hlp(){
 
 void general_protection_hlp(){
 	printf("general_protection");
-	while(1);
+	//while(1);
 
 }
 
