@@ -61,13 +61,14 @@ int keyboard_test(){
 *		Returns: always FAIL because you shouldn't reach return
 *		Side effects: tries to do '5 / 0' which should result in reaching the divide by zero excpetion handler
 */
+/*
 int div_zero_test(){
 	TEST_HEADER;
 	int i;
 	i=5/0;
 	return FAIL;
 }
-
+*/
 int paging_test(){
 	TEST_HEADER;
 	
