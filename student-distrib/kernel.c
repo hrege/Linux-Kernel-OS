@@ -138,7 +138,7 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     /* Init the PIC */
-   //i8259_init();
+   i8259_init();
 
     /* Austin
         PDE and PTE bits based on ISA Vol.3, pg. 3-32
@@ -204,7 +204,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
 
-    // rtc_init();
+    rtc_init();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
