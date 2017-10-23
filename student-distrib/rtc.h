@@ -8,7 +8,7 @@
 
 #define RTC_PORT	0x70
 #define RTC_PORT_TWO	(RTC_PORT + 1)
-#define 
+
 
 extern void rtc_init();
 
