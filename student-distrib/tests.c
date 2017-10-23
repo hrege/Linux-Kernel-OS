@@ -44,18 +44,28 @@ int idt_test(){
 	return result;
 }
 
+/* Doesn't actually test anything yet
 int keyboard_test(){
 	TEST_HEADER;
 	printf("PLZ WORK MR. KEYBOARD");
 	while(1);
 	return 0;
 }
+*/
 
+/* div_zero_test
+*		Description: tezts the divide by zero exception handler being called and such
+*		Author: Jonathan
+*		Input: None
+*		Output: None
+*		Returns: always FAIL because you shouldn't reach return
+*		Side effects: tries to do '5 / 0' which should result in reaching the divide by zero excpetion handler
+*/
 int div_zero_test(){
 	TEST_HEADER;
 	int i;
 	i=5/0;
-	return PASS;
+	return FAIL;
 }
 
 int paging_test(){

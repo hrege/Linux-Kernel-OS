@@ -8,7 +8,17 @@
 int i, addr; // loop variable
 char exceptions[20];
 
-
+/*
+*	idt_init
+*		Author: Sam
+*		Description:  This function is called in boot.S to initaialize and fill the idt
+*						-Each entry is first just filled (only important thing is that .present = 0)
+*						- IDT entries for ecxceptions, sys calls, and i/o handlers are filled
+*		Inputs: None
+*		Outputs: none
+* 		Returns: nothing
+*		Side effects: The idt is initialized and filled as appropriate
+*/
 void idt_init() {
 	/*Initialize all IDT entries to default unused*/
 	for(i = 0; i < 256; i++){
@@ -23,30 +33,47 @@ void idt_init() {
 		idt[i].size = 0;
 		//set dpl bits
 		idt[i].dpl = 0;
-		//Ignore initialization for 15
+		//set present flag
 		idt[i].present = 0;
 	}
 
-	/*Set exception IDT entries*/
+	/*Set exception IDT entries (using trap settings)*/
 	for(i = 0; i < 20; i ++){
-		if(i != 15){
 		//set seg_selector bits
 		idt[i].seg_selector = KERNEL_CS;
-		//set reserved bits
-		idt[i].reserved0 = 0;
-		idt[i].reserved1 = 1;
-		idt[i].reserved2 = 1;
-		idt[i].reserved3 = 1;
-		idt[i].reserved4 = 0;
-		//set size bit
-		idt[i].size = 1;
+		if(i==8){
+		/* different for double fault as it is handled by Task gate instead of trap gate */
+			//set reserved bits
+			idt[i].reserved0 = 0;
+			idt[i].reserved1 = 1;
+			idt[i].reserved2 = 0;
+			idt[i].reserved3 = 1;
+			idt[i].reserved4 = 0;
+			//set size bit
+			idt[i].size = 0;
+		}
+		else{
+			/* set as trap get descriptior */
+			//set reserved bits
+			idt[i].reserved0 = 0;
+			idt[i].reserved1 = 1;
+			idt[i].reserved2 = 1;
+			idt[i].reserved3 = 1;
+			idt[i].reserved4 = 0;
+			//set size bit
+			idt[i].size = 1;
+		}
 		//set dpl bits
 		idt[i].dpl = 0;
-		//Ignore initialization for 15
 		idt[i].present = 1;
-		}
 	}
 
+
+
+
+
+	/* Fill in exception handlers in locations defined by intel   */
+	/* and add 15 to be an assertion error  */
 		SET_IDT_ENTRY(idt[0], &divide_by_zero);
 		SET_IDT_ENTRY(idt[1], &debug);
 		SET_IDT_ENTRY(idt[2], &nmi_interrupt);
@@ -76,7 +103,7 @@ void idt_init() {
 		idt[0x80].reserved0 = 0;
 		idt[0x80].reserved1 = 1;
 		idt[0x80].reserved2 = 1;
-		idt[0x80].reserved3 = 1;
+		idt[0x80].reserved3 = 0;
 		idt[0x80].reserved4 = 0;
 		//set size bit
 		idt[0x80].size = 1;
@@ -123,7 +150,18 @@ void idt_init() {
 	return;
 }
 
-/*Assembly linkage for C handlers*/
+/*Assembly linkage functions for C handlers
+* Interface is same for all of them. See divide by zero for example */
+
+/*
+*	divide_by_zero()
+*		Author: Sam
+*		Description: This is an assembly linkage between to a handler from a divide 
+						by zero excpetion coming through the idt
+*		inputs: none
+*		outputs: none
+*		side effects: calls divide_by_zero_hlp function (later in this file)
+*/
 void divide_by_zero(){
 	__asm__("pusha\n\t"
 			"call divide_by_zero_hlp\n\t"
@@ -132,7 +170,6 @@ void divide_by_zero(){
 }
 
 //vector # 1 reserved for Intel use
-
 void debug(){
 	__asm__("pusha\n\t"
 			"call debug_hlp\n\t"
@@ -236,6 +273,7 @@ void page_fault(){
 }
 
 //vector 15 reserved for Intel use
+//Except we are using at assertion fail as specified in _____
 void assertion_fail(){
 	__asm__("pusha\n\t"
 			"call assertion_fail_hlp\n\t"
@@ -302,16 +340,25 @@ void rtc_int(){
 *
 *
 *
+*	EXCEPTION HANDLERS
 *
 *
-*
-*
-*
-*
-*
+*	These currently all just print out that you made it to that exception
+*	Full interfaces for each will be created once they have actual
+* 	functionality. For now divide_by_zero_hlp has the general interface
 *
 */
 
+/*
+*	divide_by_zero_hlp
+*		Description: C Handler for the divide by zero exception
+*						-Current doesn't do much
+*		Input: none
+*		Output: none
+*		Return: Doesn't
+*		Side-effects: Prints the exception reached
+*
+*/
 void divide_by_zero_hlp(){
 	printf("divide_by_zero\n");
 	while(1);
@@ -415,6 +462,12 @@ void simd_floating_point_exception_hlp(){
 	printf("divide_by_zero\n");
 	while(1);
 }
+
+
+
+
+
+/****/
 
 void sys_call_hlp(){
 	printf("This is a system call\n");
