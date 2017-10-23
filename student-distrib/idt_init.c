@@ -14,12 +14,12 @@ void idt_init() {
 		idt[i].seg_selector = 0; //gedt_desc_ptr
 		//set reserved bits
 		idt[i].reserved0 = 0;
-		idt[i].reserved1 = 1;
-		idt[i].reserved2 = 1;
+		idt[i].reserved1 = 0;
+		idt[i].reserved2 = 0;
 		idt[i].reserved3 = 0;
 		idt[i].reserved4 = 0;
 		//set size bit
-		idt[i].size = 1;
+		idt[i].size = 0;
 		//set dpl bits
 		idt[i].dpl = 0;
 		//Ignore initialization for 15
@@ -32,7 +32,7 @@ void idt_init() {
 
 		if(i != 15){
 		//set seg_selector bits
-		idt[i].seg_selector = ((((uint16_t)gdt_desc_ptr.base_31_24) << 8) | (uint16_t)gdt_desc_ptr.base_23_16); //gedt_desc_ptr
+		idt[i].seg_selector = KERNEL_CS; 
 		//set reserved bits
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 1;
@@ -47,6 +47,7 @@ void idt_init() {
 			idt[i].present = 1;
 		}
 	}
+
 
 		SET_IDT_ENTRY(idt[0], &divide_by_zero);
 		SET_IDT_ENTRY(idt[1], &debug);
@@ -67,6 +68,55 @@ void idt_init() {
 		SET_IDT_ENTRY(idt[17], &alignment_check);
 		SET_IDT_ENTRY(idt[18], &machine_check);
 		SET_IDT_ENTRY(idt[19], &simd_floating_point_exception);
+
+		/*Initialize interrupt IDT entries*/
+
+		/*Initialize system call IDT entries*/
+		idt[0x80].seg_selector = KERNEL_CS; 
+		//set reserved bits
+		idt[0x80].reserved0 = 0;
+		idt[0x80].reserved1 = 1;
+		idt[0x80].reserved2 = 1;
+		idt[0x80].reserved3 = 0;
+		idt[0x80].reserved4 = 0;
+		//set size bit
+		idt[0x80].size = 1;
+		//set dpl bits
+		idt[0x80].dpl = 3;
+		//Ignore initialization for 15
+		idt[0x80].present = 1;
+		SET_IDT_ENTRY(idt[0x80], &sys_call);
+
+		/*Initialize interrupt IDT entries*/
+		idt[0x21].seg_selector = KERNEL_CS; 
+		//set reserved bits
+		idt[0x21].reserved0 = 0;
+		idt[0x21].reserved1 = 1;
+		idt[0x21].reserved2 = 1;
+		idt[0x21].reserved3 = 0;
+		idt[0x21].reserved4 = 0;
+		//set size bit
+		idt[0x21].size = 1;
+		//set dpl bits
+		idt[0x21].dpl = 0;
+		//Ignore initialization for 15
+		idt[0x21].present = 1;
+		SET_IDT_ENTRY(idt[0x21], &get_char);
+
+		idt[0x28].seg_selector = KERNEL_CS; 
+		//set reserved bits
+		idt[0x28].reserved0 = 0;
+		idt[0x28].reserved1 = 1;
+		idt[0x28].reserved2 = 1;
+		idt[0x28].reserved3 = 0;
+		idt[0x28].reserved4 = 0;
+		//set size bit
+		idt[0x28].size = 1;
+		//set dpl bits
+		idt[0x28].dpl = 0;
+		//Ignore initialization for 15
+		idt[0x28].present = 1;
+		SET_IDT_ENTRY(idt[0x28], &rtc_int);
 
 
 	lidt (idt_desc_ptr);
@@ -200,3 +250,24 @@ void simd_floating_point_exception(){
 	while(1);
 
 }
+
+void sys_call(){
+	printf("This is a system call");
+
+}
+
+void get_char(){
+	printf("This is a keyboard interrupt");
+
+}
+
+void rtc_int(){
+	printf("This is an RTC interrupt");
+
+}
+
+
+
+
+
+
