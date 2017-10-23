@@ -23,6 +23,9 @@ void fpu_floating_point_exception();
 void alignment_check();
 void machine_check();
 void simd_floating_point_exception();
+void sys_call();
+void get_char();
+void rtc_int();
 
 #endif
 #endif /* IDT_INIT */ 
