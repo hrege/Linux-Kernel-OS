@@ -2,8 +2,12 @@
 #define IDT_INIT
 
 #ifndef ASM
+
+/* Main function to initialize the idt */
 extern void idt_init();
 
+/* The exception handlers. Currently all just print what they are
+ *  i.e. "This is double fault" */
 void divide_by_zero();
 void debug();
 void nmi_interrupt();
@@ -24,8 +28,14 @@ void fpu_floating_point_exception();
 void alignment_check();
 void machine_check();
 void simd_floating_point_exception();
+
+/* Handler for sys calls at x80 */
 void sys_call();
+
+/* Keyboard interrupt handler */
 void get_char();
+
+/* RTC Handler */
 void rtc_int();
 
 #endif

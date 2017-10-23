@@ -137,8 +137,6 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-    /* Init the PIC */
-   i8259_init();
 
     /* Austin
         PDE and PTE bits based on ISA Vol.3, pg. 3-32
@@ -209,6 +207,8 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
 
+    /* Init the PIC */
+    i8259_init();
     rtc_init();
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
