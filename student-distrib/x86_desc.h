@@ -74,8 +74,8 @@ typedef struct __attribute__((packed)) tss_t {
     uint16_t ss2;
     uint16_t ss2_pad;
 /* Austin
-    uint16_t cr0;
-    uint16_t cr4;
+    uint32_t cr0;
+    uint32_t cr4;
  */
     uint32_t cr3;
 
@@ -116,14 +116,6 @@ typedef struct __attribute__((packed)) tss_t {
     uint16_t io_pad     : 15;
     uint16_t io_base_addr;
 } tss_t;
-
-/* Austin
-    Declare page directory struct
-    */
-
-/* Austin
-    Declare page table struct
-    */
 
 /* Some external descriptors declared in .S files */
 extern x86_desc_t gdt_desc;
@@ -179,6 +171,7 @@ typedef union idt_desc_t {
 
 /* The IDT itself (declared in x86_desc.S */
 extern idt_desc_t idt[NUM_VEC];
+
 /* The descriptor used to load the IDTR */
 extern x86_desc_t idt_desc_ptr;
 

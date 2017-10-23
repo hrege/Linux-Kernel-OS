@@ -5,7 +5,7 @@ Team members:
 Jonathan Mullen (jtmulle2)
 Samuel Morris (srmorri2)
 Austin Born (ajborn2)
-__
+Hershel Dave-Rege (davereg2)
 
 -----
 ECE 391 MP3 
