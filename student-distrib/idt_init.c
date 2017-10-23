@@ -337,7 +337,7 @@ void rtc_int(){
 
 void divide_by_zero_hlp(){
 	printf("divide_by_zero");
-	//while(1);
+
 
 }
 
@@ -467,13 +467,14 @@ void get_char_hlp(){
 	char keyboard_input;
 	keyboard_input = inb(0x60);
 	printf(keyboard_input);
+	send_eoi(0x21);
 
 	
 }
 
 void rtc_int_hlp(){
 	printf("This is an RTC interrupt");
-
+	send_eoi(0x28);
 }
 
 
