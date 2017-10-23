@@ -336,97 +336,98 @@ void rtc_int(){
 */
 
 void divide_by_zero_hlp(){
-	printf("divide_by_zero");
-	//while(1);
+	printf("divide_by_zero\n");
+
+
 
 }
 
 //vector # 1 reserved for Intel use
 void debug_hlp(){
-	printf("debug exception");
+	printf("debug exception\n");
 	while(1);
 
 }
 
 void nmi_interrupt_hlp(){
-	printf("nmi_interrupt");
+	printf("nmi_interrupt\n");
 	while(1);
 
 }
 
 void breakpoint_hlp(){
-	printf("breakpoint");
+	printf("breakpoint\n");
 	while(1);
 
 }
 
 void overflow_hlp(){
-	printf("divide_by_zero");
+	printf("divide_by_zero\n");
 	while(1);
 
 }
 
 
 void bound_range_exceeded_hlp(){
-	printf("bound_range_exceeded");
+	printf("bound_range_exceeded\n");
 	while(1);
 
 }
 
 
 void invalid_opcode_hlp(){
-	printf("invalid_opcode");
+	printf("invalid_opcode\n");
 	while(1);
 
 }
 
 
 void device_not_available_hlp(){
-	printf("device_not_available");
+	printf("device_not_available\n");
 	while(1);
 
 }
 
 void double_fault_hlp(){
-	printf("this is a double_fault");
+	printf("this is a double_fault\n");
 	while(1);
 
 }
 
 
 void coprocessor_segment_overrun_hlp(){
-	printf("coprocessor_segment_overrun");
+	printf("coprocessor_segment_overrun\n");
 	while(1);
 
 }
 
 
 void invalid_tss_hlp(){
-	printf("invalid_tss");
+	printf("invalid_tss\n");
 	while(1);
 
 }
 
 void segment_not_present_hlp(){
-	printf("segment_not_present");
+	printf("segment_not_present\n");
 	while(1);
 
 }
 
 void stack_segment_hlp(){
-	printf("stack_segment_fault");
+	printf("stack_segment_fault\n");
 	while(1);
 
 }
 
 void general_protection_hlp(){
-	printf("general_protection");
+	printf("general_protection\n");
 	//while(1);
 
 }
 
 void page_fault_hlp(){
-	printf("page_fault");
+	printf("page_fault\n");
 	while(1);
 
 }
@@ -434,32 +435,32 @@ void page_fault_hlp(){
 //vector 15 reserved for Intel use
 
 void fpu_floating_point_exception_hlp(){
-	printf("floating_point_exception");
+	printf("floating_point_exception\n");
 	while(1);
 
 }
 
 
 void alignment_check_hlp(){
-	printf("alignment_check");
+	printf("alignment_check\n");
 	while(1);
 
 }
 
 void machine_check_hlp(){
-	printf("machine_check");
+	printf("machine_check\n");
 	while(1);
 
 }
 
 void simd_floating_point_exception_hlp(){
-	printf("divide_by_zero");
+	printf("divide_by_zero\n");
 	while(1);
 
 }
 
 void sys_call_hlp(){
-	printf("This is a system call");
+	printf("This is a system call\n");
 
 }
 
@@ -467,12 +468,16 @@ void get_char_hlp(){
 	char keyboard_input;
 	keyboard_input = inb(0x60);
 	printf(keyboard_input);
+	printf("\n");
+
+	send_eoi(0x21);
 
 	
 }
 
 void rtc_int_hlp(){
-	printf("This is an RTC interrupt");
+	printf("This is an RTC interrupt\n");
+	send_eoi(0x28);
 
 }
 

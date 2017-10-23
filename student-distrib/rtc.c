@@ -4,6 +4,7 @@
 */
 
 #include "lib.h"
+#include "rtc.h"
 
 void rtc_init() {
   /* Initialize registers used for RTC and CMOS. */
