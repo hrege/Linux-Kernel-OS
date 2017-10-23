@@ -31,7 +31,7 @@ void idt_init() {
 	for(i = 0; i < 20; i ++){
 		if(i != 15){
 		//set seg_selector bits
-		idt[i].seg_selector = KERNEL_CS; 
+		idt[i].seg_selector = KERNEL_CS;
 		//set reserved bits
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 1;
@@ -71,7 +71,7 @@ void idt_init() {
 		/*Initialize interrupt IDT entries*/
 
 		/*Initialize system call IDT entries*/
-		idt[0x80].seg_selector = KERNEL_CS; 
+		idt[0x80].seg_selector = KERNEL_CS;
 		//set reserved bits
 		idt[0x80].reserved0 = 0;
 		idt[0x80].reserved1 = 1;
@@ -87,7 +87,7 @@ void idt_init() {
 		SET_IDT_ENTRY(idt[0x80], &sys_call);
 
 		/*Initialize keyboard interrupt IDT entry*/
-		idt[0x21].seg_selector = KERNEL_CS; 
+		idt[0x21].seg_selector = KERNEL_CS;
 		//set reserved bits
 		idt[0x21].reserved0 = 0;
 		idt[0x21].reserved1 = 1;
@@ -103,7 +103,7 @@ void idt_init() {
 		SET_IDT_ENTRY(idt[0x21], &get_char);
 
 		/*Initialize RTC interrupt IDT entry*/
-		idt[0x28].seg_selector = KERNEL_CS; 
+		idt[0x28].seg_selector = KERNEL_CS;
 		//set reserved bits
 		idt[0x28].reserved0 = 0;
 		idt[0x28].reserved1 = 1;
@@ -424,11 +424,12 @@ void get_char_hlp(){
 	keyboard_input = inb(0x60);
 	//printf(keyboard_input);
 	printf("keyboard_handler\n");
-	send_eoi(0x21);
+	send_eoi(1);
 }
 
 void rtc_int_hlp(){
 	printf("This is an RTC interrupt\n");
+	outb(0x70, 0x0C);
+	inb(0x71);
 	send_eoi(8);
 }
-
