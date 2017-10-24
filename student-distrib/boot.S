@@ -29,7 +29,7 @@ continue:
     # Load the GDT ~Sam 
     lgdt    gdt_desc_ptr
 
-    # Fill the IDT ~Jonathan
+    # Initialize/Fill the IDT ~Jonathan
     pusha
     call idt_init
     popa

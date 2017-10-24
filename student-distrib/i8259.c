@@ -9,7 +9,14 @@
 uint8_t master_mask; /* IRQs 0-7  */
 uint8_t slave_mask;  /* IRQs 8-15 */
 
-/* Initialize the 8259 PIC */
+/* i8259_init
+*		Description: Initialize the 8259 PIC
+*		Author: Hershel
+*		Input: none
+*		Output: none
+*		Return: none
+*		Side effects: pic is enabled
+*/
 void i8259_init(void) {
 	unsigned long flags;
 
@@ -38,7 +45,14 @@ void i8259_init(void) {
 
 }
 
-/* Enable (unmask) the specified IRQ */
+/*	enable_irq
+*		Description: Enable (unmask) the specified IRQ 
+*		Author: Hershel
+*		Input: irq number
+*		Outputs: none
+*		Returns: none
+*		Side effect: enable the given irq
+*/
 void enable_irq(uint32_t irq_num) {
 	uint16_t port;
 	uint8_t value;
@@ -60,7 +74,14 @@ void enable_irq(uint32_t irq_num) {
 	outb(value, port);
 }
 
-/* Disable (mask) the specified IRQ */
+/*	disable_irq
+*		Description: Disable (mask) the specified IRQ 
+*		Author: Hershel
+*		Input: the IRQ to mask
+*		Output: none
+*		Returns: none
+*		Side effects: given irq is masked
+*/
 void disable_irq(uint32_t irq_num) {
 	uint16_t port;
 	uint8_t value;
@@ -83,7 +104,14 @@ void disable_irq(uint32_t irq_num) {
 	outb(value, port);
 }
 
-/* Send end-of-interrupt signal for the specified IRQ */
+/* send_eoi
+*		Description: Send end-of-interrupt signal for the specified IRQ 
+*		Author: Hershel
+*		Input: The irq_number to send the eoi to
+*		Output: none
+*		Returns: none
+*		Side-effect: EOI wirtten to the device
+*/
 void send_eoi(uint32_t irq_num) {
 	if(irq_num >= 8) {
 		outb(EOI | (irq_num-8), SLAVE_8259_PORT);
