@@ -8,6 +8,10 @@
 #include "i8259.h"
 #include "paging.h"
 
+#define VIDEO 0xB8000                       //Identical definition as in lib.c
+
+//extern tss_t tss;
+
 #define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
 #define VID_PTE VIDEO/TABLE_SIZE/4          //Video memory at 0xB8000 bytes addressable = index 184 in table
 
@@ -104,22 +108,22 @@ void paging_init(){
  *                Sets CR3 to pdir_addr value.
  *      Side effects: Alters CR0, CR3 and CR4
  */
-
+//, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
-    /*
     asm volatile ("                   \n\
-            movl cr0, %eax            \n\
-            orl  0x80000001, %eax     \n\
-            movl %eax, cr0            \n\
-            jmp pemid                 \n\
-            .pemid:                   \n\
-            movl cr4, %eax            \n\
-            orl  0x00000010, %eax     \n\
-            movl  %eax, cr4           \n\
-            movl pdir_addr, %eax      \n\
-            movl %eax, cr3            \n\
-            ");
-    */
+            movl %%cr0, %%eax            \n\
+            orl  0x80000001, %%eax     \n\
+            movl %%eax, %%cr0            \n\
+            movl %%cr4, %%eax            \n\
+            orl  0x00000010, %%eax     \n\
+            movl %%eax, %%cr4           \n\
+            movl %0, %%eax      \n\
+            movl %%eax, %%cr3            \n\
+            "
+            :
+            : "m"(pdir_addr)
+            : "eax", "memory", "cc"
+    );
     return;
 }
 /* Things to fix:
