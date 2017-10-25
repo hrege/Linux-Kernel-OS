@@ -17,18 +17,20 @@
  */
 
 void rtc_init() {
-  /* Initialize registers used for RTC and CMOS. */
  // cli(); //currently called inside cli
-  
-  outb(RTC_A_REG, RTC_PORT);
-  outb(0x20, RTC_PORT_CMOS); // Can't write to it before reading it?
+  printf("Initializing RTC\n");
+  /* Initialize registers used for RTC and CMOS. */
+  outb(RTC_A_REG, RTC_PORT);  //disable NMI
+
+  //outb(0x20, RTC_PORT_CMOS); // Can't write to it before reading it?
 
   /* Turn on periodic interrupts through IRQ8. */
-  outb(RTC_B_REG, RTC_PORT);
-  char prev = inb(RTC_PORT_CMOS);
-  outb(RTC_B_REG, RTC_PORT);
-  outb((prev | 0x40), RTC_PORT_CMOS);
+  outb(RTC_B_REG, RTC_PORT);        //select reg B
+  char prev = inb(RTC_PORT_CMOS);   // Read reg B
+  outb(RTC_B_REG, RTC_PORT);        //set index
+  outb((prev | 0x40), RTC_PORT_CMOS); //re-write old value with bit 6 turned on
 
-
+  //enable the IRQ address for the rtcuser
+  enable_irq(8);
   //sti();
 }

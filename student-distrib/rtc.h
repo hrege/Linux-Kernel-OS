@@ -11,8 +11,8 @@
 #define	RTC_PIC_IRQ	8	//RTC is line 8 on the PIC 
 
 /* RTC Registers */
-#define RTC_A_REG	x8A
-#define	RTC_B_REG	x8B
+#define RTC_A_REG	0x8A
+#define	RTC_B_REG	0x8B
 
 
 
