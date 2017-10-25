@@ -12,7 +12,7 @@
 /* Interrupt masks to determine which interrupts are enabled and disabled */
 uint8_t master_mask; /* IRQs 0-7  */
 uint8_t slave_mask;  /* IRQs 8-15 */
-
+int i;
 /* i8259_init
 *		Description: Initialize the 8259 PIC
 *		Author: Hershel
@@ -50,9 +50,14 @@ void i8259_init(void) {
 	outb(master_mask, MASTER_DATA_PORT);
 	outb(slave_mask, SLAVE_DATA_PORT);
 
-	enable_irq(1);
-	enable_irq(8);
-	enable_irq(2);
+	for(i = 0; i < 16; i++) {
+		disable_irq(i);
+	}
+
+	//disable_irq(0);
+	//disable_irq(1);
+	//disable_irq(8);
+	//disable_irq(2);
 
 	/* Restore flags to original state. */
 	// restore_flags(flags);
