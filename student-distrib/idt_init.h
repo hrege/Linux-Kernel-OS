@@ -39,5 +39,4 @@ void get_char();
 void rtc_int();
 
 #endif
-#endif /* IDT_INIT */ 
-
+#endif /* IDT_INIT */
