@@ -5,9 +5,7 @@
 #include "types.h"
 #include "i8259.h"
 
-int i, addr; // loop variable
-char exceptions[20];
-
+ int i, addr; // loop variable
 /*
 *	idt_init
 *		Author: Sam
@@ -67,10 +65,6 @@ void idt_init() {
 		idt[i].dpl = 0;
 		idt[i].present = 1;
 	}
-
-
-
-
 
 	/* Fill in exception handlers in locations defined by intel   */
 	/* and add 15 to be an assertion error  */
@@ -156,7 +150,7 @@ void idt_init() {
 /*
 *	divide_by_zero()
 *		Author: Sam
-*		Description: This is an assembly linkage between to a handler from a divide 
+*		Description: This is an assembly linkage between to a handler from a divide
 						by zero excpetion coming through the idt
 *		inputs: none
 *		outputs: none
@@ -475,11 +469,16 @@ void sys_call_hlp(){
 }
 
 void get_char_hlp(){
-	char keyboard_input;
-	keyboard_input = inb(0x60);
-	//printf(keyboard_input);
-	printf("keyboard_handler\n");
-	send_eoi(1);
+  unsigned char keyboard_status;
+  char keyboard_input;
+
+  keyboard_status = inb(0x64);
+  if((keyboard_status & 0x01) != 0) {
+    keyboard_input = inb(0x60);
+    //use scancode mapping
+	}
+
+  send_eoi(1);
 }
 
 void rtc_int_hlp(){
