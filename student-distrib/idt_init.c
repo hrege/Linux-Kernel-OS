@@ -20,7 +20,7 @@
 void idt_init() {
 	/*Initialize all IDT entries to default unused*/
 	for(i = 0; i < 256; i++){
-		idt[i].seg_selector = 0; //gedt_desc_ptr
+		idt[i].seg_selector = KERNEL_CS; 
 		//set reserved bits
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 0;
