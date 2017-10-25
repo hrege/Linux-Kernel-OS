@@ -219,7 +219,8 @@ void device_not_available(){
 void double_fault(){
 	__asm__("pusha\n\t"
 			"call double_fault_hlp\n\t"
-			"popa\n\t");
+			"popa\n\t"
+			"IRET\n\t");
 }
 
 

@@ -1,5 +1,5 @@
 // Paging Initialization and Enabling
-
+//////////////////
 //include defines etc.
 #include "x86_desc.h"
 #include "idt_init.h"
@@ -7,6 +7,13 @@
 #include "types.h"
 #include "i8259.h"
 #include "paging.h"
+
+#define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
+#define VID_PTE VIDEO/TABLE_SIZE/4          //Video memory at 0xB8000 bytes addressable = index 184 in table
+
+//Initialize Page Directory and Page Table
+static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4*TABLE_SIZE)));         // Construct a page directory
+static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4*TABLE_SIZE)));             // Construct a page table     
 
 /* Author: Austin
         PDE and PTE bits based on ISA Vol.3, pg. 3-32
@@ -61,10 +68,9 @@
  *      Side effects: Alters CR0, CR3 and CR4
  */
 
-void paging_init(){
-    uint32_t page_directory[1024] __attribute__((aligned (4096)));         // Construct a page directory
-    uint32_t page_table[1024] __attribute__((aligned (4096)));             // Construct a page table                        
-    paging_enable(page_directory);                                         // Set control registers to enable paging.
+void paging_init(){         
+    // Set control registers to enable paging.          
+    paging_enable(page_directory);    
     
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
     page_directory[0] = (((int)page_table & 0xFFFFF000) | 0x01B);
@@ -74,16 +80,16 @@ void paging_init(){
 
     //Set rest of PDEs to "not present"
     int i;
-    for(i = 2; i < 1024; i++)
+    for(i = 2; i < TABLE_SIZE; i++)
         page_directory[i] = 0x00000000;
 
     //Set rest of PTEs to "not present"
     int j;
-    for(j = 0; j < 1024; j++)
+    for(j = 0; j < TABLE_SIZE; j++)
         page_table[j] = 0x00000000;
         
-    //Set PTE for the Video memory at 0xB8000 bytes addressable = index 184 in table
-    page_table[184] = 0x000B811B;
+    //Set PTE for the video memory
+    page_table[VID_PTE] = 0x000B811B;
 }
 
 
@@ -102,22 +108,25 @@ void paging_init(){
 void paging_enable(uint32_t* pdir_addr){
     /*
     asm volatile ("                   \n\
-            .petop:                   \n\
-            movl %eax, cr0           \n\
-            orl  %eax, 0x80000001    \n\
-            movl cr0, %eax           \n\
+            movl cr0, %eax            \n\
+            orl  0x80000001, %eax     \n\
+            movl %eax, cr0            \n\
             jmp pemid                 \n\
             .pemid:                   \n\
-            movl %eax, cr4           \n\
-            orl  %eax, 0x00000010    \n\
-            movl cr4, %eax           \n\
-            movl %eax, pdir_addr     \n\
-            movl cr3, %eax           \n\
-            .pedone:                  \n\
+            movl cr4, %eax            \n\
+            orl  0x00000010, %eax     \n\
+            movl  %eax, cr4           \n\
+            movl pdir_addr, %eax      \n\
+            movl %eax, cr3            \n\
             ");
     */
     return;
 }
-
+/* Things to fix:
+ * - Need the % for registers?
+ * - Move jmp instruction (or take out)
+ * - Add addresses for cr0, cr3, and cr4
+ * - Video memory location?
+ */
 
 
