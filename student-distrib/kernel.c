@@ -138,18 +138,17 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-    idt_init();
 
-    //Initialize paging
+    /* Initialize Everything and turn on interrupts */
+
+    /* Initialize PIC */
+    i8259_init();
+
+    /* Set Up Paging */
     //paging_init();
 
-
-    /* Initialize devices, memory, filesystem, enable device interrupts on the
-     * PIC, any other initialization stuff... */
-
-    /* Init the PIC */
-    i8259_init();
-    //rtc_init();
+    /* Initialize Devices (rtc & keyboard) */
+    rtc_init();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
@@ -157,7 +156,7 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-   // asm volatile("int $0x28");
+    volatile("int $0x28");
 
 #ifdef RUN_TESTS
     /* Run tests */
