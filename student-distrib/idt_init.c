@@ -20,7 +20,7 @@
 void idt_init() {
 	/*Initialize all IDT entries to default unused*/
 	for(i = 0; i < 256; i++){
-		idt[i].seg_selector = 0; //gedt_desc_ptr
+		idt[i].seg_selector = KERNEL_CS; 
 		//set reserved bits
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 0;
@@ -44,11 +44,11 @@ void idt_init() {
 			//set reserved bits
 			idt[i].reserved0 = 0;
 			idt[i].reserved1 = 1;
-			idt[i].reserved2 = 0;
+			idt[i].reserved2 = 1;
 			idt[i].reserved3 = 1;
 			idt[i].reserved4 = 0;
 			//set size bit
-			idt[i].size = 0;
+			idt[i].size = 1;
 		}
 		else{
 			/* set as trap get descriptior */
@@ -160,6 +160,7 @@ void divide_by_zero(){
 	__asm__("pusha\n\t"
 			"call divide_by_zero_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -168,6 +169,7 @@ void debug(){
 	__asm__("pusha\n\t"
 			"call debug_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -175,6 +177,7 @@ void nmi_interrupt(){
 	__asm__("pusha\n\t"
 			"call nmi_interrupt_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -182,6 +185,7 @@ void breakpoint(){
 	__asm__("pusha\n\t"
 			"call breakpoint_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -189,6 +193,7 @@ void overflow(){
 	__asm__("pusha\n\t"
 			"call overflow_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -197,6 +202,7 @@ void bound_range_exceeded(){
 	__asm__("pusha\n\t"
 			"call bound_range_exceeded_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -205,6 +211,7 @@ void invalid_opcode(){
 	__asm__("pusha\n\t"
 			"call invalid_opcode_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -213,6 +220,7 @@ void device_not_available(){
 	__asm__("pusha\n\t"
 			"call device_not_available_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -220,6 +228,7 @@ void double_fault(){
 	__asm__("pusha\n\t"
 			"call double_fault_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -228,6 +237,7 @@ void coprocessor_segment_overrun(){
 	__asm__("pusha\n\t"
 			"call coprocessor_segment_overrun_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -236,6 +246,7 @@ void invalid_tss(){
 	__asm__("pusha\n\t"
 			"call invalid_tss_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -243,6 +254,7 @@ void segment_not_present(){
 	__asm__("pusha\n\t"
 			"call segment_not_present_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -250,6 +262,7 @@ void stack_segment(){
 	__asm__("pusha\n\t"
 			"call stack_segment_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -257,6 +270,7 @@ void general_protection(){
 	__asm__("pusha\n\t"
 			"call general_protection_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -264,6 +278,7 @@ void page_fault(){
 	__asm__("pusha\n\t"
 			"call page_fault_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -273,6 +288,7 @@ void assertion_fail(){
 	__asm__("pusha\n\t"
 			"call assertion_fail_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -280,6 +296,7 @@ void fpu_floating_point_exception(){
 	__asm__("pusha\n\t"
 			"call fpu_floating_point_exception_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -287,6 +304,7 @@ void alignment_check(){
 	__asm__("pusha\n\t"
 			"call alignment_check_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 
 }
@@ -295,6 +313,7 @@ void machine_check(){
 	__asm__("pusha\n\t"
 			"call machine_check_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 
 }
@@ -303,6 +322,7 @@ void simd_floating_point_exception(){
 	__asm__("pusha\n\t"
 			"call simd_floating_point_exception_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -310,6 +330,7 @@ void sys_call(){
 	__asm__("pusha\n\t"
 			"call sys_call_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -317,6 +338,7 @@ void get_char(){
 	__asm__("pusha\n\t"
 			"call get_char_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 
@@ -324,6 +346,7 @@ void rtc_int(){
 	__asm__("pusha\n\t"
 			"call rtc_int_hlp\n\t"
 			"popa\n\t"
+			"leave\n\t"
 			"IRET\n\t");
 }
 

@@ -12,7 +12,7 @@
 /* Interrupt masks to determine which interrupts are enabled and disabled */
 uint8_t master_mask; /* IRQs 0-7  */
 uint8_t slave_mask;  /* IRQs 8-15 */
-
+int i;
 /* i8259_init
 *		Description: Initialize the 8259 PIC
 *		Author: Hershel
@@ -28,8 +28,8 @@ void i8259_init(void) {
 	// cli_and_save(flags);
 	//
 	/* Mask all IRQ lines on both Master and Slave PICs. */
-	outb(FULL_MASK, MASTER_DATA_PORT);
-	outb(FULL_MASK, SLAVE_DATA_PORT);
+	//outb(FULL_MASK, MASTER_DATA_PORT);
+	//outb(FULL_MASK, SLAVE_DATA_PORT);
 
 	/* Write control word sequence for master PIC. */
 	outb(ICW1, MASTER_8259_PORT);
@@ -50,8 +50,14 @@ void i8259_init(void) {
 	outb(master_mask, MASTER_DATA_PORT);
 	outb(slave_mask, SLAVE_DATA_PORT);
 
-	enable_irq(1);
-	enable_irq(8);
+	for(i = 0; i < 16; i++) {
+		disable_irq(i);
+	}
+
+	//disable_irq(0);
+	//disable_irq(1);
+	//disable_irq(8);
+	//disable_irq(2);
 
 	/* Restore flags to original state. */
 	// restore_flags(flags);
@@ -72,15 +78,18 @@ void enable_irq(uint32_t irq_num) {
 	uint8_t value;				/* Hold data at corresponding IRQ line */
 
 	/* Set port to Master or Slave depending on IRQ line. */
-	if(irq_num < MAX_IRQ_LINES & irq_num != 2) {
+	if(irq_num < MAX_IRQ_LINES) {
 		port = MASTER_DATA_PORT;
+		outb(0xA, MASTER_8259_PORT);
 	}
 	else {
 		port = SLAVE_DATA_PORT;
 		irq_num -= MAX_IRQ_LINES;
+		outb(0xB, SLAVE_8259_PORT);
 	}
-
+	//Write control word to master from PIC data sheet to master_8259 port
 	/* Set specified IRQ line as active low. */
+
 	value = inb(port) & ~(1 << irq_num);
 
 	/* Set mask according to IRQ line. */
@@ -109,12 +118,14 @@ void disable_irq(uint32_t irq_num) {
 	/* Set port to Master or Slave depending on IRQ line. */
 	if(irq_num < MAX_IRQ_LINES) {
 		port = MASTER_DATA_PORT;
+		outb(0xA, MASTER_8259_PORT);
 	}
 	else {
 		port = SLAVE_DATA_PORT;
 		irq_num -= MAX_IRQ_LINES;
+		outb(0xB, SLAVE_8259_PORT);
 	}
-
+	//Write control word to master from PIC data sheet to master_8259 port
 	/* Set specified IRQ line as active low. */
 	value = inb(port) | (1 << irq_num);
 
