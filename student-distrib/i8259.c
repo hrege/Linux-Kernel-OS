@@ -5,9 +5,10 @@
 #include "i8259.h"
 #include "lib.h"
 
-#define FULL_MASK			0xFF
-#define IGNORE_SLAVE	0x4
-#define MAX_IRQ_LINES	8
+#define FULL_MASK				0xFF
+#define IGNORE_SLAVE		0x4
+#define MAX_IRQ_LINES		8
+#define TOTAL_IRQ_LINES 16
 
 /* Interrupt masks to determine which interrupts are enabled and disabled */
 uint8_t master_mask; /* IRQs 0-7  */
@@ -22,15 +23,6 @@ int i;
 *		Side effects: pic is enabled
 */
 void i8259_init(void) {
-	//unsigned long flags;			/* Holds state of processor flags during PIC init */
-
-	// /* Mask all interrupts and save processor flags. */
-	// cli_and_save(flags);
-	//
-	/* Mask all IRQ lines on both Master and Slave PICs. */
-	//outb(FULL_MASK, MASTER_DATA_PORT);
-	//outb(FULL_MASK, SLAVE_DATA_PORT);
-
 	/* Write control word sequence for master PIC. */
 	outb(ICW1, MASTER_8259_PORT);
 	outb(ICW2_MASTER, MASTER_DATA_PORT);
@@ -50,19 +42,10 @@ void i8259_init(void) {
 	outb(master_mask, MASTER_DATA_PORT);
 	outb(slave_mask, SLAVE_DATA_PORT);
 
-	for(i = 0; i < 16; i++) {
+	/* Disable all potential interrupts from occuring before they are mapped properly. */
+	for(i = 0; i < TOTAL_IRQ_LINES; i++) {
 		disable_irq(i);
 	}
-
-	//disable_irq(0);
-	//disable_irq(1);
-	//disable_irq(8);
-	//disable_irq(2);
-
-	/* Restore flags to original state. */
-	// restore_flags(flags);
-	// sti();
-
 }
 
 /*	enable_irq
