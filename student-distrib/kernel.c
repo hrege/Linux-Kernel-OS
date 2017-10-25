@@ -1,7 +1,7 @@
 /* kernel.c - the C part of the kernel
  * vim:ts=4 noexpandtab
  */
-
+///////////
 #include "multiboot.h"
 #include "x86_desc.h"
 #include "lib.h"
@@ -9,7 +9,7 @@
 #include "debug.h"
 #include "tests.h"
 #include "rtc.h"
-#include "paging.h"
+//#include "paging.h"
 
 #define RUN_TESTS
 

@@ -4,7 +4,7 @@
 #include "lib.h"
 #include "types.h"
 #include "i8259.h"
-
+ 
  int i, addr; // loop variable
 /*
 *	idt_init

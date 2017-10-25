@@ -127,9 +127,6 @@ void paging_enable(uint32_t* pdir_addr){
     return;
 }
 /* Things to fix:
- * - Need the % for registers?
- * - Move jmp instruction (or take out)
- * - Add addresses for cr0, cr3, and cr4
  * - Video memory location?
  */
 

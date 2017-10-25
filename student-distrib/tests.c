@@ -2,7 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "idt_init.h"
-
+ 
 #define PASS 1
 #define FAIL 0
 
