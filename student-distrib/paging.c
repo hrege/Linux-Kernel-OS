@@ -103,21 +103,28 @@ void paging_enable(uint32_t* pdir_addr){
     /*
     asm volatile ("                   \n\
             .petop:                   \n\
-            movl %eax, cr0           \n\
-            orl  %eax, 0x80000001    \n\
-            movl cr0, %eax           \n\
+            movl %eax, cr0            \n\
+            orl  %eax, 0x80000001     \n\
+            movl cr0, %eax            \n\
             jmp pemid                 \n\
             .pemid:                   \n\
-            movl %eax, cr4           \n\
-            orl  %eax, 0x00000010    \n\
-            movl cr4, %eax           \n\
-            movl %eax, pdir_addr     \n\
-            movl cr3, %eax           \n\
+            movl %eax, cr4            \n\
+            orl  %eax, 0x00000010     \n\
+            movl cr4, %eax            \n\
+            movl %eax, pdir_addr      \n\
+            movl cr3, %eax            \n\
             .pedone:                  \n\
             ");
     */
     return;
 }
-
+/* Things to fix:
+ * - Redo order of src register instructions
+ * - Need the % for registers?
+ * - Add "t"s
+ * - Move jmp instruction (or take out)
+ * - Remove .petop, .pemid, .pedone?
+ * - Add addresses for cr0, cr3, and cr4
+ */
 
 
