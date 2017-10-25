@@ -8,7 +8,8 @@
 #include "i8259.h"
 #include "paging.h"
 
-#define TABLE_SIZE 1024
+#define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
+#define VID_PTE VIDEO/TABLE_SIZE/4          //Video memory at 0xB8000 bytes addressable = index 184 in table
 
 //Initialize Page Directory and Page Table
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4*TABLE_SIZE)));         // Construct a page directory
@@ -87,8 +88,8 @@ void paging_init(){
     for(j = 0; j < TABLE_SIZE; j++)
         page_table[j] = 0x00000000;
         
-    //Set PTE for the Video memory at 0xB8000 bytes addressable = index 184 in table
-    page_table[184] = 0x000B811B;
+    //Set PTE for the video memory
+    page_table[VID_PTE] = 0x000B811B;
 }
 
 
@@ -125,6 +126,7 @@ void paging_enable(uint32_t* pdir_addr){
  * - Need the % for registers?
  * - Move jmp instruction (or take out)
  * - Add addresses for cr0, cr3, and cr4
+ * - Video memory location?
  */
 
 

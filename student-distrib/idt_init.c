@@ -163,173 +163,173 @@ void idt_init() {
 *		side effects: calls divide_by_zero_hlp function (later in this file)
 */
 void divide_by_zero(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call divide_by_zero_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 //vector # 1 reserved for Intel use
 void debug(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call debug_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void nmi_interrupt(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call nmi_interrupt_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void breakpoint(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call breakpoint_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void overflow(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call overflow_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 
 void bound_range_exceeded(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call bound_range_exceeded_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 
 void invalid_opcode(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call invalid_opcode_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 
 void device_not_available(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call device_not_available_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void double_fault(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call double_fault_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 
 void coprocessor_segment_overrun(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call coprocessor_segment_overrun_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 
 void invalid_tss(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call invalid_tss_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void segment_not_present(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call segment_not_present_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void stack_segment(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call stack_segment_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void general_protection(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call general_protection_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void page_fault(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call page_fault_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 //vector 15 reserved for Intel use
 //Except we are using at assertion fail as specified in _____
 void assertion_fail(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call assertion_fail_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void fpu_floating_point_exception(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call fpu_floating_point_exception_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void alignment_check(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call alignment_check_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 
 }
 
 void machine_check(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call machine_check_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 
 }
 
 void simd_floating_point_exception(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call simd_floating_point_exception_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void sys_call(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call sys_call_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void get_char(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call get_char_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
 void rtc_int(){
-	__asm__("pushad\n\t"
+	__asm__("pusha\n\t"
 			"call rtc_int_hlp\n\t"
-			"popad\n\t"
+			"popa\n\t"
 			"IRET\n\t");
 }
 
