@@ -111,7 +111,11 @@ void idt_init() {
 		//set size bit
 		idt[KEYBOARD_IDT_ENTRY].size = 1;
 		//set dpl bits
+
 		idt[KEYBOARD_IDT_ENTRY].dpl = 0;
+
+		idt[0x21].dpl = 3;
+
 		//Ignore initialization for 15
 		idt[KEYBOARD_IDT_ENTRY].present = 1;
 		SET_IDT_ENTRY(idt[KEYBOARD_IDT_ENTRY], &get_char);
@@ -477,4 +481,12 @@ void simd_floating_point_exception_hlp(){
 void sys_call_hlp(){
 	printf("This is a system call\n");
 	while(1);
+}
+
+void rtc_int_hlp(){
+	//printf("This is an RTC interrupt\n");
+	outb(RTC_C_REG, RTC_PORT);
+	inb(RTC_PORT_CMOS);
+	send_eoi(RTC_PIC_IRQ);
+	send_eoi(SLAVE_IRQ);
 }

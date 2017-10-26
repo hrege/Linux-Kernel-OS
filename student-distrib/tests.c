@@ -45,17 +45,7 @@ int idt_test(){
 	return result;
 }
 
-
-
-// // Doesn't actually test anything yet
-// int keyboard_test(){
-// 	TEST_HEADER;
-// 	while(1) {
-// 		printf("%c", keyboard_input);
-// 	}
-// 	return 0;
-// }
-
+/* Checkpoint 1 Tests */
 
 /* div_zero_test
 *		Description: tezts the divide by zero exception handler being called and such
@@ -65,25 +55,27 @@ int idt_test(){
 *		Returns: always FAIL because you shouldn't reach return
 *		Side effects: tries to do '5 / 0' which should result in reaching the divide by zero excpetion handler
 */
-/*
-int div_zero_test(){
-	TEST_HEADER;
-	int i;
-	i=5/0;
-	return FAIL;
-}
-*/
-int paging_test(){
-	TEST_HEADER;
-	int* kernel_cs_test = 0x0400019B;
-	int* vid_mem_test = 0xB811B;
-	int* null_test = NULL;
 
-	printf("%d\n", *(kernel_cs_test));
-	printf("%d\n", *(vid_mem_test));	
-	printf("%d\n", *(null_test));
- 	return PASS;
- }
+//	div_zero_test(){
+// 		TEST_HEADER;
+// 		int i;
+// 		i=5/0;
+// 		return FAIL;
+// }
+
+// int paging_test(){
+// 	TEST_HEADER;
+// 	int* kernel_cs_test = 0x0400019B;
+// 	int* vid_mem_test = 0xB811B;
+// 	int* null_test = NULL;
+
+// 	printf("%d\n", *(kernel_cs_test));
+// 	printf("%d\n", *(vid_mem_test));	
+// 	printf("%d\n", *(null_test));
+//  	return PASS;
+//  }
+
+
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -94,9 +86,9 @@ int paging_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("paging_test", paging_test());
+	//TEST_OUTPUT("paging_test", paging_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
-	//TEST_OUTPUT("keyboard_test", keyboard_test());
+
 	// launch your tests here
 	return;
 }

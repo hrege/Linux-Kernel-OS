@@ -146,7 +146,11 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     /* Set Up Paging */
+
     //paging_init();
+
+   // paging_init();
+
 
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
