@@ -65,16 +65,6 @@ int div_zero_test(){
 */
 int paging_test(){
 	TEST_HEADER;
-<<<<<<< HEAD
-	//int* kernel_cs_test = 0x0400000;
-	//int* vid_mem_test = 0xB8000;
-	int null_test = *(int *)0;
-	null_test += null_test;
-	//printf("%d\n", *(kernel_cs_test));
-	//printf("%d\n", *(vid_mem_test));	
-	//printf("%d\n", *(null_test));
-	return 0;
-=======
 	int* kernel_cs_test = 0x0400019B;
 	int* kernel_cs_test_2 = 0x04000000;
 	int* vid_mem_test = 0xB811B;
@@ -87,7 +77,6 @@ int paging_test(){
 	printf("%d\n", *(vid_mem_test_2));	
 	printf("%d\n", *(null_test));
  	return PASS;
->>>>>>> 4a78fc123141e4539a264d9acfa95e41a2a25d64
  }
 
 /* Checkpoint 2 tests */

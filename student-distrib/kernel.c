@@ -139,18 +139,13 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-
     /* Initialize Everything and turn on interrupts */
 
     /* Initialize PIC */
     i8259_init();
 
-    /* Set Up Paging */
-
-   paging_init();
-
-
-
+    /* Initialize Paging */
+    paging_init();
 
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
@@ -162,7 +157,6 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-
 
 #ifdef RUN_TESTS
     /* Run tests */
