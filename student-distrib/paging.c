@@ -110,14 +110,14 @@ void paging_init(){
  */
 //, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
-    asm volatile ("movl %%cr0, %%eax   \n\
+    asm volatile ("movl %%cr0, %%eax    \n\
             orl  $0x80000001, %%eax     \n\
-            movl %%eax, %%cr0          \n\
-            movl %%cr4, %%eax          \n\
+            movl %%eax, %%cr0           \n\
+            movl %%cr4, %%eax           \n\
             orl  $0x00000010, %%eax     \n\
-            movl %%eax, %%cr4          \n\
-            movl %0, %%eax             \n\
-            movl %%eax, %%cr3          \n\
+            movl %%eax, %%cr4           \n\
+            movl %0, %%eax              \n\
+            movl %%eax, %%cr3           \n\
             "
             :
             : "m"(pdir_addr)
