@@ -76,11 +76,15 @@ int div_zero_test(){
 int paging_test(){
 	TEST_HEADER;
 	int* kernel_cs_test = 0x0400019B;
+	int* kernel_cs_test_2 = 0x04000000;
 	int* vid_mem_test = 0xB811B;
+	int* vid_mem_test_2 = 0xB8000;
 	int* null_test = NULL;
 
 	printf("%d\n", *(kernel_cs_test));
-	printf("%d\n", *(vid_mem_test));	
+	printf("%d\n", *(kernel_cs_test_2));
+	printf("%d\n", *(vid_mem_test));
+	printf("%d\n", *(vid_mem_test_2));	
 	printf("%d\n", *(null_test));
  	return PASS;
  }
