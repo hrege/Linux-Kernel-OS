@@ -77,11 +77,9 @@ void paging_init(){
 
     
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-<<<<<<< HEAD
+
     page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x003);
-=======
-    page_directory[0] = (((int)page_table & 0xFFFFF000) || 0x0000001B);
->>>>>>> 4a78fc123141e4539a264d9acfa95e41a2a25d64
+
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
     page_directory[1] = 0x00400083;
@@ -119,7 +117,7 @@ void paging_init(){
  */
 //, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
-<<<<<<< HEAD
+
     asm volatile ("movl %0, %%eax      \n\
             movl %%eax, %%cr3          \n\
             movl %%cr4, %%eax          \n\
@@ -128,16 +126,6 @@ void paging_enable(uint32_t* pdir_addr){
             movl %%cr0, %%eax   \n\
             orl  $0x80000001, %%eax     \n\
             movl %%eax, %%cr0          \n\
-=======
-    asm volatile ("movl %%cr0, %%eax    \n\
-            orl  $0x80000001, %%eax     \n\
-            movl %%eax, %%cr0           \n\
-            movl %%cr4, %%eax           \n\
-            orl  $0x00000010, %%eax     \n\
-            movl %%eax, %%cr4           \n\
-            movl %0, %%eax              \n\
-            movl %%eax, %%cr3           \n\
->>>>>>> 4a78fc123141e4539a264d9acfa95e41a2a25d64
             "
             :
             : "m"(pdir_addr)
@@ -145,8 +133,6 @@ void paging_enable(uint32_t* pdir_addr){
     );
     return;
 }
-/* Things to fix:
- * - Video memory location?
- */
+
 
 

@@ -4,7 +4,7 @@
 
 #ifndef ASM
 
-<<<<<<< HEAD
+
 #define IDT_SIZE                  256
 #define NUM_EXCEPTIONS            20
 #define SYSTEM_CALL_IDT_ENTRY     0x80
@@ -12,7 +12,7 @@
 #define RTC_IDT_ENTRY             0x28
 #define USER_PROTECTION           3
 
-#define SLAVE_IRQ 2	//Slave PIC IRQ number
+
 
 
 /* Main function to initialize the idt */
