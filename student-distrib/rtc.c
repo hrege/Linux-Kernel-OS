@@ -5,10 +5,11 @@
 
 #include "lib.h"
 #include "rtc.h"
+#include "i8259.h"
 
 /*
   Description: Initialize RTC clock interrupt.
-  Author: Hershel
+  Author: Hershel & Jonathan
   Input: none
   Output: Initializes RTC clock registers.
   Return: none
@@ -16,15 +17,20 @@
  */
 
 void rtc_init() {
+ // cli(); //currently called inside cli
+  printf("Initializing RTC\n");
   /* Initialize registers used for RTC and CMOS. */
-  cli();
-  outb(0x8A, RTC_PORT);
-  outb(0x20, RTC_PORT_TWO);
+  outb(RTC_A_REG, RTC_PORT);  //disable NMI
+
+  //outb(0x20, RTC_PORT_CMOS); // Can't write to it before reading it?
 
   /* Turn on periodic interrupts through IRQ8. */
-  outb(0x8B, RTC_PORT);
-  char prev = inb(RTC_PORT_TWO);
-  outb(0x8B, RTC_PORT);
-  outb((prev | 0x40), RTC_PORT_TWO);
-  sti();
+  outb(RTC_B_REG, RTC_PORT);        //select reg B
+  char prev = inb(RTC_PORT_CMOS);   // Read reg B
+  outb(RTC_B_REG, RTC_PORT);        //set index
+  outb((prev | 0x40), RTC_PORT_CMOS); //re-write old value with bit 6 turned on
+
+  //enable the IRQ address for the rtcuser
+  enable_irq(8);
+  //sti();
 }
