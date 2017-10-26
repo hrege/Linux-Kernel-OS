@@ -9,7 +9,9 @@
 #include "debug.h"
 #include "tests.h"
 #include "rtc.h"
-//#include "paging.h"
+<<<<<<< HEAD
+#include "keyboard.h"
+#include "paging.h"
 
 #define RUN_TESTS
 
@@ -149,6 +151,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
+    keyboard_init();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

@@ -4,9 +4,10 @@
 #include "lib.h"
 #include "types.h"
 #include "i8259.h"
+#include "keyboard.h"
 #include "rtc.h"
- 
- int i, addr; // loop variable
+
+int i, addr; // loop variable
 /*
 *	idt_init
 *		Author: Sam
@@ -21,7 +22,7 @@
 void idt_init() {
 	/*Initialize all IDT entries to default unused*/
 	for(i = 0; i < 256; i++){
-		idt[i].seg_selector = KERNEL_CS; 
+		idt[i].seg_selector = KERNEL_CS;
 		//set reserved bits
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 0;
@@ -337,7 +338,7 @@ void sys_call(){
 
 void get_char(){
 	__asm__("pusha\n\t"
-			"call get_char_hlp\n\t"
+			"call keyboard_handler\n\t"
 			"popa\n\t"
 			"leave\n\t"
 			"IRET\n\t");
@@ -493,21 +494,8 @@ void sys_call_hlp(){
 	while(1);
 }
 
-void get_char_hlp(){
-  unsigned char keyboard_status;
-  char keyboard_input;
-
-  keyboard_status = inb(0x64);
-  if((keyboard_status & 0x01) != 0) {
-    keyboard_input = inb(0x60);
-    //use scancode mapping
-	}
-
-  send_eoi(1);
-}
-
 void rtc_int_hlp(){
-	printf("This is an RTC interrupt\n");
+	//printf("This is an RTC interrupt\n");
 	outb(RTC_C_REG, RTC_PORT);
 	inb(RTC_PORT_CMOS);
 	send_eoi(RTC_PIC_IRQ);

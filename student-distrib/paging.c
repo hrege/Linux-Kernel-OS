@@ -77,7 +77,7 @@ void paging_init(){
     paging_enable(page_directory);    
     
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-    page_directory[0] = (((int)page_table & 0xFFFFF000) | 0x01B);
+    page_directory[0] = (((int)page_table & 0xFFFFF000) || 0x0000001B);
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
     page_directory[1] = 0x0040019B;
@@ -111,10 +111,10 @@ void paging_init(){
 //, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
     asm volatile ("movl %%cr0, %%eax   \n\
-            orl  0x80000001, %%eax     \n\
+            orl  $0x80000001, %%eax     \n\
             movl %%eax, %%cr0          \n\
             movl %%cr4, %%eax          \n\
-            orl  0x00000010, %%eax     \n\
+            orl  $0x00000010, %%eax     \n\
             movl %%eax, %%cr4          \n\
             movl %0, %%eax             \n\
             movl %%eax, %%cr3          \n\
