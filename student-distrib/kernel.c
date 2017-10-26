@@ -145,7 +145,7 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     /* Set Up Paging */
-    //paging_init();
+    paging_init();
 
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
@@ -160,7 +160,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    //launch_tests();
+    launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 
