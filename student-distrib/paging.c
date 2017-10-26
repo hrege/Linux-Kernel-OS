@@ -8,17 +8,16 @@
 #include "i8259.h"
 #include "paging.h"
 
-#define VIDEO 0xB8000                       //Identical definition as in lib.c
+#define VIDEO 0xB8                       //Identical definition as in lib.c
 
 //extern tss_t tss;
 
 #define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
-#define VID_PTE VIDEO/TABLE_SIZE/4          //Video memory at 0xB8000 bytes addressable = index 184 in table
 
-//Initialize Page Directory and Page Table
-static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4*TABLE_SIZE)));         // Construct a page directory
-static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4*TABLE_SIZE)));             // Construct a page table     
 
+
+static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
+static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table     
 /* Author: Austin
         PDE and PTE bits based on ISA Vol.3, pg. 3-32
             PDE for 4MB-Page
@@ -73,27 +72,33 @@ static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4*TABLE_SIZE))); 
  */
 
 void paging_init(){         
-    // Set control registers to enable paging.          
-    paging_enable(page_directory);    
+    //Initialize Page Directory and Page Table
+
+
     
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-    page_directory[0] = (((int)page_table & 0xFFFFF000) | 0x01B);
+    page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x003);
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
-    page_directory[1] = 0x0040019B;
+    page_directory[1] = 0x00400083;
 
     //Set rest of PDEs to "not present"
     int i;
-    for(i = 2; i < TABLE_SIZE; i++)
-        page_directory[i] = 0x00000000;
+    for(i = 2; i < TABLE_SIZE; i++){
+        page_directory[i] = 0x00000000 | (i<<22);
+    }
 
     //Set rest of PTEs to "not present"
     int j;
-    for(j = 0; j < TABLE_SIZE; j++)
-        page_table[j] = 0x00000000;
+    for(j = 0; j < TABLE_SIZE; j++){
+        page_table[j] = 0x00000002 | (i << 12);
+    }
         
     //Set PTE for the video memory
-    page_table[VID_PTE] = 0x000B811B;
+    page_table[VIDEO] = 0x000B8003;
+
+    // Set control registers to enable paging.          
+    paging_enable(page_directory);
 }
 
 
@@ -110,14 +115,14 @@ void paging_init(){
  */
 //, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
-    asm volatile ("movl %%cr0, %%eax   \n\
-            orl  0x80000001, %%eax     \n\
-            movl %%eax, %%cr0          \n\
-            movl %%cr4, %%eax          \n\
-            orl  0x00000010, %%eax     \n\
-            movl %%eax, %%cr4          \n\
-            movl %0, %%eax             \n\
+    asm volatile ("movl %0, %%eax      \n\
             movl %%eax, %%cr3          \n\
+            movl %%cr4, %%eax          \n\
+            orl  $0x00000010, %%eax     \n\
+            movl %%eax, %%cr4          \n\
+            movl %%cr0, %%eax   \n\
+            orl  $0x80000001, %%eax     \n\
+            movl %%eax, %%cr0          \n\
             "
             :
             : "m"(pdir_addr)

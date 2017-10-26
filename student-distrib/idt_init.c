@@ -510,4 +510,5 @@ void rtc_int_hlp(){
 	outb(0x70, 0x0C);
 	inb(0x71);
 	send_eoi(8);
+	send_eoi(2);
 }
