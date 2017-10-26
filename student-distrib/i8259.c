@@ -46,6 +46,8 @@ void i8259_init(void) {
 	for(i = 0; i < TOTAL_IRQ_LINES; i++) {
 		disable_irq(i);
 	}
+
+	enable_irq(2);
 }
 
 /*	enable_irq
