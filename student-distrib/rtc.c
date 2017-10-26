@@ -22,8 +22,6 @@ void rtc_init() {
   /* Initialize registers used for RTC and CMOS. */
   outb(RTC_A_REG, RTC_PORT);  //disable NMI
 
-  //outb(0x20, RTC_PORT_CMOS); // Can't write to it before reading it?
-
   /* Turn on periodic interrupts through IRQ8. */
   outb(RTC_B_REG, RTC_PORT);        //select reg B
   char prev = inb(RTC_PORT_CMOS);   // Read reg B
@@ -31,6 +29,7 @@ void rtc_init() {
   outb((prev | 0x40), RTC_PORT_CMOS); //re-write old value with bit 6 turned on
 
   //enable the IRQ address for the rtcuser
-  enable_irq(8);
+  enable_irq(RTC_PIC_IRQ);
+
   //sti();
 }
