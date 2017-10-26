@@ -45,9 +45,7 @@ int idt_test(){
 	return result;
 }
 
-
-
-
+/* Checkpoint 1 Tests */
 
 /* div_zero_test
 *		Description: tezts the divide by zero exception handler being called and such
@@ -58,38 +56,27 @@ int idt_test(){
 *		Side effects: tries to do '5 / 0' which should result in reaching the divide by zero excpetion handler
 */
 
-
-// 	TEST_HEADER;
-// 	int i;
-// 	i=5/0;
-// 	return FAIL;
+//	div_zero_test(){
+// 		TEST_HEADER;
+// 		int i;
+// 		i=5/0;
+// 		return FAIL;
 // }
 
-int paging_test(){
-	TEST_HEADER;
-	int* kernel_cs_test = 0x0400019B;
-	int* vid_mem_test = 0xB811B;
-	int* null_test = NULL;
+// int paging_test(){
+// 	TEST_HEADER;
+// 	int* kernel_cs_test = 0x0400019B;
+// 	int* vid_mem_test = 0xB811B;
+// 	int* null_test = NULL;
 
-	printf("%d\n", *(kernel_cs_test));
-	printf("%d\n", *(vid_mem_test));	
-	printf("%d\n", *(null_test));
- 	return PASS;
- }
+// 	printf("%d\n", *(kernel_cs_test));
+// 	printf("%d\n", *(vid_mem_test));	
+// 	printf("%d\n", *(null_test));
+//  	return PASS;
+//  }
 
-void keyboard_test(){
-	TEST_HEADER;
-	// array        [i   ,   f,    ,   y,   o,   u,   r,   e,    ,   r,   e,   a,   d,   i,   n,   g,    ,   t,   h,   i,   s,    ,   i,   t,   s,    ,   a,    ,   p,   a,   s,   s]
-	char string[] = [0x17,0x21,0x39,0x15,0x18,0x16,0x13,0x12,0x39,0x13,0x12,0x1E,0x20,0x17,0x31,0x22,0x39,0x14,0x23,0x17,0x1F,0x39,0x17,0x14,0x1F,0x39,0x1E,0x39,0x19,0x1E,0x1F,0x1F]
-	int i; //counter
-	for(i = 0; i < 35; i++){
-		outb(string[i]; 0x60);
-		asm volatile("int $21")
-	}
-	return;
-	}
 
-}
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -99,10 +86,9 @@ void keyboard_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("paging_test", paging_test());
-	keyboard_test();
+	//TEST_OUTPUT("paging_test", paging_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
-	//TEST_OUTPUT("keyboard_test", keyboard_test());
+
 	// launch your tests here
 	return;
 }

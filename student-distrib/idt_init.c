@@ -120,7 +120,7 @@ void idt_init() {
 		//set size bit
 		idt[0x21].size = 1;
 		//set dpl bits
-		idt[0x21].dpl = 0;
+		idt[0x21].dpl = 3;
 		//Ignore initialization for 15
 		idt[0x21].present = 1;
 		SET_IDT_ENTRY(idt[0x21], &get_char);
@@ -499,5 +499,5 @@ void rtc_int_hlp(){
 	outb(RTC_C_REG, RTC_PORT);
 	inb(RTC_PORT_CMOS);
 	send_eoi(RTC_PIC_IRQ);
-	send_eoi(SLAVE_IRQ)
+	send_eoi(SLAVE_IRQ);
 }
