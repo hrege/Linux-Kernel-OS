@@ -4,6 +4,8 @@
 
 #ifndef ASM
 
+#define SLAVE_IRQ 2	//Slave PIC IRQ number
+
 /* Main function to initialize the idt */
 extern void idt_init();
 

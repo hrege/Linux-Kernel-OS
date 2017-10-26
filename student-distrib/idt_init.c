@@ -511,4 +511,5 @@ void rtc_int_hlp(){
 	outb(RTC_C_REG, RTC_PORT);
 	inb(RTC_PORT_CMOS);
 	send_eoi(RTC_PIC_IRQ);
+	send_eoi(SLAVE_IRQ)
 }
