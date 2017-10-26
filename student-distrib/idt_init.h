@@ -4,6 +4,13 @@
 
 #ifndef ASM
 
+#define IDT_SIZE                  256
+#define NUM_EXCEPTIONS            20
+#define SYSTEM_CALL_IDT_ENTRY     0x80
+#define KEYBOARD_IDT_ENTRY        0x21
+#define RTC_IDT_ENTRY             0x28
+#define USER_PROTECTION           3
+
 /* Main function to initialize the idt */
 extern void idt_init();
 
