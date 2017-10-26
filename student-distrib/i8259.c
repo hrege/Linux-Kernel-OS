@@ -4,6 +4,7 @@
 
 #include "i8259.h"
 #include "lib.h"
+#include "rtc.h"
 
 #define FULL_MASK				0xFF
 #define IGNORE_SLAVE		0x4

@@ -4,23 +4,25 @@
 #include "lib.h"
 #include "types.h"
 #include "i8259.h"
- 
- int i, addr; // loop variable
+#include "keyboard.h"
+#include "rtc.h"
+
+int i; // loop variable
 /*
 *	idt_init
 *		Author: Sam
 *		Description:  This function is called in boot.S to initaialize and fill the idt
-*						-Each entry is first just filled (only important thing is that .present = 0)
-*						- IDT entries for ecxceptions, sys calls, and i/o handlers are filled
+*									Each entry is first just filled (only important thing is that .present = 0)
+*						  		IDT entries for ecxceptions, sys calls, and i/o handlers are filled
 *		Inputs: None
 *		Outputs: none
-* 		Returns: nothing
-*		Side effects: The idt is initialized and filled as appropriate
+* 	Returns: nothing
+*		Side effects: The idt is initialized and filled as appropriate.
 */
 void idt_init() {
 	/*Initialize all IDT entries to default unused*/
-	for(i = 0; i < 256; i++){
-		idt[i].seg_selector = KERNEL_CS; 
+	for(i = 0; i < IDT_SIZE; i++){
+		idt[i].seg_selector = KERNEL_CS;
 		//set reserved bits
 		idt[i].reserved0 = 0;
 		idt[i].reserved1 = 0;
@@ -36,38 +38,29 @@ void idt_init() {
 	}
 
 	/*Set exception IDT entries (using trap settings)*/
-	for(i = 0; i < 20; i ++){
+	for(i = 0; i < NUM_EXCEPTIONS; i ++){
 		//set seg_selector bits
 		idt[i].seg_selector = KERNEL_CS;
-		if(i==8){
-		/* different for double fault as it is handled by Task gate instead of trap gate */
-			//set reserved bits
-			idt[i].reserved0 = 0;
-			idt[i].reserved1 = 1;
-			idt[i].reserved2 = 1;
-			idt[i].reserved3 = 1;
-			idt[i].reserved4 = 0;
-			//set size bit
-			idt[i].size = 1;
-		}
-		else{
-			/* set as trap get descriptior */
-			//set reserved bits
-			idt[i].reserved0 = 0;
-			idt[i].reserved1 = 1;
-			idt[i].reserved2 = 1;
-			idt[i].reserved3 = 1;
-			idt[i].reserved4 = 0;
-			//set size bit
-			idt[i].size = 1;
-		}
+
+		/* set as trap get descriptor */
+		//set reserved bits
+		idt[i].reserved0 = 0;
+		idt[i].reserved1 = 1;
+		idt[i].reserved2 = 1;
+		idt[i].reserved3 = 1;
+		idt[i].reserved4 = 0;
+		//set size bit
+		idt[i].size = 1;
+
 		//set dpl bits
 		idt[i].dpl = 0;
 		idt[i].present = 1;
 	}
 
-	/* Fill in exception handlers in locations defined by intel   */
-	/* and add 15 to be an assertion error  */
+	/*
+		 Fill in exception handlers in locations defined by intel
+		 and add 15 to be an assertion error
+	*/
 		SET_IDT_ENTRY(idt[0], &divide_by_zero);
 		SET_IDT_ENTRY(idt[1], &debug);
 		SET_IDT_ENTRY(idt[2], &nmi_interrupt);
@@ -92,52 +85,56 @@ void idt_init() {
 		/*Initialize interrupt IDT entries*/
 
 		/*Initialize system call IDT entries*/
-		idt[0x80].seg_selector = KERNEL_CS;
+		idt[SYSTEM_CALL_IDT_ENTRY].seg_selector = KERNEL_CS;
 		//set reserved bits
-		idt[0x80].reserved0 = 0;
-		idt[0x80].reserved1 = 1;
-		idt[0x80].reserved2 = 1;
-		idt[0x80].reserved3 = 0;
-		idt[0x80].reserved4 = 0;
+		idt[SYSTEM_CALL_IDT_ENTRY].reserved0 = 0;
+		idt[SYSTEM_CALL_IDT_ENTRY].reserved1 = 1;
+		idt[SYSTEM_CALL_IDT_ENTRY].reserved2 = 1;
+		idt[SYSTEM_CALL_IDT_ENTRY].reserved3 = 0;
+		idt[SYSTEM_CALL_IDT_ENTRY].reserved4 = 0;
 		//set size bit
-		idt[0x80].size = 1;
+		idt[SYSTEM_CALL_IDT_ENTRY].size = 1;
 		//set dpl bits
-		idt[0x80].dpl = 3;
+		idt[SYSTEM_CALL_IDT_ENTRY].dpl = USER_PROTECTION;
 		//Ignore initialization for 15
-		idt[0x80].present = 1;
-		SET_IDT_ENTRY(idt[0x80], &sys_call);
+		idt[SYSTEM_CALL_IDT_ENTRY].present = 1;
+		SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], &sys_call);
 
 		/*Initialize keyboard interrupt IDT entry*/
-		idt[0x21].seg_selector = KERNEL_CS;
+		idt[KEYBOARD_IDT_ENTRY].seg_selector = KERNEL_CS;
 		//set reserved bits
-		idt[0x21].reserved0 = 0;
-		idt[0x21].reserved1 = 1;
-		idt[0x21].reserved2 = 1;
-		idt[0x21].reserved3 = 0;
-		idt[0x21].reserved4 = 0;
+		idt[KEYBOARD_IDT_ENTRY].reserved0 = 0;
+		idt[KEYBOARD_IDT_ENTRY].reserved1 = 1;
+		idt[KEYBOARD_IDT_ENTRY].reserved2 = 1;
+		idt[KEYBOARD_IDT_ENTRY].reserved3 = 0;
+		idt[KEYBOARD_IDT_ENTRY].reserved4 = 0;
 		//set size bit
-		idt[0x21].size = 1;
+		idt[KEYBOARD_IDT_ENTRY].size = 1;
 		//set dpl bits
-		idt[0x21].dpl = 0;
+
+		idt[KEYBOARD_IDT_ENTRY].dpl = 0;
+
+		idt[0x21].dpl = 3;
+
 		//Ignore initialization for 15
-		idt[0x21].present = 1;
-		SET_IDT_ENTRY(idt[0x21], &get_char);
+		idt[KEYBOARD_IDT_ENTRY].present = 1;
+		SET_IDT_ENTRY(idt[KEYBOARD_IDT_ENTRY], &get_char);
 
 		/*Initialize RTC interrupt IDT entry*/
-		idt[0x28].seg_selector = KERNEL_CS;
+		idt[RTC_IDT_ENTRY].seg_selector = KERNEL_CS;
 		//set reserved bits
-		idt[0x28].reserved0 = 0;
-		idt[0x28].reserved1 = 1;
-		idt[0x28].reserved2 = 1;
-		idt[0x28].reserved3 = 0;
-		idt[0x28].reserved4 = 0;
+		idt[RTC_IDT_ENTRY].reserved0 = 0;
+		idt[RTC_IDT_ENTRY].reserved1 = 1;
+		idt[RTC_IDT_ENTRY].reserved2 = 1;
+		idt[RTC_IDT_ENTRY].reserved3 = 0;
+		idt[RTC_IDT_ENTRY].reserved4 = 0;
 		//set size bit
-		idt[0x28].size = 1;
+		idt[RTC_IDT_ENTRY].size = 1;
 		//set dpl bits
-		idt[0x28].dpl = 0;
+		idt[RTC_IDT_ENTRY].dpl = 0;
 		//Ignore initialization for 15
-		idt[0x28].present = 1;
-		SET_IDT_ENTRY(idt[0x28], &rtc_int);
+		idt[RTC_IDT_ENTRY].present = 1;
+		SET_IDT_ENTRY(idt[RTC_IDT_ENTRY], &rtc_int);
 
 	lidt (idt_desc_ptr);
 
@@ -336,7 +333,7 @@ void sys_call(){
 
 void get_char(){
 	__asm__("pusha\n\t"
-			"call get_char_hlp\n\t"
+			"call keyboard_handler\n\t"
 			"popa\n\t"
 			"leave\n\t"
 			"IRET\n\t");
@@ -344,7 +341,7 @@ void get_char(){
 
 void rtc_int(){
 	__asm__("pusha\n\t"
-			"call rtc_int_hlp\n\t"
+			"call rtc_handler\n\t"
 			"popa\n\t"
 			"leave\n\t"
 			"IRET\n\t");
@@ -481,34 +478,17 @@ void simd_floating_point_exception_hlp(){
 	while(1);
 }
 
-
-
-
-
-/****/
-
 void sys_call_hlp(){
 	printf("This is a system call\n");
 	while(1);
 }
 
-void get_char_hlp(){
-  unsigned char keyboard_status;
-  char keyboard_input;
-
-  keyboard_status = inb(0x64);
-  if((keyboard_status & 0x01) != 0) {
-    keyboard_input = inb(0x60);
-    //use scancode mapping
-	}
-
-  send_eoi(1);
-}
-
 void rtc_int_hlp(){
-	printf("This is an RTC interrupt\n");
-	outb(0x70, 0x0C);
-	inb(0x71);
-	send_eoi(8);
-	send_eoi(2);
+
+	//printf("This is an RTC interrupt\n");
+	outb(RTC_C_REG, RTC_PORT);
+	inb(RTC_PORT_CMOS);
+	send_eoi(RTC_PIC_IRQ);
+	send_eoi(SLAVE_IRQ);
+
 }
