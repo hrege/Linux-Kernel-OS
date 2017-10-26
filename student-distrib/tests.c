@@ -45,6 +45,8 @@ int idt_test(){
 	return result;
 }
 
+
+
 // // Doesn't actually test anything yet
 // int keyboard_test(){
 // 	TEST_HEADER;
@@ -71,11 +73,17 @@ int div_zero_test(){
 	return FAIL;
 }
 */
-// int paging_test(){
-// 	TEST_HEADER;
-//
-// 	return PASS;
-// }
+int paging_test(){
+	TEST_HEADER;
+	int* kernel_cs_test = 0x0400019B;
+	int* vid_mem_test = 0xB811B;
+	int* null_test = NULL;
+
+	printf("%d\n", *(kernel_cs_test));
+	printf("%d\n", *(vid_mem_test));	
+	printf("%d\n", *(null_test));
+ 	return PASS;
+ }
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -86,6 +94,7 @@ int div_zero_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
+	TEST_OUTPUT("paging_test", paging_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 	//TEST_OUTPUT("keyboard_test", keyboard_test());
 	// launch your tests here

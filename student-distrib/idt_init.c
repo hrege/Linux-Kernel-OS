@@ -5,8 +5,9 @@
 #include "types.h"
 #include "i8259.h"
 #include "keyboard.h"
+#include "rtc.h"
 
- int i, addr; // loop variable
+int i, addr; // loop variable
 /*
 *	idt_init
 *		Author: Sam
@@ -494,8 +495,8 @@ void sys_call_hlp(){
 }
 
 void rtc_int_hlp(){
-	printf("This is an RTC interrupt\n");
-	outb(0x70, 0x0C);
-	inb(0x71);
-	send_eoi(8);
+	//printf("This is an RTC interrupt\n");
+	outb(RTC_C_REG, RTC_PORT);
+	inb(RTC_PORT_CMOS);
+	send_eoi(RTC_PIC_IRQ);
 }

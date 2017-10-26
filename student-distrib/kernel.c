@@ -9,8 +9,9 @@
 #include "debug.h"
 #include "tests.h"
 #include "rtc.h"
+<<<<<<< HEAD
 #include "keyboard.h"
-//#include "paging.h"
+#include "paging.h"
 
 #define RUN_TESTS
 
@@ -146,7 +147,7 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     /* Set Up Paging */
-    //paging_init();
+    paging_init();
 
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
@@ -162,7 +163,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    //launch_tests();
+    launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 
