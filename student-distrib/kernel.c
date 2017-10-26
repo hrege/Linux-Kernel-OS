@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "tests.h"
 #include "rtc.h"
+#include "keyboard.h"
 #include "paging.h"
 
 #define RUN_TESTS
@@ -145,10 +146,11 @@ void entry(unsigned long magic, unsigned long addr) {
     i8259_init();
 
     /* Set Up Paging */
-    paging_init();
+   // paging_init();
 
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
+    keyboard_init();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

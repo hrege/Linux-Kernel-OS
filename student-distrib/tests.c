@@ -45,17 +45,7 @@ int idt_test(){
 	return result;
 }
 
-
-
-// // Doesn't actually test anything yet
-// int keyboard_test(){
-// 	TEST_HEADER;
-// 	while(1) {
-// 		printf("%c", keyboard_input);
-// 	}
-// 	return 0;
-// }
-
+/* Checkpoint 1 Tests */
 
 /* div_zero_test
 *		Description: tezts the divide by zero exception handler being called and such
@@ -98,9 +88,9 @@ int paging_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("paging_test", paging_test());
+	//TEST_OUTPUT("paging_test", paging_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
-	//TEST_OUTPUT("keyboard_test", keyboard_test());
+
 	// launch your tests here
 	return;
 }
