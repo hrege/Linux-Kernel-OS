@@ -9,7 +9,7 @@
 #include "debug.h"
 #include "tests.h"
 #include "rtc.h"
-//#include "paging.h"
+#include "paging.h"
 
 #define RUN_TESTS
 

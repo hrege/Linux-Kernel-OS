@@ -507,7 +507,7 @@ void get_char_hlp(){
 }
 
 void rtc_int_hlp(){
-	printf("This is an RTC interrupt\n");
+	//printf("This is an RTC interrupt\n");
 	outb(RTC_C_REG, RTC_PORT);
 	inb(RTC_PORT_CMOS);
 	send_eoi(RTC_PIC_IRQ);
