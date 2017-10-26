@@ -17,8 +17,6 @@
 #define	RTC_B_REG	    0x0B
 #define RTC_C_REG	    0x0C
 
-
-
 /* Function to initialize RTC clock. */
 extern void rtc_init();
 /* Interrupt handler for RTC. */

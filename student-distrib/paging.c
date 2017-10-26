@@ -8,13 +8,8 @@
 #include "i8259.h"
 #include "paging.h"
 
-#define VIDEO 0xB8                       //Identical definition as in lib.c
-
-//extern tss_t tss;
-
+#define VIDEO 0xB8                       //VIDEO from lib.c without 3 least significant bits
 #define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
-
-
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
 static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table     
@@ -60,7 +55,6 @@ static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       //
                 [0] - Present
     */
 
-
 /* Author: Austin
  * void paging_init()
  *      Inputs: none
@@ -70,15 +64,12 @@ static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       //
  *                flags to proper values. 
  *      Side effects: Alters CR0, CR3 and CR4
  */
-
 void paging_init(){         
-    //Initialize Page Directory and Page Table
-
-
-    
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
 
+
     page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x003);
+
 
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
@@ -93,7 +84,7 @@ void paging_init(){
     //Set rest of PTEs to "not present"
     int j;
     for(j = 0; j < TABLE_SIZE; j++){
-        page_table[j] = 0x00000002 | (i << 12);
+        page_table[j] = 0x00000002 | (i<<12);
     }
         
     //Set PTE for the video memory
@@ -118,6 +109,7 @@ void paging_init(){
 //, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
 
+
     asm volatile ("movl %0, %%eax      \n\
             movl %%eax, %%cr3          \n\
             movl %%cr4, %%eax          \n\
@@ -126,6 +118,7 @@ void paging_enable(uint32_t* pdir_addr){
             movl %%cr0, %%eax   \n\
             orl  $0x80000001, %%eax     \n\
             movl %%eax, %%cr0          \n\
+
             "
             :
             : "m"(pdir_addr)
