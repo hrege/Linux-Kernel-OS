@@ -57,3 +57,13 @@ void rtc_handler() {
   send_eoi(RTC_PIC_IRQ);
   send_eoi(SLAVE_IRQ);
 }
+
+/*  RTC DRIVER FUNCTIONS */
+void rtc_open();
+
+void rtc_read();
+
+void rtc_write();
+
+void rtc_close();
+
