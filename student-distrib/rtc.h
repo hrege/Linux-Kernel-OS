@@ -22,4 +22,16 @@ extern void rtc_init();
 /* Interrupt handler for RTC. */
 extern void rtc_handler();
 
+/* RTC Driver Open Function */
+void rtc_open(const uint8_t* filename);
+
+/* RTC Driver Read Function */
+void rtc_read(int32_t fd, void* buf, int32_t nbytes);
+
+/* RTC Driver Write Function */
+void rtc_write(int32_t fd, const void* buf, int32_t nbytes);
+
+/* RTC Driver Close Function */
+void rtc_close(int32_t fd);
+
 #endif

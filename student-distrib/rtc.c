@@ -57,13 +57,59 @@ void rtc_handler() {
   send_eoi(RTC_PIC_IRQ);
   send_eoi(SLAVE_IRQ);
 }
-
+///////////////////////////
 /*  RTC DRIVER FUNCTIONS */
-void rtc_open();
+///////////////////////////
 
-void rtc_read();
+/*
+*	rtc_open
+*		Author: Jonathan
+*		Description: This is the open function for the RTC driver
+*						Initializes the RTC frequency to 2Hz
+*						Does so by calling RTC write
+*		Input: filename (not used - exists to meet open sys call format)
+*		Outputs: none
+*		Returns: 0 always
+*		Side Effects: RTC running at 2Hz
+*/
+void rtc_open(const uint8_t* filename);
 
-void rtc_write();
+/*
+*	rtc_read
+*		Author: Jonathan
+*		Description: This is the read function for the RTC driver
+*						Blocks until the next RTC interrupt
+*		Inputs: fd, buf, nbytes (not used - exists to meet read sys call format)
+*		Outputs: none
+*		Returns: 0 (always)
+*		Side effects: blocks
+*/
+void rtc_read(int32_t fd, void* buf, int32_t nbytes);
 
-void rtc_close();
+/*
+*	rtc_write
+*		Author: Jonathan
+*		Description: This is the write function for the RTC driver
+*						Changes the frequency of the RTC
+*		Inputs: fd, buf, nbytes (only ____ used ... others to meet the sys call format)
+*		Outputs: Frequency to RTC
+*		Returns: -1 if given invalid frequency
+*				 0 else
+*		Side Effects: RTC running at new frequency
+*/
+void rtc_write(int32_t fd, const void* buf, int32_t nbytes);
+
+/*
+*	rtc_close
+*		Author: Jonathan
+*		Description: This is the close function for the RTC driver.
+*						Since we are not currently virtualizing it just returns 0
+*		Inputs: trash (not used - exixts to meet close sys call format)
+*		Outputs: none
+*		Returns: 0 always
+*		Side effects: none
+*/
+void rtc_close(int32_t trash){
+	return 0;
+}
 
