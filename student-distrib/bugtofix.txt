@@ -1,0 +1,15 @@
+###################################
+
+		   Bugs To Fix
+		VictoriOS Secret
+
+###################################
+
+Jonathan Mullen			 Sam Morris
+Hershel Dave-Rege		Austin Born
+
+
+
+What:
+Keyboard handler gives warning when assembled
+Who: Hershel

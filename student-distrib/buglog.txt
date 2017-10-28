@@ -1,0 +1,21 @@
+###################################
+
+			Bug Log
+		VictoriOS Secret
+
+###################################
+
+Jonathan Mullen			 Sam Morris
+Hershel Dave-Rege		Austin Born
+
+
+Checkpoint 1:
+
+Bug:
+Always getting a general protection fault and if while(1) if removed from handler we get it over and over again.
+Solution:
+PIT was enabled. Disabled all interrupts until their specific set up to prevent this.
+
+Checkpoint 2:
+
+Bug: 
