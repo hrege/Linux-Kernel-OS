@@ -16,6 +16,9 @@
   Side Effects: RTC is initialized.
  */
 
+//filescope variables:
+int occurred = 0;  //indicator that the interrupt occurred for read
+
 void rtc_init() {
   printf("Initializing RTC\n");
 
@@ -31,7 +34,7 @@ void rtc_init() {
   char prev = inb(RTC_PORT_CMOS);
   outb(RTC_B_REG, RTC_PORT);
   outb((prev | BIT_SIX_ENABLE), RTC_PORT_CMOS);
-  
+
   /* Enable IRQ line on Slave PIC for RTC. */
   enable_irq(RTC_PIC_IRQ);
 }
@@ -56,7 +59,13 @@ void rtc_handler() {
   /* Send EOI signals to both Slave PIC and Master PIC. */
   send_eoi(RTC_PIC_IRQ);
   send_eoi(SLAVE_IRQ);
+  //mark that the interrupt happened
+  occurred = 1;
+  printf("Hi");
 }
+
+
+
 ///////////////////////////
 /*  RTC DRIVER FUNCTIONS */
 ///////////////////////////
@@ -72,7 +81,10 @@ void rtc_handler() {
 *		Returns: 0 always
 *		Side Effects: RTC running at 2Hz
 */
-void rtc_open(const uint8_t* filename);
+int32_t rtc_open(const uint8_t* filename){
+	rtc_write(0, NULL, 2);
+	return 0;
+}
 
 /*
 *	rtc_read
@@ -84,20 +96,49 @@ void rtc_open(const uint8_t* filename);
 *		Returns: 0 (always)
 *		Side effects: blocks
 */
-void rtc_read(int32_t fd, void* buf, int32_t nbytes);
+int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
+	occurred = 0;
+	while(!occurred);
+	return 0;
+
+}
 
 /*
 *	rtc_write
 *		Author: Jonathan
 *		Description: This is the write function for the RTC driver
 *						Changes the frequency of the RTC
-*		Inputs: fd, buf, nbytes (only ____ used ... others to meet the sys call format)
+*		Inputs: fd, buf, frequency (only frequency used ... others to meet the sys call format)
 *		Outputs: Frequency to RTC
 *		Returns: -1 if given invalid frequency
 *				 0 else
 *		Side Effects: RTC running at new frequency
 */
-void rtc_write(int32_t fd, const void* buf, int32_t nbytes);
+int32_t rtc_write(int32_t fd, const void* buf, int32_t frequency){
+	/* Perform checks to verify the input frequency is in range...
+	*	Must be power of 2 from min. 2 to max (allowed to user) of 1024 */
+	if(frequency >= 2 && frequency <= 1024){
+		int32_t f = 2; //frequency to check against
+		int8_t i = 0;	   //power count (minus 1)
+		do{
+			if(frequency == f){
+				/*if valid frequency then write to RTC
+				* write to A register of CMOS bottom 4
+				* value is !(power-1)  */
+				sti();
+				outb(RTC_A_REG, RTC_PORT);		//Select A Register
+				char prev = inb(RTC_PORT_CMOS); //get old to keep top 4
+				outb(RTC_A_REG, RTC_PORT);
+				outb((prev & 0xF0)|(!i & 0x0F)	,RTC_PORT_CMOS);
+				cli();
+				return 0; //return success
+			}
+			f = f*2;
+			i += 1;
+		}while(f<=1024);
+	}
+	return -1; //return fail
+}
 
 /*
 *	rtc_close
@@ -109,7 +150,7 @@ void rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 *		Returns: 0 always
 *		Side effects: none
 */
-void rtc_close(int32_t trash){
+int32_t rtc_close(int32_t trash){
 	return 0;
 }
 

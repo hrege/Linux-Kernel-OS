@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "idt_init.h"
+#include "rtc.h"
  
 #define PASS 1
 #define FAIL 0
@@ -95,6 +96,49 @@ int paging_test(){
  }
 
 /* Checkpoint 2 tests */
+
+//TEST #3 - RTC TEST
+int rtc_test(){
+	printf("\nThis test will print the character '1' when an RTC interrupt occurs \nas determined using rtc_read\nStarting with rtc_open which will set it to 2Hz\n");
+	rtc_open(NULL);
+	rtc_helper(10);
+	int i; //to hold return vals
+	printf("Calling RTC write with rate of 64Hz\n");
+	i = rtc_write(0, NULL, 64);
+	if(i==-1){
+		return FAIL;
+	}
+	rtc_helper(120);
+	printf("Calling RTC write with rate of 420Hz\n");
+	i = rtc_write(0, NULL, 420);
+	if(i==0){
+		return FAIL;
+	}
+	rtc_helper(120);
+	printf("Calling RTC write with rate of 1024Hz\n");
+	i = rtc_write(0, NULL, 1024);
+	if(i==-1){
+		return FAIL;
+	}
+	rtc_helper(2000);
+		printf("Calling RTC write with rate of 2Hz\n");
+	i = rtc_write(0, NULL, 2);
+	if(i==-1){
+		return FAIL;
+	}
+	rtc_helper(8);
+	return PASS;
+
+}
+void rtc_helper(int i){
+	while(i>0){
+		rtc_read(0, NULL, 0);
+		printf("1");
+		i--;
+	}
+	printf("\n");
+	return;
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -103,8 +147,9 @@ int paging_test(){
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("paging_test", paging_test());
+	//TEST_OUTPUT("paging_test", paging_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
+	TEST_OUTPUT("RTC TEST", rtc_test());
 
 	// launch your tests here
 	return;
