@@ -2,7 +2,8 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "idt_init.h"
- 
+#include "filesystem.h"
+
 #define PASS 1
 #define FAIL 0
 
@@ -72,7 +73,7 @@ int paging_test(){
 	int null_test = *(int *)0;
 	null_test += null_test;
 	//printf("%d\n", *(kernel_cs_test));
-	//printf("%d\n", *(vid_mem_test));	
+	//printf("%d\n", *(vid_mem_test));
 	//printf("%d\n", *(null_test));
 	return 0;
 /*
@@ -86,7 +87,7 @@ int paging_test(){
 	printf("%d\n", *(kernel_cs_test));
 	printf("%d\n", *(kernel_cs_test_2));
 	printf("%d\n", *(vid_mem_test));
-	printf("%d\n", *(vid_mem_test_2));	
+	printf("%d\n", *(vid_mem_test_2));
 	printf("%d\n", *(null_test));
  	return PASS;
 
@@ -95,6 +96,20 @@ int paging_test(){
  }
 
 /* Checkpoint 2 tests */
+void test_read_dentry_by_name() {
+  TEST_HEADER;
+
+  dentry_t* test;
+  if(read_dentry_by_name("cat", test) == 0) {
+    printf("%s\n", test->file_name);
+    printf("%s\n", test->file_type);
+    printf("%d\n", test->inode_number);
+  }
+  else {
+    printf("you suck");
+  }
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -104,6 +119,7 @@ int paging_test(){
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	TEST_OUTPUT("paging_test", paging_test());
+  TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 
 	// launch your tests here

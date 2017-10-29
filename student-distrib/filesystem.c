@@ -109,8 +109,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
     return -1;
   }
 
-  /* Looping variables */
-  int i, j;
+  int i, j; /* Looping variables */
 
   /* Create temporary entry to hold starting address of directories in boot block. */
   dentry_t temp_dentry;
@@ -124,12 +123,6 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
       /* Compare file name parameter to current entry in boot block. If names
          don't match, continue to next entry in boot block.
        */
-      //for(j = 0; j < FILE_NAME_SIZE; j++) {
-      //  if(*fname[j] != temp_addr[j]) {
-      //    name_flag = 1;
-      //    break;
-      //  }
-      //}
       if(strncmp(fname, &(temp_dentry.file_name), FILE_NAME_SIZE) == 0) {//Make sure temp_addr and fname fit into the int8_t inputs
           break;
       }
@@ -144,10 +137,6 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
       temp_dentry += DENTRY_SIZE;
     }
   /* Copy matching file name into the temporary dentry. */
-  //for(i = 0; i < FILE_NAME_SIZE; i++){
-  //  dentry->file_name[i] = (*fname)[i];
-  //}
-  //dentry->file_name = *fname;
   strncpy(dentry->file_name, fname, FILE_NAME_SIZE);
 
   /* Set file type and inode number of dentry according to current entry in directory. */
@@ -159,7 +148,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
 
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   /* If non-existent file or invalid index, return error */
-  if((index > 62 || index < 0)) {
+  if((index > NUM_FILES || index < 0)) {
     printf("invalid file\n");
     return -1;
   }
@@ -168,9 +157,6 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   dentry_t temp_addr = filesystem->boot_block_start->directory_entries[index];
 
   /* Set the file name of the passed in dentry to the fname parameter. */
-  //for(i = 0; i < FILE_NAME_SIZE; i++){
-  //dentry->file_name[i] = (*temp_addr)[i];
-  //}
   strncpy(dentry->file_name, &(temp_addr.file_name), FILE_NAME_SIZE);
 
   /* Set file type and inode number of dentry according to current entry in directory. */
@@ -195,7 +181,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   }
 
   /* Store inode information using the "inode" index */
-  inode_t this_inode;
+  inode_t* this_inode;
   this_inode = (uint8_t)filesystem->inode_start + (inode * BLOCK_SIZE);
   this_inode.length = *((uint32_t)this_inode);
   this_inode->inode_data_blocks = (uint8_t)this_inode + DATA_LENGTH_SIZE;
@@ -210,8 +196,8 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   /* Check if each data block represented by inode is within bounds. */
   uint32_t curr_block;
   for(i = 0; i < num_inode_dblocks; i++) {
-    curr_block = *((uint8_t)this_inode->inode_data_blocks + i*DATA_LENGTH_SIZE);
-    if(curr_block < 0 || curr_block >= filesystem->boot_block_start->num_dblocks){
+    curr_block = *((uint8_t)(this_inode->inode_data_blocks) + i*DATA_LENGTH_SIZE);
+    if(curr_block < 0 || curr_block >= filesystem->boot_block_start.num_dblocks){
       printf("Data block not within bounds\n");
       return -1;
     }

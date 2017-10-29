@@ -9,6 +9,7 @@
 #define DATA_LENGTH_SIZE      4
 #define DENTRY_SIZE           64
 #define END_BOOT_BLOCK        63
+#define NUM_FILES             62
 #define NUM_RESERVED_BYTES    24
 #define NUM_RESERVED_BOOT_BYTES 52
 #define BLOCK_SIZE            4096
@@ -29,35 +30,35 @@
 //   int (*jump_table[NUM_FILE_OPERATIONS])() = {file_open, file_close, file_read, file_write};
 // };
 
-struct filesystem_t {
+typedef struct {
   boot_block_t* boot_block_start;
   inode_t* inode_start;
   uint8_t* data_block_start;
-};
+} filesystem_t;
 
-struct boot_block_t {
+typedef struct {
   uint32_t num_dir_entries;
   uint32_t num_inodes;
   uint32_t num_dblocks;
   uint8_t reserved_bytes[NUM_RESERVED_BOOT_BYTES];
   dentry_t* directory_entries[NUM_DIRECTORY_ENTRIES];
-};
+} boot_block_t;
 
-struct dentry_t {
+typedef struct {
   uint8_t file_name[FILE_NAME_SIZE];
   uint32_t file_type;
   uint32_t inode_number;
   uint8_t reserved_bytes[NUM_RESERVED_BYTES];
-};
+} dentry_t;
 
-struct inode_t {
+typedef struct {
   uint32_t length;
   uint32_t* inode_data_blocks;
-};
+} inode_t;
 
-struct data_block_t {
+typedef struct {
   uint8_t data[BLOCK_SIZE];
-}
+} data_block_t;
 
 void file_system_init(uint32_t * start_addr);
 

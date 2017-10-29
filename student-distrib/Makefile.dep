@@ -1,5 +1,6 @@
 boot.o: boot.S multiboot.h x86_desc.h types.h idt_init.h
 x86_desc.o: x86_desc.S x86_desc.h types.h
+filesystem.o: filesystem.c filesystem.h lib.h types.h
 i8259.o: i8259.c i8259.h types.h lib.h rtc.h
 idt_init.o: idt_init.c x86_desc.h types.h idt_init.h lib.h i8259.h \
   keyboard.h rtc.h
@@ -9,4 +10,4 @@ keyboard.o: keyboard.c keyboard.h i8259.h types.h lib.h
 lib.o: lib.c lib.h types.h
 paging.o: paging.c x86_desc.h types.h idt_init.h lib.h i8259.h paging.h
 rtc.o: rtc.c lib.h types.h rtc.h i8259.h
-tests.o: tests.c tests.h x86_desc.h types.h lib.h idt_init.h
+tests.o: tests.c tests.h x86_desc.h types.h lib.h idt_init.h filesystem.h
