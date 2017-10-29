@@ -18,4 +18,6 @@ PIT was enabled. Disabled all interrupts until their specific set up to prevent 
 
 Checkpoint 2:
 
-Bug: 
+Bug: RTC_WRITE seemed to break RTC Interrupts
+Solution:
+had sti() and cli() in the wrong order lol
