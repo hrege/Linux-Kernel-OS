@@ -12,6 +12,7 @@
 #define NUM_RESERVED_BYTES    24
 #define NUM_RESERVED_BOOT_BYTES 52
 #define BLOCK_SIZE            4096
+#define NUM_DIRECTORY_ENTRIES 63
 
 // struct task_t {
 //   file_operations_t * file_operations;
@@ -29,7 +30,7 @@
 // };
 
 struct filesystem_t {
-  boot_block_t* boot_block;
+  boot_block_t* boot_block_start;
   inode_t* inode_start;
   uint8_t* data_block_start;
 };
@@ -39,7 +40,7 @@ struct boot_block_t {
   uint32_t num_inodes;
   uint32_t num_dblocks;
   uint8_t reserved_bytes[NUM_RESERVED_BOOT_BYTES];
-  dentry_t* directory_entries;
+  dentry_t* directory_entries[NUM_DIRECTORY_ENTRIES];
 };
 
 struct dentry_t {
@@ -49,10 +50,14 @@ struct dentry_t {
   uint8_t reserved_bytes[NUM_RESERVED_BYTES];
 };
 
- struct inode_t {
+struct inode_t {
   uint32_t length;
-  uint8_t* inode_data_blocks;
+  uint32_t* inode_data_blocks;
 };
+
+struct data_block_t {
+  uint8_t data[BLOCK_SIZE];
+}
 
 void file_system_init(uint32_t * start_addr);
 
