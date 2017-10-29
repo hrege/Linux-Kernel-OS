@@ -61,7 +61,7 @@ void rtc_handler() {
   send_eoi(SLAVE_IRQ);
   //mark that the interrupt happened
   occurred = 1;
-  printf("Hi");
+  //printf("Hi");
 }
 
 
@@ -119,22 +119,22 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t frequency){
 	*	Must be power of 2 from min. 2 to max (allowed to user) of 1024 */
 	if(frequency >= 2 && frequency <= 1024){
 		int32_t f = 2; //frequency to check against
-		int8_t i = 0;	   //power count (minus 1)
+		int8_t i = 14;	   //power count (minus 1)
 		do{
 			if(frequency == f){
 				/*if valid frequency then write to RTC
 				* write to A register of CMOS bottom 4
 				* value is !(power-1)  */
-				sti();
+				cli();
 				outb(RTC_A_REG, RTC_PORT);		//Select A Register
 				char prev = inb(RTC_PORT_CMOS); //get old to keep top 4
 				outb(RTC_A_REG, RTC_PORT);
-				outb((prev & 0xF0)|(!i & 0x0F)	,RTC_PORT_CMOS);
-				cli();
+				outb((prev & 0xF0)|(i & 0x0F), RTC_PORT_CMOS);
+				sti();
 				return 0; //return success
 			}
 			f = f*2;
-			i += 1;
+			i = i - 1;
 		}while(f<=1024);
 	}
 	return -1; //return fail

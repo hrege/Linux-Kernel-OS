@@ -101,40 +101,46 @@ int paging_test(){
 int rtc_test(){
 	printf("\nThis test will print the character '1' when an RTC interrupt occurs \nas determined using rtc_read\nStarting with rtc_open which will set it to 2Hz\n");
 	rtc_open(NULL);
-	rtc_helper(10);
+	rtc_helper(100);
 	int i; //to hold return vals
 	printf("Calling RTC write with rate of 64Hz\n");
 	i = rtc_write(0, NULL, 64);
 	if(i==-1){
 		return FAIL;
 	}
-	rtc_helper(120);
-	printf("Calling RTC write with rate of 420Hz\n");
+	rtc_helper(256);
+	printf("\nCalling RTC write with rate of 420Hz\n");
 	i = rtc_write(0, NULL, 420);
 	if(i==0){
 		return FAIL;
 	}
-	rtc_helper(120);
-	printf("Calling RTC write with rate of 1024Hz\n");
+	rtc_helper(128);
+	printf("\nCalling RTC write with rate of 1024Hz\n");
 	i = rtc_write(0, NULL, 1024);
 	if(i==-1){
 		return FAIL;
 	}
-	rtc_helper(2000);
-		printf("Calling RTC write with rate of 2Hz\n");
+	rtc_helper(4000);
+		printf("\nCalling RTC write with rate of 2Hz\n");
 	i = rtc_write(0, NULL, 2);
 	if(i==-1){
 		return FAIL;
 	}
-	rtc_helper(8);
+	rtc_helper(100);
 	return PASS;
 
 }
 void rtc_helper(int i){
+	int j=0;
 	while(i>0){
 		rtc_read(0, NULL, 0);
 		printf("1");
 		i--;
+		j++;
+		if(j==80){
+			printf("\n");
+			j=0;
+		}
 	}
 	printf("\n");
 	return;
