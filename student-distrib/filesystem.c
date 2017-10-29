@@ -1,13 +1,15 @@
 #include "filesystem.h"
 #include "lib.h"
 
-static int32_t* file_system_start;
+static uint8_t* file_system_start;
 static dentry_t* dir_dentry;
 static dentry_t* file_dentry;
-int8_t cur_read_idx = 1;
+int32_t cur_read_idx = 1;
 
 void file_system_init(uint32_t * start_addr) {
   /* Define start of file system as address calculated in kernel.c */
+  filesystem_t filesystem;
+  filesystem->boot_block;
   file_system_start = start_addr;
 }
 
@@ -41,8 +43,8 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
 
 
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
-  int total_bytes_read = 0;   //Count of bytes read
-  int bytes_read = 1;         //Number of bytes read per read_data call
+  // int total_bytes_read = 0;   //Count of bytes read
+  // int bytes_read = 1;         //Number of bytes read per read_data call
 
   /* Continue reading data until number of bytes read is size of nbytes. */
   // while(bytes_read != 0) {
@@ -51,8 +53,7 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
   // }
   // return total_bytes_read;
 
-  bytes_read = read_data(file_dentry->inode, 0, buf, nbytes);
-  return bytes_read;
+  return read_data(file_dentry->inode, 0, buf, nbytes);
 }
 
 
@@ -87,10 +88,12 @@ int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes) {
 int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
   //read files using filename by filename, including "." (first entry)
   //uses read_dentry_by_index
-  int8_t* num_dir_entries[DENTRY_NUM_SIZE];
+  int32_t num_dir_entries;
 
   /* Copy number of directory entries given by boot block into variable */
-  strncpy(num_dir_entries, file_system_start, DENTRY_NUM_SIZE);
+  //strncpy(num_dir_entries, file_system_start, DENTRY_NUM_SIZE);
+
+  num_dir_entries = *(file_system_start);
 
   /* Check that the current entry to read exists. */
   if(cur_read_idx > num_dir_entries){
@@ -99,17 +102,12 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
 
   dentry_t* this_entry;
   if(read_dentry_by_index(cur_read_idx, this_entry) == 0) {
-    strncpy(buf, this_entry->file_name, FILE_NAME_SIZE);
+    strncpy(buf, &(this_entry->file_name), nbytes);   //potential source of error with pointer manipulation
 
     cur_read_idx++;
-    return nbytes;//TODO check if we just return 0 or the bytes read?
+    return nbytes;
   }
   return 0;
-  //int32_t i = 0;
-  //for(i = 0; i < FILE_NAME_SIZE; i++){
-  //  buf[i] = this_entry[i];
-  //}
-
 }
 
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
@@ -122,16 +120,14 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
   /* Looping variables */
   int i, j;
 
-  /* Create temporary pointer to hold starting address of file system image.
-     Set the file name of the passed in dentry to the fname parameter.
-   */
-  dentry_t * temp_addr = dir_dentry;
+  /* Create temporary pointer to hold starting address of file system image. */
+  dentry_t * temp_addr = file_system_start;
 
   /* Loop through each entry in the boot block (size 64 bytes each) and skip the
      statistics portion of the block.
    */
   for(i = 1; i < DENTRY_SIZE; i++) {
-      temp_addr += DENTRY_SIZE*i;
+      temp_addr += DENTRY_SIZE;
 
       /* Compare file name parameter to current entry in boot block. If names
          don't match, continue to next entry in boot block.
@@ -142,7 +138,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
       //    break;
       //  }
       //}
-      if(strncmp(fname, temp_addr, FILE_NAME_SIZE) == 0){//Make sure temp_addr and fname fit into the int8_t inputs
+      if(strncmp(fname, &(temp_addr->file_name), FILE_NAME_SIZE) == 0) {//Make sure temp_addr and fname fit into the int8_t inputs
           break;
       }
 

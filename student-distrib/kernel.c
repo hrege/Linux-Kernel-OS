@@ -60,7 +60,7 @@ void entry(unsigned long magic, unsigned long addr) {
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
 
-            file_system_addr = (uint32_t) mod->mod_start;  //File System start address
+            file_system_addr = (uint32_t*) mod->mod_start;  //File System start address
 
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
             printf("First few bytes of module:\n");
