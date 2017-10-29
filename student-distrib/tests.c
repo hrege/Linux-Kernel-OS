@@ -97,48 +97,105 @@ int paging_test(){
 
 /* Checkpoint 2 tests */
 
-//TEST #3 - RTC TEST
+/* TEST #3 - RTC TEST
+*	rtc_test
+*		Author: Jonathan
+*		Description: Tests, the rtc functions. This verifies that the return value for each function
+*						(rtc read/write/open/close) is correct (fails on bad input - succeeds on good)
+*						The change in frequency is shown to the user by printing '1' on each rtc_read
+*`						Printing uses the helper function rtc_helper
+*		Inputs: none
+*		Outputs: none
+*		Returns: PASS or FAIL (1 or 0)
+*		Side Effects: Functionality Validation
+*/
 int rtc_test(){
-	printf("\nThis test will print the character '1' when an RTC interrupt occurs \nas determined using rtc_read\nStarting with rtc_open which will set it to 2Hz\n");
-	rtc_open(NULL);
-	rtc_helper(100);
-	int i; //to hold return vals
-	printf("Calling RTC write with rate of 64Hz\n");
-	i = rtc_write(0, NULL, 64);
-	if(i==-1){
+	clear();
+	printf("\nThis test will print the character '1' when an RTC interrupt occurs \n(as determined using rtc_read)\nStarting with rtc_open which will set it to 2Hz\n");
+	
+	//Initialize to 2Hz, check ret value, and print 20 1's (10s)
+	int ret;  //to hold return vals
+	ret = rtc_open(NULL);
+	if(ret!=0){
 		return FAIL;
 	}
-	rtc_helper(256);
-	printf("\nCalling RTC write with rate of 420Hz\n");
-	i = rtc_write(0, NULL, 420);
-	if(i==0){
+	rtc_helper(20);  
+	clear();
+	int freq = 2;
+	//Call RTC write for each possible rate and print for ~4s
+	do{
+		freq = freq * 2; //increase to next power of two
+		printf("Calling RTC write with rate of %dHz\n", freq);
+		ret = rtc_write(0, NULL, freq);
+		if(ret==-1){	//make sure it doesnt fail
+			return FAIL;
+		}
+		rtc_helper(4*freq);  //print for 4s
+		clear();
+	}while(freq<1024);
+	printf("Putting RTC writeback to 2Hz\n");
+	ret = rtc_write(0, NULL, 2);
+	if(ret==-1){	//make sure it doesnt fail
 		return FAIL;
 	}
-	rtc_helper(128);
-	printf("\nCalling RTC write with rate of 1024Hz\n");
-	i = rtc_write(0, NULL, 1024);
-	if(i==-1){
-		return FAIL;
-	}
-	rtc_helper(4000);
-		printf("\nCalling RTC write with rate of 2Hz\n");
-	i = rtc_write(0, NULL, 2);
-	if(i==-1){
-		return FAIL;
-	}
-	rtc_helper(100);
-	return PASS;
+	rtc_helper(8);  //print for 4s
 
+	//Check bounds on RTC Write function
+	printf("\nCalling RTC write with invalid rates\n");
+	ret = rtc_write(0, NULL, FREQ_NOT_POW);
+	if(ret==0){ //make sure it doesn't succeed
+		return FAIL;
+	}
+	ret = rtc_write(0, NULL, FREQ_TOO_BIG);
+	if(ret==0){ //make sure it doesn't succeed
+		return FAIL;
+	}
+	ret = rtc_write(0, NULL, FREQ_TOO_SMALL);
+	if(ret==0){ //make sure it doesn't succeed
+		return FAIL;
+	}
+	ret = rtc_write(0, NULL, FREQ_NEG);
+	if(ret==0){ //make sure it doesn't succeed
+		return FAIL;
+	}
+	//input check the frequency with NULL (only the 3rd input is used by the function)
+	ret = rtc_write(0, NULL, NULL);
+	if(ret==0){
+		return FAIL;
+	}
+	//show that it was not changed... print 10 1's (5s)
+	printf("Still running at 2Hz\n");
+	rtc_helper(10);
+
+	//verify that rtc close returns 0 
+	ret = rtc_close(0);
+	if(ret!=0){
+		return FAIL;
+	} 
+	return PASS;
 }
-void rtc_helper(int i){
-	int j=0;
-	while(i>0){
-		rtc_read(0, NULL, 0);
+/*
+*	rtc_helper
+*		Author: Jonathan
+*		Description: helper for the rtc_test function. 
+*				   		Uses rtc_read to print a 1 after a rtc_iterrupt for a 
+*				 		specified number of rtc_interrupts.
+*		Inputs: integer n number of interrupts to print after
+*		Outputs: none
+*		Returns: nothing
+*		Side effects: Prints to screen after rtc interrupts
+*/
+
+
+void rtc_helper(int n){
+	int j=0; //counter for line position
+	while(n>0){
+		rtc_read(0, NULL, 0); //wait for interrupt
 		printf("1");
-		i--;
+		n--;	//update counters
 		j++;
-		if(j==80){
-			printf("\n");
+		if(j==80){ //80 chars per line
+			printf("\n"); //print endline at end of line
 			j=0;
 		}
 	}
