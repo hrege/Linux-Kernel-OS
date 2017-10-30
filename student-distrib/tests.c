@@ -99,10 +99,11 @@ int paging_test(){
 int test_read_dentry_by_name() {
   TEST_HEADER;
 
- dentry_t test;
- char* name;
- uint8_t buf[10000];
+ 	dentry_t test;
+ 	char* name;
+ 	uint8_t buf[BUF_SIZE];
 
+	clear();
  /* Regular file test */
   name = "cat";
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
@@ -129,7 +130,6 @@ int test_read_dentry_by_name() {
   }
 
   /* File has large name */
-	clear();
   name = "verylargetextwithverylongname.tx";
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
 		strncpy((int8_t *)buf, (int8_t *)&(test.file_name), FILE_NAME_SIZE);
@@ -139,8 +139,8 @@ int test_read_dentry_by_name() {
 		//printf("%d\n", test.inode_number);
   }
   else {
-	printf("Couldn't match full name \n");
-	return FAIL;
+		printf("Couldn't match full name \n");
+		return FAIL;
   }
 
   /* File name is NULL */
@@ -148,12 +148,12 @@ int test_read_dentry_by_name() {
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
     printf("%s\n", test.file_name);
     printf("%d\n", test.file_type);
-	printf("%d\n", test.inode_number);
-	printf("NULL file name found \n");
-	return FAIL;
+		printf("%d\n", test.inode_number);
+		printf("NULL file name found \n");
+		return FAIL;
   }
   else {
-	printf("NULL file name ignored \n");
+		printf("NULL file name ignored \n");
   }
 
   return PASS;
@@ -165,7 +165,7 @@ int test_read_dentry_by_index() {
   uint32_t index = 0;
   uint32_t retval = 0;
   dentry_t test;
-	uint8_t buf[100000];
+	uint8_t buf[BUF_SIZE];
 
   for(index = 0; index < number_of_files; index++) {
     retval = read_dentry_by_index(index, &test);
@@ -206,12 +206,11 @@ int test_read_data() {
 	clear();
 	int i = 0;
 	int retval;
-	uint8_t buf[10000];
-	int32_t fd = 0;
+	uint8_t buf[BUF_SIZE];
 	dentry_t file_dentry;
 	//char* file = "verylargetextwithverylongname.tx";
 	//char* file = "frame0.txt";
-	char* file = "pingpong";
+	char* file = "fish";
 	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
 
 	inode_t* this_inode;
@@ -225,20 +224,11 @@ int test_read_data() {
 		printf("%c", buf[i]);
 	}
 
-	// if(file_read(fd, &buf, length, (uint8_t*)file) == length) {
-	// 	for(i = 0; i < length; i++) {
-	// 		printf("%c", buf[i]);
-	// 	}
-	// 	return PASS;
-	// }
-	// else {
-	// 	return FAIL;
-	// }
 	return PASS;
 }
 
 int test_read_dir() {
-	uint8_t buf[100000];
+	uint8_t buf[BUF_SIZE];
 
 	clear();
 	while(directory_read(0, &buf, FILE_NAME_SIZE) != 0) {
@@ -260,8 +250,8 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("paging_test", paging_test());
   //TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
-  TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
-	//TEST_OUTPUT("read_data_test", test_read_data());
+  //TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
+	TEST_OUTPUT("read_data_test", test_read_data());
 	//TEST_OUTPUT("dir_read_test", test_read_dir());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 
