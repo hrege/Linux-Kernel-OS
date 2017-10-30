@@ -302,10 +302,10 @@ int test_read_dir() {
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("paging_test", paging_test());
-  //TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
+  TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
   //TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
 	//TEST_OUTPUT("read_data_test", test_read_data());
-	TEST_OUTPUT("dir_read_test", test_read_dir());
+	//TEST_OUTPUT("dir_read_test", test_read_dir());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 
 	return;
