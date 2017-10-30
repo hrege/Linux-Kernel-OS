@@ -294,7 +294,6 @@ void keyboard_handler() {
      memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
      set_screen_y(NUM_ROWS - 1);
      clear_line();
-     buffer_length = 0;
    }
 
   
