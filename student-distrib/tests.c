@@ -195,6 +195,23 @@ int test_read_dentry_by_index() {
   return PASS;
 }
 
+int test_read_data() {
+	int i = 0;
+	uint8_t buf[10000];
+	uint32_t length = 10000;
+	int32_t fd = 0;
+	char* file = "verylargetextwithverylongname.tx";
+	if(file_read(fd, buf, length, (uint8_t*)file) == length) {
+		for(i = 0; i < length; i++) {
+			printf("%c\n", buf[i]);
+		}
+		return PASS;
+	}
+	else {
+		return FAIL;
+	}
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -205,7 +222,8 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("paging_test", paging_test());
   //TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
-  TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
+  //TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
+	TEST_OUTPUT("read_data_test", test_read_data());
   //TEST_OUTPUT("div_zero_test", div_zero_test());
 
 	// launch your tests here

@@ -48,13 +48,13 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
 }
 
 
-// int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
-//   int retval;
-//   dentry_t file_dentry;
-//   //Call read_by_name to pass in correct dentry
-//   retval = read_dentry_by_name(fname, &(file_dentry));  //add in check for retval later
-//   return read_data(file_dentry.inode_number, 0, buf, nbytes);
-// }
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
+  int retval;
+  dentry_t file_dentry;
+  //Call read_by_name to pass in correct dentry
+  retval = read_dentry_by_name(fname, &(file_dentry));  //add in check for retval later
+  return read_data(file_dentry.inode_number, 0, buf, nbytes);
+}
 
 
 // int32_t directory_open(const uint8_t * filename) {
@@ -123,7 +123,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
       /* Compare file name parameter to current entry in boot block. If names
          don't match, continue to next entry in boot block.
        */
-      if(strncmp((int8_t *)fname, (int8_t *)temp_dentry->file_name, FILE_NAME_SIZE) == 0) {//Make sure temp_addr and fname fit into the int8_t inputs
+      if(strncmp((int8_t *)fname, (int8_t *)temp_dentry->file_name, FILE_NAME_SIZE) == 0) {
           break;
       }
 
@@ -157,12 +157,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   dentry_t* temp_addr = &(filesystem.boot_block_start->directory_entries[index]);
 
   /* Set the file name of the passed in dentry to the fname parameter. */
-  if(strlen(((int8_t*)(temp_addr->file_name)) < FILE_NAME_SIZE) {
-    strncpy((int8_t*)dentry->file_name, (int8_t*)(temp_addr->file_name), strlen((int8_t*)(temp_addr->file_name)));
-  }
-  else {
-    strncpy((int8_t*)dentry->file_name, (int8_t*)(temp_addr->file_name), FILE_NAME_SIZE);
-  }
+  strncpy((int8_t*)dentry->file_name, (int8_t*)(temp_addr->file_name), FILE_NAME_SIZE);
+
   /* Set file type and inode number of dentry according to current entry in directory. */
   dentry->file_type = *((uint8_t*)temp_addr + FILE_NAME_SIZE);
   dentry->inode_number = *((uint8_t*)temp_addr + FILE_NAME_SIZE + FILE_TYPE_SIZE);
@@ -170,53 +166,53 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   return 0;
 }
 
-// int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
-//   /* Initialize loop variables */
-//   int i;
+int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
+  /* Initialize loop variables */
+  int i;
 
-//   /* Check if inode parameter is within valid range of inodes */
-//   if(inode < 0 || inode > (filesystem.boot_block_start->num_inodes - 1)) {
-//     printf("Inode out of bounds!\n");
-//     return -1;
-//   }
-//   if(offset < 0 || offset > length) {
-//     return -1;
-//   }
+  /* Check if inode parameter is within valid range of inodes */
+  if(inode < 0 || inode > (filesystem.boot_block_start->num_inodes - 1)) {
+    printf("Inode out of bounds!\n");
+    return -1;
+  }
+  if(offset < 0 || offset > length) {
+    return -1;
+  }
 
-//   /* Store inode information using the "inode" index */
-//   inode_t* this_inode;
-//   this_inode = (uint8_t)filesystem->inode_start + (inode * BLOCK_SIZE);
-//   this_inode.length = *((uint32_t)this_inode);
-//   this_inode->inode_data_blocks = (uint8_t)this_inode + DATA_LENGTH_SIZE;
+  /* Store inode information using the "inode" index */
+  inode_t* this_inode;
+  this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (inode * BLOCK_SIZE));
+  this_inode->length = *((uint32_t*)this_inode);
+  this_inode->inode_data_blocks = (uint32_t*)((uint8_t*)this_inode + DATA_LENGTH_SIZE);
 
-//   /* Determine the total number of data blocks based on length of file */
-//   uint32_t num_inode_dblocks;                                                 //TODO Double-check
-//   num_inode_dblocks = this_inode.length/BLOCK_SIZE;
-//   if((this_inode.length % BLOCK_SIZE) > 0){
-//     num_inode_dblocks++;
-//   }
+  /* Determine the total number of data blocks based on length of file */
+  uint32_t num_inode_dblocks;
+  num_inode_dblocks = this_inode->length/BLOCK_SIZE;
+  if((this_inode->length % BLOCK_SIZE) > 0){
+    num_inode_dblocks++;
+  }
 
-//   /* Check if each data block represented by inode is within bounds. */
-//   uint32_t curr_block;
-//   for(i = 0; i < num_inode_dblocks; i++) {
-//     curr_block = *((uint8_t)(this_inode->inode_data_blocks) + i*DATA_LENGTH_SIZE);
-//     if(curr_block < 0 || curr_block >= filesystem.boot_block_start.num_dblocks){
-//       printf("Data block not within bounds\n");
-//       return -1;
-//     }
-//   }
+  /* Check if each data block represented by inode is within bounds. */
+  uint32_t curr_block;
+  for(i = 0; i < num_inode_dblocks; i++) {
+    curr_block = *((uint8_t*)(this_inode->inode_data_blocks) + i*DATA_LENGTH_SIZE);
+    if(curr_block < 0 || curr_block >= filesystem.boot_block_start->num_dblocks){
+      printf("Data block not within bounds\n");
+      return -1;
+    }
+  }
 
-//   /* Set buff_ptr to start of buffer to begin */
-//   void* buff_ptr = buf;
-//   data_block_t* block_data;
+  /* Set buff_ptr to start of buffer to begin */
+  uint8_t* buff_ptr = buf;
+  data_block_t* block_data;
 
-//   /*Loop through data blocks in sequence in inode */
-//   for(i = 0; i < num_inode_dblocks; i++) {
-//     curr_block = *((uint8_t)this_inode->inode_data_blocks + i*DATA_LENGTH_SIZE); //which number data we're looking at
-//     block_data = ((uint8_t)filesystem->data_block_start) + (curr_block * BLOCK_SIZE);
-//     buff_ptr = (uint8_t)buf + i*BLOCK_SIZE;
-//     *buff_ptr = *block_data;
-//   }
+  /*Loop through data blocks in sequence in inode */
+  for(i = 0; i < num_inode_dblocks; i++) {
+    curr_block = *((uint8_t*)this_inode->inode_data_blocks + i*DATA_LENGTH_SIZE); //which number data we're looking at
+    block_data = (data_block_t*)((uint8_t*)filesystem.data_block_start) + (curr_block * BLOCK_SIZE);
+    buff_ptr = (uint8_t*)buf + i*BLOCK_SIZE;
+    *buff_ptr = (uint8_t*)(block_data->data);
+  }
 
-//   return length;
-// }
+  return length;
+}
