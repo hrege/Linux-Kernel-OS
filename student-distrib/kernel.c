@@ -1,7 +1,7 @@
 /* kernel.c - the C part of the kernel
  * vim:ts=4 noexpandtab
  */
-///////////
+
 #include "multiboot.h"
 #include "x86_desc.h"
 #include "lib.h"
@@ -140,7 +140,6 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     /* Initialize Everything and turn on interrupts */
-
     /* Initialize PIC */
     i8259_init();
 

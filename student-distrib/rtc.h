@@ -1,6 +1,5 @@
 /*
-*  Author: Hershel Rege, Group 31 victoriOS Secret
-*  Code modified from osDev Internet source.
+*  Author: Hershel Rege & Jonathan Mullen, Group 31 victoriOS Secret
 */
 
 #ifndef RTC_H
@@ -21,5 +20,17 @@
 extern void rtc_init();
 /* Interrupt handler for RTC. */
 extern void rtc_handler();
+
+/* RTC Driver Open Function */
+extern int32_t rtc_open(const uint8_t* filename);
+
+/* RTC Driver Read Function */
+extern int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
+
+/* RTC Driver Write Function */
+extern int32_t rtc_write(int32_t fd, const void* buf, int32_t frequency);
+
+/* RTC Driver Close Function */
+extern int32_t rtc_close(int32_t fd);
 
 #endif

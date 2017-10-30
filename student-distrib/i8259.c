@@ -48,7 +48,7 @@ void i8259_init(void) {
 		disable_irq(i);
 	}
 
-	enable_irq(2);
+	enable_irq(2); //enable pic
 }
 
 /*	enable_irq

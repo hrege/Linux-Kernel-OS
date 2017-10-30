@@ -3,6 +3,8 @@
 #include "lib.h"
 #include "idt_init.h"
 #include "keyboard.h"
+#include "rtc.h"
+
  
 #define PASS 1
 #define FAIL 0
@@ -96,6 +98,7 @@ int paging_test(){
  }
 
 /* Checkpoint 2 tests */
+
 int terminal_driver_test(){
 	int test_open, test_read;
 	char buffer[128];
@@ -117,6 +120,102 @@ int terminal_driver_test(){
 
 
 
+/*
+*	rtc_helper
+*		Author: Jonathan
+*		Description: helper for the rtc_test function. 
+*				   		Uses rtc_read to print a 1 after a rtc_iterrupt for a 
+*				 		specified number of rtc_interrupts.
+*		Inputs: integer n number of interrupts to print after
+*		Outputs: none
+*		Returns: nothing
+*		Side effects: Prints to screen after rtc interrupts
+*/
+void rtc_helper(int n){
+	int j=0; //counter for line position
+	while(n>0){
+		rtc_read(0, NULL, 0); //wait for interrupt
+		printf("1");
+		n--;	//update counters
+		j++;
+		if(j==80){ //80 chars per line
+			printf("\n"); //print endline at end of line
+			j=0;
+		}
+	}
+	printf("\n");
+	return;
+}
+/* 
+*	rtc_test
+*		Author: Jonathan
+*		Description: Tests, the rtc functions. This verifies that the return value for each function
+*						(rtc read/write/open/close) is correct (fails on bad input - succeeds on good)
+*						The change in frequency is shown to the user by printing '1' on each rtc_read
+*`						Printing uses the helper function rtc_helper
+*		Inputs: none
+*		Outputs: none
+*		Returns: PASS or FAIL (1 or 0)
+*		Side Effects: Functionality Validation
+*/
+int rtc_test(){
+	clear();
+	printf("\nThis test will print the character '1' when an RTC interrupt occurs \n(as determined using rtc_read)\nStarting with rtc_open which will set it to 2Hz\n");
+	
+	//Initialize to 2Hz, check ret value, and print 20 1's (10s)
+	int ret;  //to hold return vals
+	ret = rtc_open(NULL);
+	if(ret!=0){
+		return FAIL;
+	}
+	rtc_helper(20);  
+	clear();
+	int freq = 2;
+	//Call RTC write for each possible rate and print for ~4s
+	do{
+		freq = freq * 2; //increase to next power of two
+		printf("Calling RTC write with rate of %dHz\n", freq);
+		ret = rtc_write(0, NULL, freq);
+		if(ret==-1){	//make sure it doesnt fail
+			return FAIL;
+		}
+		rtc_helper(4*freq);  //print for 4s
+		clear();
+	}while(freq<1024);
+	printf("Putting RTC write freq back to 2Hz\n");
+	ret = rtc_write(0, NULL, 2);
+	if(ret==-1){	//make sure it doesnt fail
+		return FAIL;
+	}
+	rtc_helper(8);  //print for 4s
+
+	//Check bounds on RTC Write function
+	printf("\nCalling RTC write with invalid rates\n");
+	freq = -499;
+	do{
+		freq = freq + 250; //increase to next power of two
+		printf("Calling RTC write with rate of %dHz\n", freq);
+		ret = rtc_write(0, NULL, freq);
+		if(ret==0){	//make sure it doesnt succeed
+			return FAIL;
+		}
+	}while(freq<2500);
+	//input check the frequency with NULL (only the 3rd input is used by the function)
+	ret = rtc_write(0, NULL, NULL);
+	if(ret==0){
+		return FAIL;
+	}
+	//show that it was not changed... print 10 1's (7.5s)
+	rtc_helper(15);
+	printf("Still running at 2Hz\n");
+
+	//verify that rtc close returns 0 
+	ret = rtc_close(0);
+	if(ret!=0){
+		return FAIL;
+	} 
+	return PASS;
+
 }
 
 /* Checkpoint 3 tests */
@@ -129,7 +228,9 @@ void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("paging_test", paging_test());
 	TEST_OUTPUT("terminal_driver_test", terminal_driver_test());
+
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
+	TEST_OUTPUT("RTC TEST", rtc_test());
 
 	// launch your tests here
 	return;
