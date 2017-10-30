@@ -254,9 +254,11 @@ void keyboard_handler() {
       if(get_screen_x() == 0 && buffer_length > 0){
         set_screen_y(get_screen_y() - 1);
         set_screen_x(NUM_COLS - 1);
+        update_cursor(get_screen_x(), get_screen_y());
       }
       else{
           set_screen_x(get_screen_x() - 1);
+          update_cursor(get_screen_x(), get_screen_y());
       }
 
 
@@ -266,6 +268,7 @@ void keyboard_handler() {
       clear();
       set_screen_x(0);
       set_screen_y(0);
+      update_cursor(get_screen_x(), get_screen_y());
       buffer_length = 0;
 
   }
@@ -274,7 +277,7 @@ void keyboard_handler() {
     line_buffer[buffer_length] = '\n';
     putc('\n');
     flag = buffer_length;
-
+    update_cursor(get_screen_x(), get_screen_y());
     buffer_length = 0;
 
 
@@ -283,10 +286,11 @@ void keyboard_handler() {
 
 
   /* Print scancode-converted character to terminal. */
-  else if(keyboard_input > 0 && buffer_length < max_buffer_size && char_out != 0) {
+  else if(keyboard_input < MAX_SCANCODE && buffer_length < max_buffer_size && char_out != 0) {
     putc(char_out);
     line_buffer[buffer_length] = char_out;
     buffer_length++;
+    update_cursor(get_screen_x(), get_screen_y());
   }
 
   if (get_screen_y() == NUM_ROWS)
@@ -294,6 +298,7 @@ void keyboard_handler() {
      memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
      set_screen_y(NUM_ROWS - 1);
      clear_line();
+     update_cursor(get_screen_x(), get_screen_y());
    }
 
   
@@ -319,7 +324,12 @@ char getScancode(char input) {
 
 /*From OSDEV Text_Mode_Cursor*/
 void update_cursor(int x, int y){
-
+  uint16_t pos = y * NUM_COLS + x;
+ 
+  outb(0x0F, 0x3D4);
+  outb((uint8_t) (pos & 0xFF), 0x3D5);
+  outb(0x0E, 0x3D4);
+  outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
 
 }
 
@@ -327,6 +337,9 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
   int i;//loop variable
 
   if(nbytes < 1){
+    return -1;
+  } 
+  if(buf == NULL){
     return -1;
   }
 
@@ -356,6 +369,9 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     if(nbytes < 0){
       return -1;
     }
+    if(buf == NULL){
+        return -1;
+    }
     if(nbytes > max_buffer_size){
       nbytes = max_buffer_size;
     }
@@ -379,6 +395,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         }
      
     }
+    update_cursor(get_screen_x(), get_screen_y());
 
     return 0;
 }
@@ -389,6 +406,7 @@ int32_t terminal_open(const uint8_t* filename){
   set_screen_x(0);
   set_screen_y(0);
   clear();
+  update_cursor(get_screen_x(), get_screen_y());
   lshift_flag = 0;
   rshift_flag = 0;
   caps_flag = 0;
