@@ -1,5 +1,6 @@
 boot.o: boot.S multiboot.h x86_desc.h types.h idt_init.h
 exception_link.o: exception_link.S exceptions.h types.h exception_link.H
+sys_handlers.o: sys_handlers.S
 x86_desc.o: x86_desc.S x86_desc.h types.h
 exceptions.o: exceptions.c lib.h types.h exceptions.h
 i8259.o: i8259.c i8259.h types.h lib.h rtc.h
