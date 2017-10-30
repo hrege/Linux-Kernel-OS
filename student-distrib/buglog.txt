@@ -21,3 +21,9 @@ Checkpoint 2:
 Bug: RTC_WRITE seemed to break RTC Interrupts
 Solution:
 had sti() and cli() in the wrong order lol
+
+Bug: RTC changed speeds incorrectly
+Solution:
+Higher Rate = lower Frequency apparently
+
+

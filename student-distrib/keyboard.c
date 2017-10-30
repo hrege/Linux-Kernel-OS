@@ -199,5 +199,5 @@ void keyboard_handler() {
     Side Effects: Accesses scancode array to determine which character is being printed.
  */
 char getScancode(char input) {
-  return scancode_map[input][0];
+  return scancode_map[(int)input][0];
 }
