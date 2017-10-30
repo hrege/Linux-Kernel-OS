@@ -95,6 +95,142 @@ int paging_test(){
 
 /* Checkpoint 2 tests */
 
+/* file_syscalls_test() 
+*		Description: tests the file system calls in the following order:
+					 - file_open
+					 - file_read
+					 - file_write
+					 - file_close
+*		Author: Austin
+*		Input: None
+*		Output: PASS for success, FAIL for failure
+*		Side effects: Clears terminal, prints to terminal
+*/
+int file_syscalls_test() {
+	TEST_HEADER;
+	
+	clear();
+
+	char* name_1;
+	char* name_2;
+	char* name_3;
+	uint8_t buf[BUF_SIZE];
+	uint8_t fd;
+	int32_t nbytes;
+	nbytes = BUF_SIZE;
+
+	name_1 = "cat";
+	name_2 = "notafile";
+	name_3 = ".";
+	fd = 0;
+
+	/* Test file_open */
+	if(file_open((uint8_t *)name_1) == -1){
+		return FAIL;
+	}
+	if(file_open((uint8_t *)name_2) == 0){
+		return FAIL;
+	}
+	if(file_open((uint8_t *)name_3) == 0){
+		return FAIL;
+	}
+
+	/* Test file_read */
+	if(file_read(fd, &buf, nbytes, (uint8_t *)name_1) == -1){
+		return FAIL;
+	}
+	if(file_read(fd, &buf, nbytes, (uint8_t *)name_2) == 0){
+		return FAIL;
+	}
+
+	/* Test file_write */
+	if(file_write(fd, &buf, nbytes) != -1){
+		return FAIL;
+	}
+
+	/* Test file_close */
+	if(file_close(fd) != 0){
+		return FAIL;
+	}
+
+	/* Passed tests */
+  return PASS;
+}
+
+/* dir_syscalls_test() 
+*		Description: tests the directory system calls in the following order:
+					 - dir_open
+					 - dir_read
+					 - dir_write
+					 - dir_close
+*		Author: Austin
+*		Input: None
+*		Output: PASS for success, FAIL for failure
+*		Side effects: Clears terminal, prints to terminal
+*/
+int dir_syscalls_test() {
+	TEST_HEADER;
+	
+	clear();
+
+	uint8_t i;
+	char* name_1;
+	char* name_2;
+	char* name_3;
+	uint8_t buf[BUF_SIZE];
+	uint8_t fd;
+	int32_t nbytes;
+	nbytes = BUF_SIZE;
+
+	name_1 = "cat";
+	name_2 = "notafile";
+	name_3 = ".";
+	fd = 0;
+
+	/* Test directory_open */
+	if(directory_open((uint8_t *)name_1) == 0){
+		return FAIL;
+	}
+	if(directory_open((uint8_t *)name_2) == 0){
+		return FAIL;
+	}
+	if(directory_open((uint8_t *)name_3) == -1){
+		return FAIL;
+	}
+
+	/* Test directory_read */
+	if(directory_read(fd, &buf, nbytes) == 0){
+		return FAIL;
+	}
+	printf("%s\n", buf);
+	memset(&buf, '\0', FILE_NAME_SIZE);
+
+	while(directory_read(fd, &buf, FILE_NAME_SIZE) != 0){
+		printf("%s\n", buf);
+		memset(&buf, '\0', FILE_NAME_SIZE);
+	}
+
+	i = 0;
+	for(i = 0; i < 20; i++){
+		if(directory_read(fd, &buf, nbytes) != 0){
+			return FAIL;
+		}
+	}
+
+	/* Test directory_write */
+	if(directory_write(fd, &buf, nbytes) != -1){
+		return FAIL;
+	}
+
+	/* Test directory_close */
+	if(directory_close(fd) != 0){
+		return FAIL;
+	}
+
+	/* Passed tests */
+  return PASS;
+}
+
 /* test_read_dentry_by_name()
 *		Description: tests the read_dentry_by_name function with the following tests:
 								 - Regular file
@@ -300,13 +436,14 @@ int test_read_dir() {
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("paging_test", paging_test());
-  TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
-  //TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
+  //TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
+  TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
 	//TEST_OUTPUT("read_data_test", test_read_data());
 	//TEST_OUTPUT("dir_read_test", test_read_dir());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
-
+	//TEST_OUTPUT("file_syscalls_test", file_syscalls_test());
+	//TEST_OUTPUT("dir_syscalls_test", dir_syscalls_test());
 	return;
 }

@@ -5,7 +5,7 @@ filesystem_t filesystem;  /* File system object that contains pointers to each p
 int32_t cur_read_idx = 0; /* Read index to determine if directory has been completely read */
 uint32_t number_of_files; /* Global variable to hold the current number of files in directory */
 
-/*
+/* void file_system_init(uint32_t * start_addr)
   Description: Initializes the file system to point to the different
                areas (boot block, data blocks, etc.).
   Author: Hershel/Austin
@@ -24,7 +24,7 @@ void file_system_init(uint32_t * start_addr) {
   filesystem.data_block_start = ((uint8_t *)start_addr + ((uint8_t)filesystem.boot_block_start->num_inodes) * BLOCK_SIZE);
 }
 
-/*
+/* int32_t file_open(const uint8_t * filename)
   Description: Opens files from directory and checks the file type to affirm
                only user files are opened.
   Author: Hershel/Austin
@@ -52,7 +52,7 @@ int32_t file_open(const uint8_t * filename) {
   return 0;
 }
 
-/*
+/* int32_t file_close(int32_t fd)
   Description: Close files based on file descriptor parameter passed in
   Author: Hershel/Austin
   Inputs: fd - file descriptor defining which file needs to be opened
@@ -64,7 +64,7 @@ int32_t file_close(int32_t fd) {
   return 0;
 }
 
-/*
+/* int32_t file_write(int32_t fd, const void* buf, int32_t nbytes)
   Description: Since system is read-only, write always returns failure
   Author: Hershel/Austin
   Inputs: fd - file descriptor
@@ -78,7 +78,7 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
   return -1;
 }
 
-/*
+/* int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname)
   Description: Reads contents of file from directory
   Author: Hershel/Austin
   Inputs: fd - file descriptor defining which file needs to be read
@@ -94,13 +94,16 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
   dentry_t file_dentry;
 
   /* Call read_by_name to pass in correct dentry */
-  retval = read_dentry_by_name(fname, &(file_dentry));  //add in check for retval later
+  retval = read_dentry_by_name(fname, &(file_dentry));
+  if(retval == -1) {
+    return retval;
+  }
 
   /* Call read data to read from file inode*/
   return read_data(file_dentry.inode_number, 0, buf, nbytes);
 }
 
-/*
+/* int32_t directory_open(const uint8_t * filename)
   Description: Opens directory structure based on directory name
   Author: Hershel/Austin
   Inputs: filename - name of directory to be opened
@@ -125,7 +128,7 @@ int32_t directory_open(const uint8_t * filename) {
   return 0;
 }
 
-/*
+/* int32_t directory_close(int32_t fd)
   Description: Closes directory, reversing effects of directory_open
   Author: Hershel/Austin
   Inputs: fd - file descriptor determines which file needs to be closed
@@ -137,7 +140,7 @@ int32_t directory_close(int32_t fd) {
   return 0;
 }
 
-/*
+/* int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes)
   Description: Writes to directory, but always fails since it's a read-only
                file structure.
   Author: Hershel/Austin
@@ -152,7 +155,7 @@ int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes) {
   return -1;
 }
 
-/*
+/* int32_t directory_read(int32_t fd, void* buf, int32_t nbytes)
   Description: Reads all files from current directory, using call to
                read_dentry_by_index to make sure file exists in directory.
   Author: Hershel/Austin
@@ -172,7 +175,7 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
 
   dentry_t this_entry;
 
-  /* heck if current directory index exists, then copy file name into buffer. */
+  /* Check if current directory index exists, then copy file name into buffer. */
   if(read_dentry_by_index(cur_read_idx, &(this_entry)) == 0) {
     strncpy((int8_t *)buf, (int8_t *)&(this_entry.file_name), nbytes);
     cur_read_idx++;
@@ -181,7 +184,7 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
   return 0;
 }
 
-/*
+/* int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry)
   Description: Check if file exists in directory by comparing parameter file name
                to each entry in directory.
   Author: Hershel/Austin
@@ -237,7 +240,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
   return 0;
 }
 
-/*
+/* int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
   Description: Checks if index parameter represents a file in the current directory.
   Author: Hershel/Austin
   Inputs: index - file index to be checked
@@ -266,7 +269,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   return 0;
 }
 
-/*
+/* int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
   Description: Reads data from filesystem, checking each file's inodes and
                corresponding data blocks to find relevant data.
   Author: Hershel/Austin
