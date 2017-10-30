@@ -142,8 +142,8 @@ void idt_init() {
 	return;
 }
 
-
-
+/* assembly linkage */
+// not yet implemented ... to be done for CP3
 void sys_call(){
 	__asm__("pusha\n\t"
 			"call sys_call_hlp\n\t"
