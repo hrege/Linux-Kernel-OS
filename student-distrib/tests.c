@@ -156,7 +156,8 @@ int test_read_dentry_by_name() {
 }
 
 int test_read_dentry_by_index() {
-  TEST_HEADER;
+	clear();
+	TEST_HEADER;
   uint32_t index = 0;
   uint32_t retval = 0;
   dentry_t test;
@@ -165,13 +166,32 @@ int test_read_dentry_by_index() {
     retval = read_dentry_by_index(index, &test);
     if(retval == -1) {
       return FAIL;
-    }
-    else {
+  	}
+  	else {
       printf("%s\n", test.file_name);
-      printf("%d\n", test.file_type);
-      printf("%d\n", test.inode_number);
+      //printf("%d\n", test.file_type);
+      //printf("%d\n", test.inode_number);
     }
   }
+	retval = read_dentry_by_index(number_of_files + 1, &test);
+	if(retval == -1) {
+		printf("Greater than number of files\n");
+	}
+	else {
+		printf("Index > number_of_files is not a file!\n");
+		printf("%s\n", test.file_name);
+		return FAIL;
+	}
+
+	retval = read_dentry_by_index(-1, &test);
+	if(retval == -1) {
+		printf("Found negative index!\n");
+	}
+	else {
+		printf("Incorrectly found negative index\n");
+		return FAIL;
+	}
+
   return PASS;
 }
 

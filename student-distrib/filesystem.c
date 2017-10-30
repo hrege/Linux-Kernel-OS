@@ -3,11 +3,11 @@
 
 filesystem_t filesystem;
 int32_t cur_read_idx = 1;
+uint32_t number_of_files;
 
 void file_system_init(uint32_t * start_addr) {
   /* Define start of file system as address calculated in kernel.c */
   filesystem.boot_block_start = (boot_block_t *)start_addr;
-  uint32_t number_of_files;
   number_of_files = (uint32_t)(filesystem.boot_block_start->num_dir_entries);
   // filesystem.boot_block_start->num_dir_entries = (uint32_t)(*filesystem.boot_block_start);
   // filesystem.boot_block_start->num_inodes = *((uint8_t)filesystem.boot_block_start + DENTRY_NUM_SIZE);
@@ -148,7 +148,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
 
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   /* If non-existent file or invalid index, return error */
-  if((index > NUM_FILES || index < 0)) {
+  if((index > number_of_files || index < 0)) {
     printf("invalid file\n");
     return -1;
   }
@@ -157,8 +157,12 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   dentry_t* temp_addr = &(filesystem.boot_block_start->directory_entries[index]);
 
   /* Set the file name of the passed in dentry to the fname parameter. */
-  strncpy((int8_t*)dentry->file_name, (int8_t*)(temp_addr->file_name), FILE_NAME_SIZE);
-
+  if(strlen(((int8_t*)(temp_addr->file_name)) < FILE_NAME_SIZE) {
+    strncpy((int8_t*)dentry->file_name, (int8_t*)(temp_addr->file_name), strlen((int8_t*)(temp_addr->file_name)));
+  }
+  else {
+    strncpy((int8_t*)dentry->file_name, (int8_t*)(temp_addr->file_name), FILE_NAME_SIZE);
+  }
   /* Set file type and inode number of dentry according to current entry in directory. */
   dentry->file_type = *((uint8_t*)temp_addr + FILE_NAME_SIZE);
   dentry->inode_number = *((uint8_t*)temp_addr + FILE_NAME_SIZE + FILE_TYPE_SIZE);
