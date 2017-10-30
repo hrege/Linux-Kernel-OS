@@ -11,6 +11,7 @@
 #include "rtc.h"
 #include "keyboard.h"
 #include "paging.h"
+#include "filesystem.h"
 
 #define RUN_TESTS
 
@@ -171,6 +172,6 @@ void entry(unsigned long magic, unsigned long addr) {
 #endif
     /* Execute the first program ("shell") ... */
 
-    /* Spin (nicely, so we don't chew up cycles) */
+    /* Spin (nicely, so we don't chew up cycles) *///
     asm volatile (".1: hlt; jmp .1;");
 }

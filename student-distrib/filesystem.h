@@ -30,33 +30,33 @@
 //   int (*jump_table[NUM_FILE_OPERATIONS])() = {file_open, file_close, file_read, file_write};
 // };
 
-typedef struct {
-  boot_block_t* boot_block_start;
-  inode_t* inode_start;
-  uint8_t* data_block_start;
-} filesystem_t;
-
-typedef struct {
-  uint32_t num_dir_entries;
-  uint32_t num_inodes;
-  uint32_t num_dblocks;
-  uint8_t reserved_bytes[NUM_RESERVED_BOOT_BYTES];
-  dentry_t* directory_entries[NUM_DIRECTORY_ENTRIES];
-} boot_block_t;
-
-typedef struct {
+typedef struct dentry_t {
   uint8_t file_name[FILE_NAME_SIZE];
   uint32_t file_type;
   uint32_t inode_number;
   uint8_t reserved_bytes[NUM_RESERVED_BYTES];
 } dentry_t;
 
-typedef struct {
+typedef struct inode_t {
   uint32_t length;
   uint32_t* inode_data_blocks;
 } inode_t;
 
-typedef struct {
+typedef struct boot_block_t {
+  uint32_t num_dir_entries;
+  uint32_t num_inodes;
+  uint32_t num_dblocks;
+  uint8_t reserved_bytes[NUM_RESERVED_BOOT_BYTES];
+  dentry_t directory_entries[NUM_DIRECTORY_ENTRIES];
+} boot_block_t;
+
+typedef struct filesystem_t {
+  boot_block_t* boot_block_start;
+  inode_t* inode_start;
+  uint8_t* data_block_start;
+} filesystem_t;
+
+typedef struct data_block_t {
   uint8_t data[BLOCK_SIZE];
 } data_block_t;
 
@@ -65,7 +65,7 @@ void file_system_init(uint32_t * start_addr);
 int32_t file_open(const uint8_t * filename);
 int32_t file_close(int32_t fd);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes);
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname);
 
 int32_t directory_open(const uint8_t * filename);
 int32_t directory_close(int32_t fd);

@@ -96,18 +96,63 @@ int paging_test(){
  }
 
 /* Checkpoint 2 tests */
-void test_read_dentry_by_name() {
+int test_read_dentry_by_name() {
   TEST_HEADER;
 
-  dentry_t* test;
-  if(read_dentry_by_name("cat", test) == 0) {
-    printf("%s\n", test->file_name);
-    printf("%s\n", test->file_type);
-    printf("%d\n", test->inode_number);
+ dentry_t test;
+ char* name;
+
+ /* Regular file test */
+  name = "cat";
+  if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
+    printf("%s\n", test.file_name);
+    printf("%d\n", test.file_type);
+	printf("%d\n", test.inode_number);
   }
   else {
-    printf("you suck");
+	printf("Could not find existing file \n");
+	return FAIL;
   }
+
+  /* File doesn't exist */
+  name = "UIUC";
+  if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
+    printf("%s\n", test.file_name);
+    printf("%d\n", test.file_type);
+	printf("%d\n", test.inode_number);
+	printf("Found non-existent file \n");
+	return FAIL;
+  }
+  else {
+	printf(" Non-existent file ignored \n");
+  }
+
+  /* File has large name */
+  name = "verylargetextwithverylongname.tx";
+  if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
+    printf("%s\n", test.file_name);
+    printf("%d\n", test.file_type);
+	printf("%d\n", test.inode_number);
+  }
+  else {
+	printf("Couldn't match full name \n");
+	return FAIL;
+  }
+
+  /* File name is NULL */
+  name = NULL;
+  if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
+    printf("%s\n", test.file_name);
+    printf("%d\n", test.file_type);
+	printf("%d\n", test.inode_number);
+	printf("NULL file name found \n");
+	return FAIL;
+  }
+  else {
+	printf("NULL file name ignored \n");
+  }
+
+  return PASS;
 }
 
 /* Checkpoint 3 tests */
@@ -118,8 +163,8 @@ void test_read_dentry_by_name() {
 /* Test suite entry point */
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("paging_test", paging_test());
-  TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
+	//TEST_OUTPUT("paging_test", paging_test());
+    TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 
 	// launch your tests here
