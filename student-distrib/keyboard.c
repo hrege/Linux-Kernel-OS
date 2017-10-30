@@ -24,7 +24,7 @@ static int ctrl_flag;
  */
 char scancode_map[NUM_SCANCODES][NUM_CASES] = {
       { 0x00, 0x00, 0x00, 0x00 }, /* Nothing */
-      { 0x1B, 0x1B, 0x1B, 0x1B }, /* ESC */
+      { 0x00, 0x00, 0x00, 0x00 }, /* ESC */ // 0x1B to restore
 
       /* Line 1 on keyboard: Numbers 1-9, 0, -, +/=, Backspace */
       { 0x31, 0x21, 0x31, 0x21 }, /* 1 */
@@ -42,7 +42,7 @@ char scancode_map[NUM_SCANCODES][NUM_CASES] = {
       { 0x08, 0x08, 0x08, 0x08 }, /* Backspace */
 
       /* Line 2 on keyboard: Tab, QWERTYUIOP, [] */
-      { 0x09, 0x09, 0x09, 0x09 }, /* Tab */
+      { 0x00, 0x00, 0x00, 0x00 }, /* Tab */ // 0x09 if we want to restore
       { 0x71, 0x51, 0x51, 0x71 }, /* Q */
       { 0x77, 0x57, 0x57, 0x77 }, /* W */
       { 0x65, 0x45, 0x45, 0x65 }, /* E */
@@ -341,10 +341,14 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
   while(flag == 0){
 
   }
-
+  /*Check size of buffer*/
+  if(nbytes < flag){
+    flag = nbytes;
+  }
   for(i = 0; i < flag; i++){
       ((char *)buf)[i] = line_buffer[i];
   }
+  ((char *)buf)[flag] = '\0';
   nbytes = flag;
   flag = 0;
 
@@ -366,7 +370,9 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     }
 
     for(i = 0; i < nbytes; i++){
-      
+      if(((char*)buf)[i] == '\0'){
+        return 0;
+      }
       if(((char *)buf)[i] == ENTER){
          putc('\n');
       }

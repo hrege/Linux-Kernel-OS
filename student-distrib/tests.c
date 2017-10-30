@@ -125,17 +125,6 @@ int terminal_driver_test(){
 		return FAIL;
 	}
 
-	printf("What's your name?\n");
-	test_read = terminal_read(0, buffer, BUFFER_SIZE / 2);
-	if(test_read < 0){
-		return FAIL;
-	}
-	printf("Hello, half your name is ");
-	test_write = terminal_write(0, buffer, test_read);
-	if(test_write != 0){
-		return FAIL;
-	}
-	printf("\n");
 	
 
 	test_close = terminal_close(1);
