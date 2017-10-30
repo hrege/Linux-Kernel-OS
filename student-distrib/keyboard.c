@@ -263,11 +263,7 @@ void keyboard_handler() {
   /*Clear screen*/
   else if(char_out == 'l' && ctrl_flag > 0){
       clear();
-      set_screen_x(0);
-      set_screen_y(0);
-      update_cursor(get_screen_x(), get_screen_y());
       buffer_length = 0;
-
   }
 
   else if(char_out == ENTER){
@@ -421,10 +417,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 */
 int32_t terminal_open(const uint8_t* filename){
   buffer_length = 0;
-  set_screen_x(0);
-  set_screen_y(0);
   clear();
-  update_cursor(get_screen_x(), get_screen_y());
   /*Initialize all flags*/
   lshift_flag = 0;
   rshift_flag = 0;

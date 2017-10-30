@@ -106,6 +106,7 @@ void clear_line(void) {
     }
     set_screen_x(0);
     set_screen_y(NUM_ROWS - 1);
+
 }
 
 /* void clear(void);
@@ -118,6 +119,9 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
+    set_screen_x(0);    //reset to top left
+    set_screen_y(0);
+    update_cursor(screen_x, screen_y);
 }
 
 /* Standard printf().
@@ -239,10 +243,18 @@ format_char_switch:
 
             default:
                 putc(*buf);
+                    /* check buffer */
+                 if (get_screen_y() == NUM_ROWS){
+                     memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
+                    set_screen_y(NUM_ROWS - 1);
+                    clear_line();
+                }
                 break;
+
         }
         buf++;
     }
+
     update_cursor(screen_x, screen_y);
     return (buf - format);
 }

@@ -99,6 +99,14 @@ int paging_test(){
 
 /* Checkpoint 2 tests */
 
+/*
+*	terminal_driver_test
+*		Author: Sam
+*		Description: Tests the terminal drivers
+*		Input: none
+*		Output: Test status to screen
+*		Return: Pass/Fail (1/0)
+*/
 
 int terminal_driver_test(){
 	int test_open;
@@ -187,8 +195,6 @@ int rtc_test(){
 	}
 	rtc_helper(20);  
 	clear();
-	set_screen_x(0);	//reset to top left
-	set_screen_y(0);
 	int freq = 2;
 	//Call RTC write for each possible rate and print for ~4s
 	do{
@@ -200,8 +206,6 @@ int rtc_test(){
 		}
 		rtc_helper(4*freq);  //print for 4s
 		clear();
-		set_screen_x(0);	//reset to top left
-		set_screen_y(0);
 	}while(freq<1024);
 	printf("Putting RTC write freq back to 2Hz\n");
 	ret = rtc_write(0, NULL, 2);
@@ -234,7 +238,10 @@ int rtc_test(){
 	ret = rtc_close(0);
 	if(ret!=0){
 		return FAIL;
-	} 
+	}
+	return PASS;
+} 
+
 
 
 /* file_syscalls_test() 
@@ -249,9 +256,9 @@ int rtc_test(){
 *		Side effects: Clears terminal, prints to terminal
 */
 int file_syscalls_test() {
-	TEST_HEADER;
-	
 	clear();
+	TEST_HEADER;
+
 
 	char* name_1;
 	char* name_2;
@@ -294,7 +301,7 @@ int file_syscalls_test() {
 	if(file_close(fd) != 0){
 		return FAIL;
 	}
-
+	printf("\n");
 	/* Passed tests */
   return PASS;
 }
@@ -311,9 +318,10 @@ int file_syscalls_test() {
 *		Side effects: Clears terminal, prints to terminal
 */
 int dir_syscalls_test() {
+	clear();
+
 	TEST_HEADER;
 	
-	clear();
 
 	uint8_t i;
 	char* name_1;
@@ -368,7 +376,7 @@ int dir_syscalls_test() {
 	if(directory_close(fd) != 0){
 		return FAIL;
 	}
-
+	printf("\n");
 	/* Passed tests */
   return PASS;
 }
@@ -385,9 +393,9 @@ int dir_syscalls_test() {
 *		Side effects: Clears terminal, prints dentry info
 */
 int test_read_dentry_by_name() {
+	clear();	
 	TEST_HEADER;
-	
-	clear();
+
 
  	dentry_t test;
  	char* name;
@@ -444,7 +452,7 @@ int test_read_dentry_by_name() {
   else {
 		printf("NULL file name ignored \n");
   }
-
+	printf("\n");
 	/* Passed tests */
   return PASS;
 }
@@ -460,7 +468,7 @@ int test_read_dentry_by_name() {
 *		Side effects: Clears terminal, prints dentry info
 */
 int test_read_dentry_by_index() {
-	clear();
+	//clear();
 	TEST_HEADER;
   uint32_t index = 0;
   uint32_t retval = 0;
@@ -503,7 +511,7 @@ int test_read_dentry_by_index() {
 		printf("File name is: %s\n", test.file_name);
 		return FAIL;
 	}
-
+	printf("\n");
 	/* Passed tests */
   return PASS;
 }
@@ -520,15 +528,16 @@ int test_read_dentry_by_index() {
 */
 int test_read_data() {
 	clear();
+	TEST_HEADER;
 	int i = 0;
 	int retval;
 	uint8_t buf[BUF_SIZE];
 	dentry_t file_dentry;
 
 	/* Test to fetch data using file name (comment out unused file names) */
-	char* file = "verylargetextwithverylongname.tx";
+	//char* file = "verylargetextwithverylongname.tx";
 	//char* file = "frame0.txt";
-	//char* file = "fish";
+	char* file = "pingpong";
 
 	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
 
@@ -539,10 +548,11 @@ int test_read_data() {
 	uint32_t length = this_inode->length;
 
 	read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, length);
-	for(i = 0; i < length; i++) {
-		printf("%c", buf[i]);
-	}
 
+	for(i = 0; i < length; i++) {
+		terminal_write(0,buf+i,1);
+	}
+	printf("\n");
 	/* Passed test */
 	return PASS;
 }
@@ -558,7 +568,7 @@ int test_read_data() {
 */
 int test_read_dir() {
 	uint8_t buf[BUF_SIZE];
-	clear();
+	//clear();
 
 	/*Test directory_read() repeatedly until end of directory is reached */
 	while(directory_read(0, &buf, FILE_NAME_SIZE) != 0) {
@@ -585,7 +595,7 @@ void launch_tests(){
 	TEST_OUTPUT("terminal_driver_test", terminal_driver_test());
 	TEST_OUTPUT("RTC TEST", rtc_test());
 	//TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
-	TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
+	//TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
 	//TEST_OUTPUT("read_data_test", test_read_data());
 	//TEST_OUTPUT("dir_read_test", test_read_dir());
 	//TEST_OUTPUT("file_syscalls_test", file_syscalls_test());
