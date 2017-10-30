@@ -110,7 +110,9 @@ int terminal_driver_test(){
 
 	TEST_HEADER;
 	test_open = terminal_open((uint8_t*)1);
-
+	if(test_open != 0){
+		return FAIL;
+	}
 	printf("What's your name?\n");
 	test_read = terminal_read(0, buffer, BUFFER_SIZE);
 	if(test_read < 0){
@@ -161,16 +163,12 @@ int terminal_driver_test(){
 *		Side effects: Prints to screen after rtc interrupts
 */
 void rtc_helper(int n){
-	int j=0; //counter for line position
 	while(n>0){
 		rtc_read(0, NULL, 0); //wait for interrupt
-		printf("1");
+		char one[1];
+		one[0] = '1';
+		terminal_write(0, one, 1);
 		n--;	//update counters
-		j++;
-		if(j==80){ //80 chars per line
-			printf("\n"); //print endline at end of line
-			j=0;
-		}
 	}
 	printf("\n");
 	return;
@@ -188,8 +186,9 @@ void rtc_helper(int n){
 *		Side Effects: Functionality Validation
 */
 int rtc_test(){
-	clear();
-	printf("\nThis test will print the character '1' when an RTC interrupt occurs \n(as determined using rtc_read)\nStarting with rtc_open which will set it to 2Hz\n");
+	printf("\n");
+	TEST_HEADER;
+	printf("This test will print the character '1' when an RTC interrupt occurs \n(as determined using rtc_read)\nStarting with rtc_open which will set it to 2Hz\n");
 	
 	//Initialize to 2Hz, check ret value, and print 20 1's (10s)
 	int ret;  //to hold return vals
@@ -199,6 +198,8 @@ int rtc_test(){
 	}
 	rtc_helper(20);  
 	clear();
+	set_screen_x(0);	//reset to top left
+	set_screen_y(0);
 	int freq = 2;
 	//Call RTC write for each possible rate and print for ~4s
 	do{
@@ -210,6 +211,8 @@ int rtc_test(){
 		}
 		rtc_helper(4*freq);  //print for 4s
 		clear();
+		set_screen_x(0);	//reset to top left
+		set_screen_y(0);
 	}while(freq<1024);
 	printf("Putting RTC write freq back to 2Hz\n");
 	ret = rtc_write(0, NULL, 2);
