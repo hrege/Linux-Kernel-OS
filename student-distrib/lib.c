@@ -38,7 +38,7 @@ int get_screen_y(){
 }
 
 /*From OSDEV Text_Mode_Cursor*/
-extern void update_cursor(int x, int y){
+void update_cursor(int x, int y){
   uint16_t pos = y * NUM_COLS + x;
   outb(0x0F, 0x3D4);
   outb((uint8_t) (pos & 0xFF), 0x3D5);
