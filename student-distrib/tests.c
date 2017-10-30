@@ -90,26 +90,37 @@ int paging_test(){
 	printf("%d\n", *(vid_mem_test_2));
 	printf("%d\n", *(null_test));
  	return PASS;
-
 */
-
  }
 
 /* Checkpoint 2 tests */
+
+/* test_read_dentry_by_name()
+*		Description: tests the read_dentry_by_name function with the following tests:
+								 - Regular file
+								 - File doesn't exist
+								 - File has large name
+								 - File name points to NULL
+*		Author: Hershel and Austin
+*		Input: None
+*		Output: PASS for success, FAIL for failure
+*		Side effects: Clears terminal, prints dentry info
+*/
 int test_read_dentry_by_name() {
-  TEST_HEADER;
+	TEST_HEADER;
+	
+	clear();
 
  	dentry_t test;
  	char* name;
  	uint8_t buf[BUF_SIZE];
 
-	clear();
  /* Regular file test */
   name = "cat";
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
-    printf("%s\n", test.file_name);
-    printf("%d\n", test.file_type);
-	printf("%d\n", test.inode_number);
+    printf("File name is: %s\n", test.file_name);
+    printf("File type is: %d\n", test.file_type);
+		printf("Inode number is: %d\n", test.inode_number);
   }
   else {
 	printf("Could not find existing file \n");
@@ -119,10 +130,10 @@ int test_read_dentry_by_name() {
   /* File doesn't exist */
   name = "UIUC";
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
-    printf("%s\n", test.file_name);
-    printf("%d\n", test.file_type);
-	printf("%d\n", test.inode_number);
-	printf("Found non-existent file \n");
+    printf("File name is: %s\n", test.file_name);
+    printf("File type is: %d\n", test.file_type);
+		printf("Inode number is: %d\n", test.inode_number);
+		printf("Found non-existent file \n");
 	return FAIL;
   }
   else {
@@ -133,10 +144,10 @@ int test_read_dentry_by_name() {
   name = "verylargetextwithverylongname.tx";
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
 		strncpy((int8_t *)buf, (int8_t *)&(test.file_name), FILE_NAME_SIZE);
-    printf("%s\n", buf);
+    printf("File name is: %s\n", buf);
 		memset(&buf, '\0', FILE_NAME_SIZE);
-    //printf("%d\n", test.file_type);
-		//printf("%d\n", test.inode_number);
+    printf("File type is: %d\n", test.file_type);
+		printf("Inode number is: %d\n", test.inode_number);
   }
   else {
 		printf("Couldn't match full name \n");
@@ -146,9 +157,9 @@ int test_read_dentry_by_name() {
   /* File name is NULL */
   name = NULL;
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
-    printf("%s\n", test.file_name);
-    printf("%d\n", test.file_type);
-		printf("%d\n", test.inode_number);
+    printf("File name is: %s\n", test.file_name);
+    printf("File type is: %d\n", test.file_type);
+		printf("Inode number is: %d\n", test.inode_number);
 		printf("NULL file name found \n");
 		return FAIL;
   }
@@ -156,9 +167,20 @@ int test_read_dentry_by_name() {
 		printf("NULL file name ignored \n");
   }
 
+	/* Passed tests */
   return PASS;
 }
 
+/* test_read_dentry_by_index()
+*		Description: tests the read_dentry_by_index function with the following tests:
+								 - Active file indices
+								 - Index above active indices
+								 - Index below 0
+*		Author: Hershel and Austin
+*		Input: None
+*		Output: PASS for success, FAIL for failure
+*		Side effects: Clears terminal, prints dentry info
+*/
 int test_read_dentry_by_index() {
 	clear();
 	TEST_HEADER;
@@ -167,6 +189,7 @@ int test_read_dentry_by_index() {
   dentry_t test;
 	uint8_t buf[BUF_SIZE];
 
+	/* Test all active indices */
   for(index = 0; index < number_of_files; index++) {
     retval = read_dentry_by_index(index, &test);
     if(retval == -1) {
@@ -174,43 +197,61 @@ int test_read_dentry_by_index() {
   	}
   	else {
 			strncpy((int8_t *)buf, (int8_t *)&(test.file_name), FILE_NAME_SIZE);
-			printf("%s\n", buf);
+			printf("File name is: %s\n", buf);
 			memset(&buf, '\0', FILE_NAME_SIZE);
-			//printf("%d\n", test.file_type);
-      //printf("%d\n", test.inode_number);
+			printf("File type is: %d\n", test.file_type);
+			printf("Inode number is: %d\n", test.inode_number);
     }
-  }
+	}
+	
+	/* Test index above number of files */
 	retval = read_dentry_by_index(number_of_files + 1, &test);
 	if(retval == -1) {
-		printf("Greater than number of files\n");
+		printf("Index > number_of_files -> No file \n");
 	}
 	else {
-		printf("Index > number_of_files is not a file!\n");
-		printf("%s\n", test.file_name);
+		printf("Index > number_of_files is not a file! \n");
+		printf("File name is: %s\n", test.file_name);
 		return FAIL;
 	}
 
+	/* Test index below first file */
 	retval = read_dentry_by_index(-1, &test);
 	if(retval == -1) {
-		printf("Found negative index!\n");
+		printf("Index < 0 -> No file \n");
 	}
 	else {
-		printf("Incorrectly found negative index\n");
+		printf("Index < 0 is not a file! \n");
+		printf("File name is: %s\n", test.file_name);
 		return FAIL;
 	}
 
+	/* Passed tests */
   return PASS;
 }
 
+/* test_read_data()
+*		Description: tests the read_data function with the following tests (by selection):
+								 - File with large name
+								 - Text file
+								 - Object file
+*		Author: Hershel and Austin
+*		Input: None
+*		Output: PASS for success, FAIL for failure
+*		Side effects: Clears terminal, prints file data
+*/
 int test_read_data() {
 	clear();
 	int i = 0;
 	int retval;
 	uint8_t buf[BUF_SIZE];
 	dentry_t file_dentry;
-	//char* file = "verylargetextwithverylongname.tx";
+
+	/* Test to fetch data using file name (comment out unused file names) */
+	char* file = "verylargetextwithverylongname.tx";
 	//char* file = "frame0.txt";
-	char* file = "fish";
+	//char* file = "fish";
+
 	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
 
 	inode_t* this_inode;
@@ -224,18 +265,30 @@ int test_read_data() {
 		printf("%c", buf[i]);
 	}
 
+	/* Passed test */
 	return PASS;
 }
 
+/* test_read_dir()
+*		Description: tests the directory_read function with the following tests:
+								 - Regular files and directory dentry
+								 - Exits upon reaching end of directory
+*		Author: Hershel and Austin
+*		Input: None
+*		Output: PASS for success, FAIL for failure
+*		Side effects: Clears terminal, prints successive dentries
+*/
 int test_read_dir() {
 	uint8_t buf[BUF_SIZE];
-
 	clear();
+
+	/*Test directory_read() repeatedly until end of directory is reached */
 	while(directory_read(0, &buf, FILE_NAME_SIZE) != 0) {
 		printf("%s\n", buf);
 		memset(&buf, '\0', FILE_NAME_SIZE);
 	}
 
+	/* Passed tests */
 	return PASS;
 
 }
@@ -251,10 +304,9 @@ void launch_tests(){
 	//TEST_OUTPUT("paging_test", paging_test());
   //TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
   //TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
-	TEST_OUTPUT("read_data_test", test_read_data());
-	//TEST_OUTPUT("dir_read_test", test_read_dir());
+	//TEST_OUTPUT("read_data_test", test_read_data());
+	TEST_OUTPUT("dir_read_test", test_read_dir());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 
-	// launch your tests here
 	return;
 }
