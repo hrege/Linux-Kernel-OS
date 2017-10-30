@@ -7,11 +7,22 @@
 
 #include "types.h"
 
-void set_screen_x(int new_x);
-void set_screen_y(int new_y);
-int get_screen_x();
-int get_screen_y();
+#define INDEX_REG	0x3D4		//6845 index register to select port to be accessed at 3D5
+#define DATA_REG	0x3D5		//6845 Data register - selected by 3d4
+#define CURSOR_MSB	0x0E		//MSB of cursor address in 6845
+#define CURSOR_LSB	0x0F		//LSB of cursor address in 6845	
+
+/* Get a pointer to the video memory */
 char* get_video_mem();
+/* Sets screen x location to input x */
+void set_screen_x(int new_x);
+/* Sets screen y location to input y */
+void set_screen_y(int new_y);
+/* Gets the x location */
+int get_screen_x();
+/* Gets the y location*/
+int get_screen_y();
+/* Updates the cursor location to the inpur coords */
 extern void update_cursor(int x, int y);
 
 int32_t printf(int8_t *format, ...);

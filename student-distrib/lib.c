@@ -12,38 +12,87 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
-
+/*
+*   get_video_mem
+*       Author: Sam
+*       Description: returns the video memory as a char*
+*       Input: none
+*       Output: none
+*       Returns: pointer to video memory
+*/
 char* get_video_mem(){
     return video_mem;
 
 }
 
+/*
+*   set_screen_x
+*       Author: Sam
+*       Description: Function to update the x location for the next char
+*       Inputs: int new_x - x to change the location to
+*       Outputs: none
+*       Returns: none
+*       Side effect: screen x location changed
+*/
 void set_screen_x(int new_x){
     screen_x = new_x;
 
 }
 
+/*
+*   set_screen_y
+*       Author: Sam
+*       Description: Function to update the y location for the next char
+*       Inputs: int new_y - y to change the location to
+*       Outputs: none
+*       Returns: none
+*       Side effect: screen y location changed
+*/
 void set_screen_y(int new_y){
     screen_y = new_y;
 
 }
 
+/*
+*   get_screen_x
+*       Author: Sam
+*       Description: Function to get the current x location on screen
+*       Inputs: none
+*       Output: none
+*       Return: screen_x - integer screen location in x
+*/
 int get_screen_x(){
     return screen_x; 
 
 }
 
+/*
+*   get_screen_y
+*       Author: Sam
+*       Description: Function to get the current y location on screen
+*       Inputs: none
+*       Output: none
+*       Return: screen_y - integer screen location in y
+*/
 int get_screen_y(){
     return screen_y;
 }
 
-/*From OSDEV Text_Mode_Cursor*/
+/*
+*   update_cursor
+*       Author: Sam
+*       Description: Updates the cursor location to the specified x/y
+*       Inputs: int x, int y  - coordinates for the cursor
+*       Outputs: writes cursor location to port
+*       Returns: none
+*   Source: OSDev Text_mode_Cursor page
+*/
 void update_cursor(int x, int y){
-  uint16_t pos = y * NUM_COLS + x;
-  outb(0x0F, 0x3D4);
-  outb((uint8_t) (pos & 0xFF), 0x3D5);
-  outb(0x0E, 0x3D4);
-  outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+  uint16_t pos = y * NUM_COLS + x;  
+  outb(CURSOR_LSB, INDEX_REG);
+  outb((uint8_t) (pos & 0xFF), DATA_REG); //write to lower byte of cursor
+  outb(CURSOR_MSB, INDEX_REG);
+  outb((uint8_t) ((pos >> 8) & 0xFF), DATA_REG); //write to upper byte of cursor
 }
 
 /* void clear(void);
