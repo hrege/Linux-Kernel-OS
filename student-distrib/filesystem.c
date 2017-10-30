@@ -185,7 +185,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (inode * BLOCK_SIZE));
   this_inode->length = *((uint32_t*)this_inode);
 
-  this_inode->inode_data_blocks = (uint32_t*)((uint8_t*)this_inode + DATA_LENGTH_SIZE);
+  //this_inode->inode_data_blocks = (uint32_t*)((uint8_t*)this_inode + DATA_LENGTH_SIZE);
 
   /* Determine the total number of data blocks based on length of file */
   uint32_t num_inode_dblocks;
@@ -197,7 +197,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   /* Check if each data block represented by inode is within bounds. */
   uint32_t curr_block;
   for(i = 0; i < num_inode_dblocks; i++) {
-    curr_block = *((uint8_t*)(this_inode->inode_data_blocks) + i*DATA_LENGTH_SIZE);
+    curr_block = *((uint32_t*)((uint8_t*)this_inode + (i + 1)*DATA_LENGTH_SIZE));
     if(curr_block < 0 || curr_block >= filesystem.boot_block_start->num_dblocks){
       printf("Data block not within bounds\n");
       return -1;
@@ -210,12 +210,17 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 
   /*Loop through data blocks in sequence in inode */
   for(i = 0; i < num_inode_dblocks; i++) {
-    curr_block = *((uint8_t *)this_inode->inode_data_blocks + i*DATA_LENGTH_SIZE); //which number data we're looking at
-    block_data = (data_block_t *)(filesystem.data_block_start + (curr_block * BLOCK_SIZE));
+    curr_block =  *((uint32_t*)((uint8_t*)this_inode + (i + 1)*DATA_LENGTH_SIZE)); //which number data we're looking at
+    block_data = (data_block_t *)(filesystem.data_block_start + ((curr_block + 1) * BLOCK_SIZE));
     for(j = 0; j < BLOCK_SIZE; j++) {
       *(buf + i*BLOCK_SIZE + j) = block_data->data[j];
     }
   }
+
+  /*Temporary loop */
+  // for(i = 0; i < 59; i++){
+  //   block_data = (data_block_t *)(filesystem.data_block_start + (i * BLOCK_SIZE));
+  // }
 
   return length;
 }
