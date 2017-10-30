@@ -155,6 +155,26 @@ int test_read_dentry_by_name() {
   return PASS;
 }
 
+int test_read_dentry_by_index() {
+  TEST_HEADER;
+  uint32_t index = 0;
+  uint32_t retval = 0;
+  dentry_t test;
+
+  for(index = 0; index < number_of_files; index++) {
+    retval = read_dentry_by_index(index, &test);
+    if(retval == -1) {
+      return FAIL;
+    }
+    else {
+      printf("%s\n", test.file_name);
+      printf("%d\n", test.file_type);
+      printf("%d\n", test.inode_number);
+    }
+  }
+  return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -164,8 +184,9 @@ int test_read_dentry_by_name() {
 void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("paging_test", paging_test());
-    TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
-	//TEST_OUTPUT("div_zero_test", div_zero_test());
+  //TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
+  TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
+  //TEST_OUTPUT("div_zero_test", div_zero_test());
 
 	// launch your tests here
 	return;

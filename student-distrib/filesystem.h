@@ -15,20 +15,7 @@
 #define BLOCK_SIZE            4096
 #define NUM_DIRECTORY_ENTRIES 63
 
-// struct task_t {
-//   file_operations_t * file_operations;
-//   uint32_t inode_number;
-//   uint32_t file_position;
-//   int flags;
-// };
-//
-// struct file_operations_t {
-//   int (*file_open)();
-//   int (*file_close)();
-//   int (*file_read)();
-//   int (*file_write)();
-//   int (*jump_table[NUM_FILE_OPERATIONS])() = {file_open, file_close, file_read, file_write};
-// };
+extern uint32_t number_of_files;
 
 typedef struct dentry_t {
   uint8_t file_name[FILE_NAME_SIZE];

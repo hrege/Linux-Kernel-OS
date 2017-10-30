@@ -1,14 +1,14 @@
 #include "lib.h"
 #include "filesystem.h"
 
-static uint8_t* file_system_start;
 filesystem_t filesystem;
 int32_t cur_read_idx = 1;
 
 void file_system_init(uint32_t * start_addr) {
   /* Define start of file system as address calculated in kernel.c */
   filesystem.boot_block_start = (boot_block_t *)start_addr;
-
+  uint32_t number_of_files;
+  number_of_files = (uint32_t)(filesystem.boot_block_start->num_dir_entries);
   // filesystem.boot_block_start->num_dir_entries = (uint32_t)(*filesystem.boot_block_start);
   // filesystem.boot_block_start->num_inodes = *((uint8_t)filesystem.boot_block_start + DENTRY_NUM_SIZE);
   // filesystem.boot_block_start->num_dblocks = *((uint8_t)filesystem.boot_block_start + INODE_NUMBER_SIZE + DENTRY_NUM_SIZE);
@@ -137,7 +137,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
       temp_dentry++;
     }
   /* Copy matching file name into the temporary dentry. */
-  strncpy((int8_t *)dentry->file_name, (int8_t *)fname, strlen(fname));
+  strncpy((int8_t *)dentry->file_name, (int8_t *)fname, strlen((int8_t *)fname));
 
   /* Set file type and inode number of dentry according to current entry in directory. */
   dentry->file_type = *((uint8_t *)temp_dentry + FILE_NAME_SIZE);
@@ -146,25 +146,25 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
   return 0;
 }
 
-// int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
-//   /* If non-existent file or invalid index, return error */
-//   if((index > NUM_FILES || index < 0)) {
-//     printf("invalid file\n");
-//     return -1;
-//   }
+int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
+  /* If non-existent file or invalid index, return error */
+  if((index > NUM_FILES || index < 0)) {
+    printf("invalid file\n");
+    return -1;
+  }
 
-//   /* Create temporary pointer to hold starting address of current directory entry based on index. */
-//   dentry_t temp_addr = filesystem->boot_block_start->directory_entries[index];
+  /* Create temporary pointer to hold starting address of current directory entry based on index. */
+  dentry_t* temp_addr = &(filesystem.boot_block_start->directory_entries[index]);
 
-//   /* Set the file name of the passed in dentry to the fname parameter. */
-//   strncpy(dentry->file_name, &(temp_addr.file_name), FILE_NAME_SIZE);
+  /* Set the file name of the passed in dentry to the fname parameter. */
+  strncpy((int8_t*)dentry->file_name, (int8_t*)(temp_addr->file_name), FILE_NAME_SIZE);
 
-//   /* Set file type and inode number of dentry according to current entry in directory. */
-//   dentry->file_type = *((uint8_t)temp_addr + FILE_NAME_SIZE);
-//   dentry->inode_number = *((uint8_t)temp_addr + FILE_NAME_SIZE + FILE_TYPE_SIZE);
+  /* Set file type and inode number of dentry according to current entry in directory. */
+  dentry->file_type = *((uint8_t*)temp_addr + FILE_NAME_SIZE);
+  dentry->inode_number = *((uint8_t*)temp_addr + FILE_NAME_SIZE + FILE_TYPE_SIZE);
 
-//   return 0;
-// }
+  return 0;
+}
 
 // int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
 //   /* Initialize loop variables */
