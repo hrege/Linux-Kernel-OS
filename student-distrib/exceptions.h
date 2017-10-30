@@ -14,62 +14,62 @@
 /* divide by zero handler */
 void divide_by_zero();
 
-//vector # 1 reserved for Intel debug use
+/* vector # 1 reserved for Intel debug use */
 extern void debug();
 
-//non-maskable interrupt exception handler
+/* non-maskable interrupt exception handler */
 extern void nmi_interrupt();
 
-//breakpoint exception handler
+/* breakpoint exception handler */
 extern void breakpoint();
 
-//overflow exception handler
+/* overflow exception handler */
 extern void overflow();
 
-//range exceeded exception handler
+/* range exceeded exception handler */
 extern void bound_range_exceeded();
 
-//invalid opcode exception handler
+/* invalid opcode exception handler */
 extern void invalid_opcode();
 
-//unavailable device exception handler
+/* unavailable device exception handler */
 extern void device_not_available();
 
-//double fault exception handler
+/* double fault exception handler */
 extern void double_fault();
 
-//segment overrun exception handler
+/* segment overrun exception handler */
 extern void coprocessor_segment_overrun();
 
-//invalid tss exception handler
+/* invalid tss exception handler */
 extern void invalid_tss();
 
-//segment not pressed exception handler
+/* segment not pressed exception handler */
 extern void segment_not_present();
 
-//stack segment exception handler
+/* stack segment exception handler */
 extern void stack_segment();
 
-//general protection exception handler
+/* general protection exception handler */
 extern void general_protection();
 
-//page fault exception handler
+/* page fault exception handler */
 extern void page_fault();
 
-//vector 15 reserved for Intel use
-//we use to handle assertion fail exception handler
+/* vector 15 reserved for Intel use
+ 	we use to handle assertion fail exception handler */
 extern void assertion_fail();
 
-// /fpu floating point exception handler
+/* fpu floating point exception handler */
 extern void fpu_floating_point_exception();
 
-//alignment exception handler
+/* alignment exception handler */
 extern void alignment_check();
 
-//machine check exception handler
+/* machine check exception handler */
 extern void machine_check();
 
-//simd floating point exception handler
+/* simd floating point exception handler */
 extern void simd_floating_point_exception();
 
 

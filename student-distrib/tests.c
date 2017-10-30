@@ -97,7 +97,33 @@ int paging_test(){
 
 /* Checkpoint 2 tests */
 
-/* TEST #3 - RTC TEST
+/*
+*	rtc_helper
+*		Author: Jonathan
+*		Description: helper for the rtc_test function. 
+*				   		Uses rtc_read to print a 1 after a rtc_iterrupt for a 
+*				 		specified number of rtc_interrupts.
+*		Inputs: integer n number of interrupts to print after
+*		Outputs: none
+*		Returns: nothing
+*		Side effects: Prints to screen after rtc interrupts
+*/
+void rtc_helper(int n){
+	int j=0; //counter for line position
+	while(n>0){
+		rtc_read(0, NULL, 0); //wait for interrupt
+		printf("1");
+		n--;	//update counters
+		j++;
+		if(j==80){ //80 chars per line
+			printf("\n"); //print endline at end of line
+			j=0;
+		}
+	}
+	printf("\n");
+	return;
+}
+/* 
 *	rtc_test
 *		Author: Jonathan
 *		Description: Tests, the rtc functions. This verifies that the return value for each function
@@ -142,30 +168,23 @@ int rtc_test(){
 
 	//Check bounds on RTC Write function
 	printf("\nCalling RTC write with invalid rates\n");
-	ret = rtc_write(0, NULL, FREQ_NOT_POW);
-	if(ret==0){ //make sure it doesn't succeed
-		return FAIL;
-	}
-	ret = rtc_write(0, NULL, FREQ_TOO_BIG);
-	if(ret==0){ //make sure it doesn't succeed
-		return FAIL;
-	}
-	ret = rtc_write(0, NULL, FREQ_TOO_SMALL);
-	if(ret==0){ //make sure it doesn't succeed
-		return FAIL;
-	}
-	ret = rtc_write(0, NULL, FREQ_NEG);
-	if(ret==0){ //make sure it doesn't succeed
-		return FAIL;
-	}
+	freq = -499;
+	do{
+		freq = freq + 250; //increase to next power of two
+		printf("Calling RTC write with rate of %dHz\n", freq);
+		ret = rtc_write(0, NULL, freq);
+		if(ret==0){	//make sure it doesnt succeed
+			return FAIL;
+		}
+	}while(freq<2500);
 	//input check the frequency with NULL (only the 3rd input is used by the function)
 	ret = rtc_write(0, NULL, NULL);
 	if(ret==0){
 		return FAIL;
 	}
-	//show that it was not changed... print 10 1's (5s)
+	//show that it was not changed... print 10 1's (7.5s)
 	printf("Still running at 2Hz\n");
-	rtc_helper(10);
+	rtc_helper(15);
 
 	//verify that rtc close returns 0 
 	ret = rtc_close(0);
@@ -174,34 +193,7 @@ int rtc_test(){
 	} 
 	return PASS;
 }
-/*
-*	rtc_helper
-*		Author: Jonathan
-*		Description: helper for the rtc_test function. 
-*				   		Uses rtc_read to print a 1 after a rtc_iterrupt for a 
-*				 		specified number of rtc_interrupts.
-*		Inputs: integer n number of interrupts to print after
-*		Outputs: none
-*		Returns: nothing
-*		Side effects: Prints to screen after rtc interrupts
-*/
 
-
-void rtc_helper(int n){
-	int j=0; //counter for line position
-	while(n>0){
-		rtc_read(0, NULL, 0); //wait for interrupt
-		printf("1");
-		n--;	//update counters
-		j++;
-		if(j==80){ //80 chars per line
-			printf("\n"); //print endline at end of line
-			j=0;
-		}
-	}
-	printf("\n");
-	return;
-}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */

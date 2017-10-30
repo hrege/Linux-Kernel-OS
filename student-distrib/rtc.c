@@ -1,24 +1,24 @@
 /*
-*  Author: Hershel Rege, Group 31 victoriOS Secret
-*  Code modified from osDev Internet source.
+*  Author: Hershel Rege & Jonathan Mullen, Group 31 victoriOS Secret
+*    Some code inspired by OSDev internet source and modified to our use case
 */
 
 #include "lib.h"
 #include "rtc.h"
 #include "i8259.h"
 
-/*
-  Description: Initialize RTC clock interrupt.
-  Author: Hershel & Jonathan
-  Input: none
-  Output: Initializes RTC clock registers.
-  Return: none
-  Side Effects: RTC is initialized.
- */
 
 //filescope variables:
 int occurred = 0;  //indicator that the interrupt occurred for read
 
+/* rtc_init
+*   Description: Initialize RTC clock interrupt.
+*   Author: Hershel & Jonathan
+*   Input: none
+*   Output: Initializes RTC clock registers.
+*   Return: none
+*   Side Effects: RTC is initialized.
+ */
 void rtc_init() {
   printf("Initializing RTC\n");
 
@@ -40,13 +40,14 @@ void rtc_init() {
 }
 
 /*
-  Description: Interrupt handler for the RTC.
-  Author: Hershel & Jonathan
-  Input: none
-  Output: Sends End-of-Interrupt signal to both RTC PIC IRQ line
-          and Slave IRQ line on the Master PIC.
-  Return: none
-  Side Effects: Reads/writes from RTC hardware ports.
+* rtc_handler
+*    Description: Interrupt handler for the RTC.
+*    Author: Hershel & Jonathan
+*    Input: none
+*    Output: Sends End-of-Interrupt signal to both RTC PIC IRQ line
+*            and Slave IRQ line on the Master PIC.
+*    Return: none
+*    Side Effects: Reads/writes from RTC hardware ports.
  */
 
 void rtc_handler() {
@@ -61,7 +62,6 @@ void rtc_handler() {
   send_eoi(SLAVE_IRQ);
   //mark that the interrupt happened
   occurred = 1;
-  //printf("Hi");
 }
 
 
@@ -82,7 +82,7 @@ void rtc_handler() {
 *		Side Effects: RTC running at 2Hz
 */
 int32_t rtc_open(const uint8_t* filename){
-	rtc_write(0, NULL, 2);
+	rtc_write(0, NULL, 2);  //call rtc_write with freq of 2Hz
 	return 0;
 }
 
@@ -97,8 +97,8 @@ int32_t rtc_open(const uint8_t* filename){
 *		Side effects: blocks
 */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
-	occurred = 0;
-	while(!occurred);
+	occurred = 0;  
+	while(!occurred);  //wait for interrupt to occur
 	return 0;
 
 }
@@ -116,10 +116,10 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
 */
 int32_t rtc_write(int32_t fd, const void* buf, int32_t frequency){
 	/* Perform checks to verify the input frequency is in range...
-	*	Must be power of 2 from min. 2 to max (allowed to user) of 1024 */
+	Must be power of 2 from min. 2 to max (allowed to user) of 1024 */
 	if(frequency >= 2 && frequency <= 1024){
 		int32_t f = 2; //frequency to check against
-		int8_t i = 14;	   //power count (minus 1)
+		int8_t i = 14;	   //inverse power counter (minus 1)
 		do{
 			if(frequency == f){
 				/*if valid frequency then write to RTC
@@ -129,7 +129,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t frequency){
 				outb(RTC_A_REG, RTC_PORT);		//Select A Register
 				char prev = inb(RTC_PORT_CMOS); //get old to keep top 4
 				outb(RTC_A_REG, RTC_PORT);
-				outb((prev & 0xF0)|(i & 0x0F), RTC_PORT_CMOS);
+				outb((prev & 0xF0)|(i & 0x0F), RTC_PORT_CMOS); //keep same upper 4 put freq value into lower 4
 				sti();
 				return 0; //return success
 			}

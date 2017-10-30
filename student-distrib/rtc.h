@@ -1,6 +1,5 @@
 /*
-*  Author: Hershel Rege, Group 31 victoriOS Secret
-*  Code modified from osDev Internet source.
+*  Author: Hershel Rege & Jonathan Mullen, Group 31 victoriOS Secret
 */
 
 #ifndef RTC_H

@@ -11,15 +11,14 @@
 *
 */
 
-#include "exceptions.h"
 #include "lib.h"
 #include "types.h"
-
+#include "exceptions.h"
 
 /*
 *	divide_by_zero
 *		Description: C Handler for the divide by zero exception
-*						-Current doesn't do much
+*						-Currently doesn't do much
 *		Input: none
 *		Output: none
 *		Return: Doesn't
