@@ -20,7 +20,9 @@ static int ctrl_flag;
 /*
    Scancode array to convert all scancode values
    given by keyboard hardware into alphanumeric
-   and special keys.
+   and special keys. Each Scan Code has 4 cases:
+   0. Only that key - 1: Shift is pressed
+   2: Caps is on  	- 3: CAPS on & Shift pressed
  */
 char scancode_map[NUM_SCANCODES][NUM_CASES] = {
       { 0x00, 0x00, 0x00, 0x00 }, /* Nothing */
@@ -193,7 +195,7 @@ void keyboard_init() {
 
 /*
     Description: Interrupt handler to deal with keypresses.
-    Author: Hershel
+    Author: Hershel & Sam & Jonathan
     Inputs: none
     Outputs: Prints the character typed by the keyboard.
     Return Value: none
@@ -322,43 +324,59 @@ char getScancode(char input) {
   return scancode_map[(int)input][(lshift_flag | rshift_flag | (caps_flag << 1))];
 }
 
+/*
+*	terminal_read
+*		Author: Sam
+*		Description: Read function for terminal driver. Reads the specified nbytes from the buffer
+*		Input: standard read inputs: fd, buf, nbytes
+*		Output: nada
+*		Returns: the number of bytes read if pass; -1 if fail
+*/
+
+
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
   int i;//loop variable
 
+  //Check input validity
   if(nbytes < 1){
     return -1;
   } 
   if(buf == NULL){
     return -1;
   }
-
   if(nbytes > max_buffer_size){
     nbytes = max_buffer_size;
   }
 
-
-
-  while(flag == 0){
-
-  }
+  //wait for flag
+  while(flag == 0);
   /*Check size of buffer*/
   if(nbytes < flag){
     flag = nbytes;
   }
+  /* read */
   for(i = 0; i < flag; i++){
       ((char *)buf)[i] = line_buffer[i];
   }
   ((char *)buf)[flag] = '\0';
-  nbytes = flag;
+  nbytes = flag;	//set return value
+  /* reset flag */
   flag = 0;
 
   return nbytes;
-
-
 }
 
+/*
+*	terminal_write
+*		Author: Sam
+*		Description: writes to the terminal
+*		Inputs: Standard write - fd, buf, nbytes
+*		Outpus: buf contents to screen
+*		Returns: 0 = Pass; -1 = Fail
+*/
 int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     int i;//loop vairable
+    /* Validate input */
     if(nbytes < 0){
       return -1;
     }
@@ -369,15 +387,16 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
       nbytes = max_buffer_size;
     }
 
+    /* read from buf */
     for(i = 0; i < nbytes; i++){
       if(((char*)buf)[i] == '\0'){
-        return 0;
+        return 0;		//return 0 if end of string
       }
       if(((char *)buf)[i] == ENTER){
-         putc('\n');
+         putc('\n');	//enter is newline
       }
       else if(((char *)buf)[i] != 0) {
-        putc(((char *)buf)[i]);
+        putc(((char *)buf)[i]);	//otherwise print the char and put it in line buffer
         line_buffer[buffer_length] = ((char *)buf)[i];
       }  
 
@@ -395,8 +414,16 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     return 0;
 }
 
+/* 
+*	terminal_open
+*		Author: Sam
+*		Description: Doesn't do much at this point since multiple terminals isn't enabled
+*						-just initializes some vars
+*		Inputs: filename (not used)as is standard for open
+*		Outputs: Nada
+*		Returns: 0 always atm
+*/
 int32_t terminal_open(const uint8_t* filename){
-
 //Do Nothing until mulitple terminals
   set_screen_x(0);
   set_screen_y(0);
@@ -409,6 +436,14 @@ int32_t terminal_open(const uint8_t* filename){
   return 0;
 }
 
+/* 
+*	terminal_close
+*		Author: collaborative project between all 4 team members
+*		Description: does nothing now since multiple terminals are not implemented
+*		Inputs: fd as is required for close. Not used
+*		Outputs: none
+*		Returns: 0 always 
+*/
 int32_t terminal_close(int32_t fd){
 //Do Nothing
   return 0;
