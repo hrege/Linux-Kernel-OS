@@ -196,14 +196,28 @@ int test_read_dentry_by_index() {
 }
 
 int test_read_data() {
+	clear();
 	int i = 0;
+	int retval;
 	uint8_t buf[10000];
-	uint32_t length = 10000;
 	int32_t fd = 0;
-	char* file = "verylargetextwithverylongname.tx";
-	if(file_read(fd, buf, length, (uint8_t*)file) == length) {
+	dentry_t file_dentry;
+	//char* file = "verylargetextwithverylongname.tx";
+	char* file = "frame0.txt";
+	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
+
+	inode_t* this_inode;
+	this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (file_dentry.inode_number * BLOCK_SIZE));
+	this_inode->length = *((uint32_t*)this_inode);
+
+	uint32_t length = this_inode->length;
+
+	read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, length);
+
+
+	if(file_read(fd, &buf, length, (uint8_t*)file) == length) {
 		for(i = 0; i < length; i++) {
-			printf("%c\n", buf[i]);
+			printf("%c", buf[i]);
 		}
 		return PASS;
 	}

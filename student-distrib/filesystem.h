@@ -43,6 +43,8 @@ typedef struct filesystem_t {
   uint8_t* data_block_start;
 } filesystem_t;
 
+extern filesystem_t filesystem;
+
 typedef struct data_block_t {
   uint8_t data[BLOCK_SIZE];
 } data_block_t;

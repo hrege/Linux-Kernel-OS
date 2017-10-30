@@ -15,7 +15,7 @@ void file_system_init(uint32_t * start_addr) {
   // filesystem.boot_block_start->directory_entries = ((uint8_t)filesystem.boot_block_start + DENTRY_SIZE);
 
   filesystem.inode_start = (inode_t *)((uint8_t *)start_addr + BLOCK_SIZE);
-  filesystem.data_block_start = (uint8_t *)(start_addr + (BLOCK_SIZE * filesystem.boot_block_start->num_inodes));
+  filesystem.data_block_start = ((uint8_t *)start_addr + ((uint8_t)filesystem.boot_block_start->num_inodes) * BLOCK_SIZE);
 }
 
 int32_t file_open(const uint8_t * filename) {
@@ -169,6 +169,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
   /* Initialize loop variables */
   int i;
+  int j;
 
   /* Check if inode parameter is within valid range of inodes */
   if(inode < 0 || inode > (filesystem.boot_block_start->num_inodes - 1)) {
@@ -183,6 +184,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   inode_t* this_inode;
   this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (inode * BLOCK_SIZE));
   this_inode->length = *((uint32_t*)this_inode);
+
   this_inode->inode_data_blocks = (uint32_t*)((uint8_t*)this_inode + DATA_LENGTH_SIZE);
 
   /* Determine the total number of data blocks based on length of file */
@@ -203,15 +205,16 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   }
 
   /* Set buff_ptr to start of buffer to begin */
-  uint8_t* buff_ptr = buf;
+  //data_block_t* buf;
   data_block_t* block_data;
 
   /*Loop through data blocks in sequence in inode */
   for(i = 0; i < num_inode_dblocks; i++) {
-    curr_block = *((uint8_t*)this_inode->inode_data_blocks + i*DATA_LENGTH_SIZE); //which number data we're looking at
-    block_data = (data_block_t*)((uint8_t*)filesystem.data_block_start) + (curr_block * BLOCK_SIZE);
-    buff_ptr = (uint8_t*)buf + i*BLOCK_SIZE;
-    *buff_ptr = (uint8_t*)(block_data->data);
+    curr_block = *((uint8_t *)this_inode->inode_data_blocks + i*DATA_LENGTH_SIZE); //which number data we're looking at
+    block_data = (data_block_t *)(filesystem.data_block_start + (curr_block * BLOCK_SIZE));
+    for(j = 0; j < BLOCK_SIZE; j++) {
+      *(buf + i*BLOCK_SIZE + j) = block_data->data[j];
+    }
   }
 
   return length;
