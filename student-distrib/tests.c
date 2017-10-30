@@ -159,7 +159,7 @@ int rtc_test(){
 		rtc_helper(4*freq);  //print for 4s
 		clear();
 	}while(freq<1024);
-	printf("Putting RTC writeback to 2Hz\n");
+	printf("Putting RTC write freq back to 2Hz\n");
 	ret = rtc_write(0, NULL, 2);
 	if(ret==-1){	//make sure it doesnt fail
 		return FAIL;
@@ -183,8 +183,8 @@ int rtc_test(){
 		return FAIL;
 	}
 	//show that it was not changed... print 10 1's (7.5s)
-	printf("Still running at 2Hz\n");
 	rtc_helper(15);
+	printf("Still running at 2Hz\n");
 
 	//verify that rtc close returns 0 
 	ret = rtc_close(0);
