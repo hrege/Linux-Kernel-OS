@@ -2,7 +2,7 @@
 #include "filesystem.h"
 
 filesystem_t filesystem;
-int32_t cur_read_idx = 1;
+int32_t cur_read_idx = 0;
 uint32_t number_of_files;
 
 void file_system_init(uint32_t * start_addr) {
@@ -57,50 +57,50 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
 }
 
 
-// int32_t directory_open(const uint8_t * filename) {
-//   int32_t retval;
-//   dentry_t dir_dentry;
-//   /* Read filename to make sure it exists in directory. */
-//   retval = read_dentry_by_name(filename, &(dir_dentry));
-//   if(retval == -1) {
-//     return retval;
-//   }
+int32_t directory_open(const uint8_t * filename) {
+  int32_t retval;
+  dentry_t dir_dentry;
+  /* Read filename to make sure it exists in directory. */
+  retval = read_dentry_by_name(filename, &(dir_dentry));
+  if(retval == -1) {
+    return retval;
+  }
 
-//   /* Check if parameter represents directory file, not regular or RTC file type. */
-//   if(dir_dentry.file_type != 1){
-//     printf("Not a directory file\n");
-//     return -1;
-//   }
-//   return 0;
-// }
-
-
-// int32_t directory_close(int32_t fd) {
-//   return 0;
-// }
+  /* Check if parameter represents directory file, not regular or RTC file type. */
+  if(dir_dentry.file_type != 1){
+    printf("Not a directory file\n");
+    return -1;
+  }
+  return 0;
+}
 
 
-// int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes) {
-//   return -1;
-// }
+int32_t directory_close(int32_t fd) {
+  return 0;
+}
 
 
-// int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
-//   /* Check that the current entry to read exists. */
-//   if(cur_read_idx > (filesystem->boot_block_start->num_dir_entries)) {
-//     return 0;
-//   }
+int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes) {
+  return -1;
+}
 
-//   dentry_t this_entry;
 
-//   /* Copy number of directory entries given by boot block into variable */
-//   if(read_dentry_by_index(cur_read_idx, &(this_entry)) == 0) {
-//     strncpy(buf, &(this_entry.file_name), nbytes);   //potential source of error with pointer manipulation
-//     cur_read_idx++;
-//     return nbytes;
-//   }
-//   return 0;
-// }
+int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
+  /* Check that the current entry to read exists. */
+  if(cur_read_idx > (filesystem.boot_block_start->num_dir_entries)) {
+    return 0;
+  }
+
+  dentry_t this_entry;
+
+  /* Copy number of directory entries given by boot block into variable */
+  if(read_dentry_by_index(cur_read_idx, &(this_entry)) == 0) {
+    strncpy((int8_t *)buf, (int8_t *)&(this_entry.file_name), nbytes);
+    cur_read_idx++;
+    return nbytes;
+  }
+  return 0;
+}
 
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
   //if non-existent file or invalid index, return -1

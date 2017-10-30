@@ -101,6 +101,7 @@ int test_read_dentry_by_name() {
 
  dentry_t test;
  char* name;
+ uint8_t buf[10000];
 
  /* Regular file test */
   name = "cat";
@@ -128,11 +129,14 @@ int test_read_dentry_by_name() {
   }
 
   /* File has large name */
+	clear();
   name = "verylargetextwithverylongname.tx";
   if(read_dentry_by_name((uint8_t *)name, &(test)) == 0) {
-    printf("%s\n", test.file_name);
-    printf("%d\n", test.file_type);
-	printf("%d\n", test.inode_number);
+		strncpy((int8_t *)buf, (int8_t *)&(test.file_name), FILE_NAME_SIZE);
+    printf("%s\n", buf);
+		memset(&buf, '\0', FILE_NAME_SIZE);
+    //printf("%d\n", test.file_type);
+		//printf("%d\n", test.inode_number);
   }
   else {
 	printf("Couldn't match full name \n");
@@ -161,6 +165,7 @@ int test_read_dentry_by_index() {
   uint32_t index = 0;
   uint32_t retval = 0;
   dentry_t test;
+	uint8_t buf[100000];
 
   for(index = 0; index < number_of_files; index++) {
     retval = read_dentry_by_index(index, &test);
@@ -168,8 +173,10 @@ int test_read_dentry_by_index() {
       return FAIL;
   	}
   	else {
-      printf("%s\n", test.file_name);
-      //printf("%d\n", test.file_type);
+			strncpy((int8_t *)buf, (int8_t *)&(test.file_name), FILE_NAME_SIZE);
+			printf("%s\n", buf);
+			memset(&buf, '\0', FILE_NAME_SIZE);
+			//printf("%d\n", test.file_type);
       //printf("%d\n", test.inode_number);
     }
   }
@@ -230,6 +237,19 @@ int test_read_data() {
 	return PASS;
 }
 
+int test_read_dir() {
+	uint8_t buf[100000];
+
+	clear();
+	while(directory_read(0, &buf, FILE_NAME_SIZE) != 0) {
+		printf("%s\n", buf);
+		memset(&buf, '\0', FILE_NAME_SIZE);
+	}
+
+	return PASS;
+
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -240,9 +260,10 @@ void launch_tests(){
 	TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("paging_test", paging_test());
   //TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
-  //TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
-	TEST_OUTPUT("read_data_test", test_read_data());
-  //TEST_OUTPUT("div_zero_test", div_zero_test());
+  TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
+	//TEST_OUTPUT("read_data_test", test_read_data());
+	//TEST_OUTPUT("dir_read_test", test_read_dir());
+	//TEST_OUTPUT("div_zero_test", div_zero_test());
 
 	// launch your tests here
 	return;
