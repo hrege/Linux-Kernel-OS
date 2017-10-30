@@ -11,8 +11,5 @@ keyboard.o: keyboard.c i8259.h types.h lib.h keyboard.h
 lib.o: lib.c lib.h types.h
 paging.o: paging.c x86_desc.h types.h idt_init.h lib.h i8259.h paging.h
 rtc.o: rtc.c lib.h types.h rtc.h i8259.h
-<<<<<<< HEAD
-tests.o: tests.c tests.h x86_desc.h types.h lib.h idt_init.h keyboard.h
-=======
-tests.o: tests.c tests.h x86_desc.h types.h lib.h idt_init.h rtc.h
->>>>>>> rtcDriver
+tests.o: tests.c tests.h x86_desc.h types.h lib.h idt_init.h keyboard.h \
+  rtc.h
