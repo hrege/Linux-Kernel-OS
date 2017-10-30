@@ -20,10 +20,10 @@
 #
 .global divide_by_zero_asm
 divide_by_zero_asm:
-	pusha
-	call divide_by_zero
-	popa
-	leave
+	pusha						#push everything
+	call divide_by_zero 		#call the c handler
+	popa 						#restore everything
+	leave 						#leave/return
 	IRET
 
 
