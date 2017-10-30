@@ -12,7 +12,7 @@ void set_screen_y(int new_y);
 int get_screen_x();
 int get_screen_y();
 char* get_video_mem();
-
+extern void update_cursor(int x, int y);
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

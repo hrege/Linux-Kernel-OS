@@ -8,6 +8,7 @@
 #define KEYBOARD_IRQ        1
 #define KEYBOARD_DATA_PORT  0x60
 #define max_buffer_size     128
+#define MAX_SCANCODE		0x3A
 
 #define BACKSPACE_SCAN     	0xE
 #define ENTER         		0x0A
@@ -30,6 +31,7 @@ extern int32_t terminal_close(int32_t fd);
 void keyboard_init();
 void keyboard_handler();
 char getScancode(char input);
+void update_cursor(int x, int y);
 
 
 #endif

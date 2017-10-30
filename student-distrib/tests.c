@@ -6,8 +6,9 @@
 #include "rtc.h"
 
  
-#define PASS 1
-#define FAIL 0
+#define PASS     	1
+#define FAIL 		0
+#define BUFFER_SIZE	128
 
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
@@ -100,8 +101,12 @@ int paging_test(){
 /* Checkpoint 2 tests */
 
 int terminal_driver_test(){
-	int test_open, test_read;
-	char buffer[128];
+	int test_open;
+	int test_read;
+	int test_write;
+	int test_close;
+
+	char buffer[BUFFER_SIZE];
 
 	TEST_HEADER;
 	test_open = terminal_open((uint8_t*)1);
@@ -109,18 +114,42 @@ int terminal_driver_test(){
 		return FAIL;
 	}
 	printf("What's your name?\n");
-	test_read = terminal_read(0, buffer, 128);
+	test_read = terminal_read(0, buffer, BUFFER_SIZE);
 	if(test_read < 0){
-		printf("Failed terminal_read\n");
-		return -1;
+		return FAIL;
 	}
 	printf("Hello, ");
-	terminal_write(0, buffer, test_read);
+	test_write = terminal_write(0, buffer, test_read);
 	printf("\n");
+	if(test_write != 0){
+		return FAIL;
+	}
 
-	return 1;
+	printf("What's your name?\n");
+	test_read = terminal_read(0, buffer, BUFFER_SIZE / 2);
+	if(test_read < 0){
+		return FAIL;
+	}
+	printf("Hello, half your name is ");
+	test_write = terminal_write(0, buffer, test_read);
+	if(test_write != 0){
+		return FAIL;
+	}
+	printf("\n");
+	
+
+	test_close = terminal_close(1);
+	if(test_close != 0){
+		return FAIL;
+	}
+
+
+
+	return PASS;
 
 }
+
+
 
 /*
 *	rtc_helper
