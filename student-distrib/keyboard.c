@@ -24,7 +24,7 @@ static int ctrl_flag;
  */
 char scancode_map[NUM_SCANCODES][NUM_CASES] = {
       { 0x00, 0x00, 0x00, 0x00 }, /* Nothing */
-      { 0x1B, 0x1B, 0x1B, 0x1B }, /* ESC */
+      { 0x00, 0x00, 0x00, 0x00 }, /* ESC */ // 0x1B to restore
 
       /* Line 1 on keyboard: Numbers 1-9, 0, -, +/=, Backspace */
       { 0x31, 0x21, 0x31, 0x21 }, /* 1 */
