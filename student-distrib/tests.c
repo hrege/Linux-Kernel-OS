@@ -118,7 +118,7 @@ int terminal_driver_test(){
 
 	return 1;
 
-
+}
 
 /*
 *	rtc_helper
