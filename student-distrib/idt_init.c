@@ -6,7 +6,7 @@
 #include "i8259.h"
 #include "keyboard.h"
 #include "rtc.h"
-#include "exception_link.h"
+#include "exception_link.H"
 
 int i; // loop variable
 /*

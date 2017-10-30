@@ -207,6 +207,7 @@ int rtc_test(){
 		rtc_helper(4*freq);  //print for 4s
 		clear();
 	}while(freq<1024);
+	
 	printf("Putting RTC write freq back to 2Hz\n");
 	ret = rtc_write(0, NULL, 2);
 	if(ret==-1){	//make sure it doesnt fail
@@ -225,6 +226,11 @@ int rtc_test(){
 			return FAIL;
 		}
 	}while(freq<2500);
+	printf("Calling RTC write with rate of NULLHz\n");
+	ret = rtc_write(0, NULL, NULL);
+	if(ret==0){	//make sure it doesnt succeed
+		return FAIL;
+	}
 	//input check the frequency with NULL (only the 3rd input is used by the function)
 	ret = rtc_write(0, NULL, NULL);
 	if(ret==0){
@@ -536,8 +542,8 @@ int test_read_data() {
 
 	/* Test to fetch data using file name (comment out unused file names) */
 	//char* file = "verylargetextwithverylongname.tx";
-	//char* file = "frame0.txt";
-	char* file = "pingpong";
+	char* file = "frame0.txt";
+	//char* file = "pingpong";
 
 	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
 
