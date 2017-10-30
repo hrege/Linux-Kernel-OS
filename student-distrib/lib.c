@@ -35,7 +35,15 @@ int get_screen_x(){
 
 int get_screen_y(){
     return screen_y;
+}
 
+/*From OSDEV Text_Mode_Cursor*/
+void update_cursor(int x, int y){
+  uint16_t pos = y * NUM_COLS + x;
+  outb(0x0F, 0x3D4);
+  outb((uint8_t) (pos & 0xFF), 0x3D5);
+  outb(0x0E, 0x3D4);
+  outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
 }
 
 /* void clear(void);
@@ -186,6 +194,7 @@ format_char_switch:
         }
         buf++;
     }
+    update_cursor(screen_x, screen_y);
     return (buf - format);
 }
 

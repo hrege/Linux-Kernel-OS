@@ -322,17 +322,6 @@ char getScancode(char input) {
   return scancode_map[(int)input][(lshift_flag | rshift_flag | (caps_flag << 1))];
 }
 
-/*From OSDEV Text_Mode_Cursor*/
-void update_cursor(int x, int y){
-  uint16_t pos = y * NUM_COLS + x;
- 
-  outb(0x0F, 0x3D4);
-  outb((uint8_t) (pos & 0xFF), 0x3D5);
-  outb(0x0E, 0x3D4);
-  outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
-
-}
-
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
   int i;//loop variable
 
