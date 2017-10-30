@@ -315,7 +315,8 @@ void keyboard_handler() {
  */
 char getScancode(char input) {
 
-  return scancode_map[input][(lshift_flag | rshift_flag | (caps_flag << 1))];
+
+  return scancode_map[(int)input][(lshift_flag | rshift_flag | (caps_flag << 1))];
 }
 
 /*From OSDEV Text_Mode_Cursor*/
@@ -348,6 +349,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
   flag = 0;
 
   return nbytes;
+
 
 }
 
