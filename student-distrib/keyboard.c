@@ -1,6 +1,21 @@
-#include "keyboard.h"
+/*
+ *Terminal driver and expanded keyboard handler written by Sam Morris 
+ */
+
+
 #include "i8259.h"
 #include "lib.h"
+#include "keyboard.h"
+
+
+static volatile uint8_t line_buffer[max_buffer_size];
+static volatile int buffer_length;
+static volatile int flag; //0 to sleep termianl_read() positive number for bytes to copy 
+static int rshift_flag;
+static int lshift_flag;
+static int caps_flag;
+static int ctrl_flag;
+
 
 /*
    Scancode array to convert all scancode values
@@ -164,7 +179,16 @@ char scancode_map[NUM_SCANCODES][NUM_CASES] = {
     Side Effects: none
  */
 void keyboard_init() {
+  buffer_length = 0;
+  set_screen_x(0);
+  set_screen_y(0);
+  lshift_flag = 0;
+  rshift_flag = 0;
+  caps_flag = 0;
+  ctrl_flag = 0;
   enable_irq(KEYBOARD_IRQ);
+
+
 }
 
 /*
@@ -177,14 +201,105 @@ void keyboard_init() {
  */
 void keyboard_handler() {
   char keyboard_input = 0;
-
+  char char_out = 0;
   /* Read keypress from keyboard data port. */
   keyboard_input = inb(KEYBOARD_DATA_PORT);
+  char_out = getScancode(keyboard_input);
+
+ if(keyboard_input == LSHIFT_ON_SCAN){
+        lshift_flag = 1;
+  }
+  if(keyboard_input == RSHIFT_ON_SCAN){
+        rshift_flag = 1;
+  }
+  if(keyboard_input == LSHIFT_OFF_SCAN){
+        lshift_flag = 0;
+  }
+  if(keyboard_input == RSHIFT_OFF_SCAN){
+        rshift_flag = 0;
+  }
+  if(keyboard_input == CAPS_LOCK){
+        caps_flag = (!caps_flag) & 0x1;
+  }
+  if(keyboard_input == CTRL_SCAN){
+    //Clear screen and start printing from top
+      ctrl_flag++;
+
+  }
+  if(keyboard_input == CTRL_RELEASE_SCAN){
+    //Clear screen and start printing from top
+      ctrl_flag--;
+
+  }
+  if(keyboard_input == BACKSPACE_SCAN){
+      if(buffer_length > 0){
+        buffer_length--;
+      }
+      else{
+        set_screen_x(0);
+        send_eoi(KEYBOARD_IRQ);
+        return;
+      }
+
+      if(get_screen_x() == 0 && buffer_length > 0){
+            set_screen_y(get_screen_y() - 1);
+            set_screen_x(NUM_COLS - 1);
+      }
+      else{
+          set_screen_x(get_screen_x() - 1);
+      }
+
+      putc(' ');
+
+      if(get_screen_x() == 0 && buffer_length > 0){
+        set_screen_y(get_screen_y() - 1);
+        set_screen_x(NUM_COLS - 1);
+      }
+      else{
+          set_screen_x(get_screen_x() - 1);
+      }
+
+
+      //backspace
+  }
+ 
+  else if(char_out == 'l' && ctrl_flag > 0){
+      clear();
+      set_screen_x(0);
+      set_screen_y(0);
+      buffer_length = 0;
+
+  }
+
+  else if(char_out == ENTER){
+    line_buffer[buffer_length] = '\n';
+    putc('\n');
+    flag = buffer_length;
+
+    buffer_length = 0;
+
+
+  }
+
+
 
   /* Print scancode-converted character to terminal. */
-  if(keyboard_input > 0) {
-    printf("%c\n", getScancode(keyboard_input));
+  else if(keyboard_input > 0 && buffer_length < max_buffer_size && char_out != 0) {
+    putc(char_out);
+    line_buffer[buffer_length] = char_out;
+    buffer_length++;
   }
+
+  if (get_screen_y() == NUM_ROWS)
+  {
+     memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
+     set_screen_y(NUM_ROWS - 1);
+     clear_line();
+     buffer_length = 0;
+   }
+
+  
+
 
   /* Send End-of-Interrupt signal to Master PIC. */
   send_eoi(KEYBOARD_IRQ);
@@ -199,5 +314,98 @@ void keyboard_handler() {
     Side Effects: Accesses scancode array to determine which character is being printed.
  */
 char getScancode(char input) {
-  return scancode_map[input][0];
+
+  return scancode_map[input][(lshift_flag | rshift_flag | (caps_flag << 1))];
 }
+
+/*From OSDEV Text_Mode_Cursor*/
+void update_cursor(int x, int y){
+
+
+}
+
+int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
+  int i;//loop variable
+
+  if(nbytes < 1){
+    return -1;
+  }
+
+  if(nbytes > max_buffer_size){
+    nbytes = max_buffer_size;
+  }
+
+
+
+  while(flag == 0){
+
+  }
+
+  for(i = 0; i < flag; i++){
+      ((char *)buf)[i] = line_buffer[i];
+  }
+  nbytes = flag;
+  flag = 0;
+
+  return nbytes;
+
+}
+
+int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
+    int i;//loop vairable
+    if(nbytes < 0){
+      return -1;
+    }
+    if(nbytes > max_buffer_size){
+      nbytes = max_buffer_size;
+    }
+
+    for(i = 0; i < nbytes; i++){
+      
+      if(((char *)buf)[i] == ENTER){
+         putc('\n');
+      }
+      else if(((char *)buf)[i] != 0) {
+        putc(((char *)buf)[i]);
+        line_buffer[buffer_length] = ((char *)buf)[i];
+      }  
+
+      /*Take care of scrolling when screen_y reaches maximum*/
+      if (get_screen_y() == NUM_ROWS){
+         memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
+         set_screen_y(NUM_ROWS - 1);
+         clear_line();
+         buffer_length = 0;
+        }
+     
+    }
+
+    return 0;
+}
+
+int32_t terminal_open(const uint8_t* filename){
+
+//Do Nothing until mulitple terminals
+  set_screen_x(0);
+  set_screen_y(0);
+  clear();
+  lshift_flag = 0;
+  rshift_flag = 0;
+  caps_flag = 0;
+  ctrl_flag = 0;
+  return 0;
+}
+
+int32_t terminal_close(int32_t fd){
+//Do Nothing
+  return 0;
+}
+
+
+
+
+
+
+
+
+

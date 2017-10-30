@@ -2,6 +2,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "idt_init.h"
+#include "keyboard.h"
  
 #define PASS 1
 #define FAIL 0
@@ -95,6 +96,29 @@ int paging_test(){
  }
 
 /* Checkpoint 2 tests */
+int terminal_driver_test(){
+	int test_open, test_read;
+	char buffer[128];
+
+	TEST_HEADER;
+	test_open = terminal_open((uint8_t*)1);
+
+	printf("What's your name?\n");
+	test_read = terminal_read(0, buffer, 128);
+	if(test_read < 0){
+		printf("Failed terminal_read\n");
+		return -1;
+	}
+	printf("Hello, ");
+	terminal_write(0, buffer, test_read);
+	printf("\n");
+
+	return 1;
+
+
+
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -102,8 +126,9 @@ int paging_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
-	TEST_OUTPUT("paging_test", paging_test());
+	//TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("paging_test", paging_test());
+	TEST_OUTPUT("terminal_driver_test", terminal_driver_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 
 	// launch your tests here

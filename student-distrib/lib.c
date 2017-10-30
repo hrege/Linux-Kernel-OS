@@ -12,6 +12,45 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
+
+char* get_video_mem(){
+    return video_mem;
+
+}
+
+void set_screen_x(int new_x){
+    screen_x = new_x;
+
+}
+
+void set_screen_y(int new_y){
+    screen_y = new_y;
+
+}
+
+int get_screen_x(){
+    return screen_x; 
+
+}
+
+int get_screen_y(){
+    return screen_y;
+
+}
+
+/* void clear(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Clears video memory */
+void clear_line(void) {
+    int32_t i;
+    for (i = 0; i < NUM_COLS; i++) {
+        putc(' ');
+    }
+    set_screen_x(0);
+    set_screen_y(NUM_ROWS - 1);
+}
+
 /* void clear(void);
  * Inputs: void
  * Return Value: none
@@ -175,8 +214,8 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
+        screen_y = (screen_y + (screen_x / NUM_COLS));
         screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
 }
 
