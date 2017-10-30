@@ -181,13 +181,7 @@ char scancode_map[NUM_SCANCODES][NUM_CASES] = {
     Side Effects: none
  */
 void keyboard_init() {
-  buffer_length = 0;
-  set_screen_x(0);
-  set_screen_y(0);
-  lshift_flag = 0;
-  rshift_flag = 0;
-  caps_flag = 0;
-  ctrl_flag = 0;
+  terminal_open((uint8_t*)1);
   enable_irq(KEYBOARD_IRQ);
 
 
@@ -242,7 +236,7 @@ void keyboard_handler() {
         send_eoi(KEYBOARD_IRQ);
         return;
       }
-
+      /*Go back to previous video memory*/
       if(get_screen_x() == 0 && buffer_length > 0){
             set_screen_y(get_screen_y() - 1);
             set_screen_x(NUM_COLS - 1);
@@ -250,9 +244,9 @@ void keyboard_handler() {
       else{
           set_screen_x(get_screen_x() - 1);
       }
-
+      /*Previous character erased*/
       putc(' ');
-
+      /*Reset screen position to write next character over space*/
       if(get_screen_x() == 0 && buffer_length > 0){
         set_screen_y(get_screen_y() - 1);
         set_screen_x(NUM_COLS - 1);
@@ -266,6 +260,7 @@ void keyboard_handler() {
 
       //backspace
   }
+  /*Clear screen*/
   else if(char_out == 'l' && ctrl_flag > 0){
       clear();
       set_screen_x(0);
@@ -295,6 +290,7 @@ void keyboard_handler() {
     update_cursor(get_screen_x(), get_screen_y());
   }
 
+  /*Vertical Scrolling condition*/
   if (get_screen_y() == NUM_ROWS)
   {
      memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
@@ -424,11 +420,12 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 *		Returns: 0 always atm
 */
 int32_t terminal_open(const uint8_t* filename){
-//Do Nothing until mulitple terminals
+  buffer_length = 0;
   set_screen_x(0);
   set_screen_y(0);
   clear();
   update_cursor(get_screen_x(), get_screen_y());
+  /*Initialize all flags*/
   lshift_flag = 0;
   rshift_flag = 0;
   caps_flag = 0;
