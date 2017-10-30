@@ -200,7 +200,7 @@ void keyboard_init() {
     Side Effects: Sends EOI signal to Master PIC.
  */
 void keyboard_handler() {
-  char keyboard_input = 0;
+  uint8_t keyboard_input = 0;
   char char_out = 0;
   /* Read keypress from keyboard data port. */
   keyboard_input = inb(KEYBOARD_DATA_PORT);
@@ -209,29 +209,29 @@ void keyboard_handler() {
  if(keyboard_input == LSHIFT_ON_SCAN){
         lshift_flag = 1;
   }
-  if(keyboard_input == RSHIFT_ON_SCAN){
+ else if(keyboard_input == RSHIFT_ON_SCAN){
         rshift_flag = 1;
   }
-  if(keyboard_input == LSHIFT_OFF_SCAN){
+  else if(keyboard_input == LSHIFT_OFF_SCAN){
         lshift_flag = 0;
   }
-  if(keyboard_input == RSHIFT_OFF_SCAN){
+  else if(keyboard_input == RSHIFT_OFF_SCAN){
         rshift_flag = 0;
   }
-  if(keyboard_input == CAPS_LOCK){
+  else if(keyboard_input == CAPS_LOCK){
         caps_flag = (!caps_flag) & 0x1;
   }
-  if(keyboard_input == CTRL_SCAN){
+  else if(keyboard_input == CTRL_SCAN){
     //Clear screen and start printing from top
       ctrl_flag++;
 
   }
-  if(keyboard_input == CTRL_RELEASE_SCAN){
+  else if(keyboard_input == CTRL_RELEASE_SCAN){
     //Clear screen and start printing from top
       ctrl_flag--;
 
   }
-  if(keyboard_input == BACKSPACE_SCAN){
+  else if(keyboard_input == BACKSPACE_SCAN){
       if(buffer_length > 0){
         buffer_length--;
       }
@@ -262,7 +262,6 @@ void keyboard_handler() {
 
       //backspace
   }
- 
   else if(char_out == 'l' && ctrl_flag > 0){
       clear();
       set_screen_x(0);

@@ -16,7 +16,7 @@
 #define RSHIFT_ON_SCAN		0x36
 #define LSHIFT_OFF_SCAN		0xAA
 #define RSHIFT_OFF_SCAN		0xB6
-#define CAPS_LOCK			0xBA
+#define CAPS_LOCK			0x3A
 #define CTRL_RELEASE_SCAN	0x9D		
 #define VIDEO       		0xB8000
 #define NUM_COLS    		80

@@ -118,7 +118,6 @@ void paging_enable(uint32_t* pdir_addr){
             movl %%cr0, %%eax   \n\
             orl  $0x80000001, %%eax     \n\
             movl %%eax, %%cr0          \n\
-
             "
             :
             : "m"(pdir_addr)

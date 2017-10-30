@@ -26,4 +26,8 @@ Bug: RTC changed speeds incorrectly
 Solution:
 Higher Rate = lower Frequency apparently
 
+Bug: Caps and shift never turn off
+Solution:
+
+
 
