@@ -200,16 +200,16 @@ int rtc_test(){
 	do{
 		freq = freq * 2; //increase to next power of two
 		printf("Calling RTC write with rate of %dHz\n", freq);
-		ret = rtc_write(0, NULL, freq);
+		ret = rtc_write(0, &freq, 0);
 		if(ret==-1){	//make sure it doesnt fail
 			return FAIL;
 		}
 		rtc_helper(4*freq);  //print for 4s
 		clear();
 	}while(freq<1024);
-	
+	freq=2;
 	printf("Putting RTC write freq back to 2Hz\n");
-	ret = rtc_write(0, NULL, 2);
+	ret = rtc_write(0, &freq, 0);
 	if(ret==-1){	//make sure it doesnt fail
 		return FAIL;
 	}
@@ -221,21 +221,17 @@ int rtc_test(){
 	do{
 		freq = freq + 250; //increase to next power of two
 		printf("Calling RTC write with rate of %dHz\n", freq);
-		ret = rtc_write(0, NULL, freq);
+		ret = rtc_write(0, &freq, 0);
 		if(ret==0){	//make sure it doesnt succeed
 			return FAIL;
 		}
 	}while(freq<2500);
 	printf("Calling RTC write with rate of NULLHz\n");
-	ret = rtc_write(0, NULL, NULL);
+	ret = rtc_write(0, NULL, 0);
 	if(ret==0){	//make sure it doesnt succeed
 		return FAIL;
 	}
-	//input check the frequency with NULL (only the 3rd input is used by the function)
-	ret = rtc_write(0, NULL, NULL);
-	if(ret==0){
-		return FAIL;
-	}
+
 	//show that it was not changed... print 10 1's (7.5s)
 	rtc_helper(15);
 	printf("Still running at 2Hz\n");
