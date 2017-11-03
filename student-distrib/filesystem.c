@@ -16,6 +16,10 @@ uint32_t number_of_files; /* Global variable to hold the current number of files
  */
 void file_system_init(uint32_t * start_addr) {
   /* Define start of file system as address calculated in kernel.c */
+  if(start_addr == NULL) {
+    printf("Null start_addr\n");
+    return;
+  }
   filesystem.boot_block_start = (boot_block_t *)start_addr;
   number_of_files = (uint32_t)(filesystem.boot_block_start->num_dir_entries);
 
@@ -34,6 +38,10 @@ void file_system_init(uint32_t * start_addr) {
   Return Value: returns 0 if successful open, -1 if error
  */
 int32_t file_open(const uint8_t * filename) {
+  if(filename == NULL) {
+    printf("Null filename\n");
+    return -1;
+  }
   int32_t retval;
   dentry_t file_dentry;
 
@@ -75,6 +83,10 @@ int32_t file_close(int32_t fd) {
   Return Value: Returns -1 because system is read-only
  */
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
+  if(buf == NULL) {
+    printf("Null buffer pointer\n");
+    return -1;
+  }
   return -1;
 }
 
@@ -90,6 +102,14 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
   Return Value: Returns call to read_data, which returns number of bytes read successfully.
  */
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
+  if(buf == NULL) {
+    printf("Null buffer pointer\n");
+    return -1;
+  }
+  if(fname == NULL) {
+    printf("Null fname\n");
+    return -1;
+  }
   int retval;
   dentry_t file_dentry;
 
@@ -98,9 +118,12 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
   if(retval == -1) {
     return retval;
   }
-
+  int bytes_read = 0;
   /* Call read data to read from file inode*/
-  return read_data(file_dentry.inode_number, 0, buf, nbytes);
+  while(bytes_read < nbytes) {
+   bytes_read += read_data(file_dentry.inode_number, bytes_read, buf, nbytes);
+  }
+  return bytes_read;
 }
 
 /* int32_t directory_open(const uint8_t * filename)
@@ -112,6 +135,10 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
   Return Value: returns 0 on success and -1 on failure
  */
 int32_t directory_open(const uint8_t * filename) {
+  if(filename == NULL) {
+    printf("Null filename\n");
+    return -1;
+  }
   int32_t retval;
   dentry_t dir_dentry;
   /* Read filename to make sure it exists in directory. */
@@ -152,6 +179,10 @@ int32_t directory_close(int32_t fd) {
   Return Value: Returns -1 because call always fails
  */
 int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes) {
+  if(buf == NULL) {
+    printf("Null buffer pointer\n");
+    return -1;
+  }
   return -1;
 }
 
@@ -168,6 +199,10 @@ int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes) {
                 existing files have been read.
  */
 int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
+  if(buf == NULL) {
+    printf("Null buffer pointer\n");
+    return -1;
+  }
   /* Check that the current entry to read exists. */
   if(cur_read_idx > (filesystem.boot_block_start->num_dir_entries)) {
     return 0;
@@ -198,6 +233,10 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
   /* If non-existent file, return -1 */
   if(fname == NULL) {
     printf("invalid file\n");
+    return -1;
+  }
+  if(dentry == NULL) {
+    printf("Null dentry\n");
     return -1;
   }
 
@@ -255,6 +294,10 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
     printf("invalid file\n");
     return -1;
   }
+  if(dentry == NULL) {
+    printf("Null dentry\n");
+    return -1;
+  }
 
   /* Create temporary pointer to hold starting address of current directory entry based on index. */
   dentry_t* temp_addr = &(filesystem.boot_block_start->directory_entries[index]);
@@ -282,9 +325,16 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   Return Value: Returns number of bytes read on success, returns -1 on failure.
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length) {
+  if(buf == NULL) {
+    printf("Null buffer pointer\n");
+    return -1;
+  }
   /* Initialize loop variables */
   int i;
   int j;
+  uint32_t size_left;
+
+  size_left = length - offset;
 
   /* Check if inode parameter is within valid range of inodes */
   if(inode < 0 || inode > (filesystem.boot_block_start->num_inodes - 1)) {
@@ -325,9 +375,16 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     curr_block =  *((uint32_t*)((uint8_t*)this_inode + (i + 1)*DATA_LENGTH_SIZE)); //which number data we're looking at
     block_data = (data_block_t *)(filesystem.data_block_start + ((curr_block + 1) * BLOCK_SIZE));
     for(j = 0; j < BLOCK_SIZE; j++) {
-      *(buf + i*BLOCK_SIZE + j) = block_data->data[j];
+      *(buf + i*BLOCK_SIZE + j + offset) = block_data->data[j];
+      size_left--;
+      if(size_left == 0){
+        break;
+      }
+    }
+    if(size_left == 0){
+      break;
     }
   }
 
-  return length;
+  return length - offset;
 }

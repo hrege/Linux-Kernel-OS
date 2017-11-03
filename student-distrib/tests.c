@@ -269,10 +269,10 @@ int file_syscalls_test() {
 	char* name_1;
 	char* name_2;
 	char* name_3;
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 	uint8_t fd;
 	int32_t nbytes;
-	nbytes = BUF_SIZE;
+	nbytes = NAME_BUF_SIZE;
 
 	name_1 = "cat";
 	name_2 = "notafile";
@@ -333,10 +333,10 @@ int dir_syscalls_test() {
 	char* name_1;
 	char* name_2;
 	char* name_3;
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 	uint8_t fd;
 	int32_t nbytes;
-	nbytes = BUF_SIZE;
+	nbytes = NAME_BUF_SIZE;
 
 	name_1 = "cat";
 	name_2 = "notafile";
@@ -361,7 +361,7 @@ int dir_syscalls_test() {
 	printf("%s\n", buf);
 	memset(&buf, '\0', FILE_NAME_SIZE);
 
-	while(directory_read(fd, &buf, FILE_NAME_SIZE) != 0){
+	while(directory_read(fd, &buf, NAME_BUF_SIZE) != 0){
 		printf("%s\n", buf);
 		memset(&buf, '\0', FILE_NAME_SIZE);
 	}
@@ -405,7 +405,7 @@ int test_read_dentry_by_name() {
 
  	dentry_t test;
  	char* name;
- 	uint8_t buf[BUF_SIZE];
+ 	uint8_t buf[NAME_BUF_SIZE];
 
  /* Regular file test */
   name = "cat";
@@ -479,7 +479,7 @@ int test_read_dentry_by_index() {
   uint32_t index = 0;
   uint32_t retval = 0;
   dentry_t test;
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 
 	/* Test all active indices */
   for(index = 0; index < number_of_files; index++) {
@@ -537,12 +537,12 @@ int test_read_data() {
 	TEST_HEADER;
 	int i = 0;
 	int retval;
-	uint8_t buf[BUF_SIZE];
+	int total_data_read;
 	dentry_t file_dentry;
 
 	/* Test to fetch data using file name (comment out unused file names) */
-	//char* file = "verylargetextwithverylongname.tx";
-	char* file = "frame0.txt";
+	char* file = "verylargetextwithverylongname.tx";
+	//char* file = "frame0.txt";
 	//char* file = "pingpong";
 
 	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
@@ -553,12 +553,15 @@ int test_read_data() {
 
 	uint32_t length = this_inode->length;
 
-	read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, length);
+	uint8_t buf[length];
+
+	total_data_read = read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, length);
 
 	for(i = 0; i < length; i++) {
 		terminal_write(0,buf+i,1);
 	}
 	printf("\n");
+	printf("Total Data Read: %d\n", total_data_read);
 	/* Passed test */
 	return PASS;
 }
@@ -573,11 +576,11 @@ int test_read_data() {
 *		Side effects: Clears terminal, prints successive dentries
 */
 int test_read_dir() {
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 	//clear();
 
 	/*Test directory_read() repeatedly until end of directory is reached */
-	while(directory_read(0, &buf, FILE_NAME_SIZE) != 0) {
+	while(directory_read(0, &buf, NAME_BUF_SIZE) != 0) {
 		printf("%s\n", buf);
 		memset(&buf, '\0', FILE_NAME_SIZE);
 	}
@@ -598,11 +601,11 @@ void launch_tests(){
 
 		// launch your tests here
 	//TEST_OUTPUT("paging_test", paging_test());
-	TEST_OUTPUT("terminal_driver_test", terminal_driver_test());
-	TEST_OUTPUT("RTC TEST", rtc_test());
+	//TEST_OUTPUT("terminal_driver_test", terminal_driver_test());
+	//TEST_OUTPUT("RTC TEST", rtc_test());
 	//TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
 	//TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
-	//TEST_OUTPUT("read_data_test", test_read_data());
+	TEST_OUTPUT("read_data_test", test_read_data());
 	//TEST_OUTPUT("dir_read_test", test_read_dir());
 	//TEST_OUTPUT("file_syscalls_test", file_syscalls_test());
 	//TEST_OUTPUT("dir_syscalls_test", dir_syscalls_test());

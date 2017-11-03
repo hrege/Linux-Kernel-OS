@@ -5,7 +5,7 @@ exceptions.o: exceptions.c lib.h types.h exceptions.h
 filesystem.o: filesystem.c lib.h types.h filesystem.h
 i8259.o: i8259.c i8259.h types.h lib.h rtc.h
 idt_init.o: idt_init.c x86_desc.h types.h idt_init.h lib.h i8259.h \
-  keyboard.h rtc.h exception_link.h
+  keyboard.h rtc.h exception_link.H
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   tests.h rtc.h keyboard.h paging.h filesystem.h
 keyboard.o: keyboard.c i8259.h types.h lib.h keyboard.h

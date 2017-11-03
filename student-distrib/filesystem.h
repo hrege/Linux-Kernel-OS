@@ -12,6 +12,7 @@
 #define NUM_FILES                 62
 #define NUM_RESERVED_BYTES        24
 #define NUM_RESERVED_BOOT_BYTES   52
+#define DATA_READ_SIZE            1024
 #define BLOCK_SIZE                4096
 #define NUM_DIRECTORY_ENTRIES     63
 #define REGULAR_FILE_TYPE         2
