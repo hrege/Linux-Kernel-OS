@@ -15,15 +15,24 @@ pusha
 pushl %edx
 pushl %ecx
 pushl %ebx
-call (sys_jump, %eax)
-pop 
+call *sys_jump($-1, %eax, 4)
+addl $12, %esp
+popa
+leave
+IRET
 
 
 
 
 sys_jump:
-.long halt_asm, .long execute_asm, .long read_asm, .long write_asm, .long open_asm, .long close_asm, 
-.long getargs_asm, .long vidmap_asm, .long set_handler_asm, .long sigreturn_asm
+.long sys_halt, sys_execute, sys_read, sys_write, sys_open, sys_close, sys_getargs, sys_vidmap, sys_set_handler, sys_sigreturn
+
+
+
+
+
+
+
 
 
 
