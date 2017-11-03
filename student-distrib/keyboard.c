@@ -375,9 +375,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     if(buf == NULL){
         return -1;
     }
-    if(nbytes > max_buffer_size){
-      nbytes = max_buffer_size;
-    }
+
 
     /* read from buf */
     for(i = 0; i < nbytes; i++){
