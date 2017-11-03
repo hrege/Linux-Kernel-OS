@@ -4,6 +4,7 @@
 */
 
 #include "sys_call.h"
+#include "filesystem.h"
 
 
 
@@ -25,7 +26,10 @@ extern int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
 
 }
 extern int32_t sys_open(const uint8_t* filename){
-
+	/*Read file by name*/
+	/*Select fd to be first available in fd_array located in the PCB struct*/
+	/*Switch by file type*/
+	/*associate correct ops in fd_array[fd].ops_table*/
 
 }
 extern int32_t sys_close(int32_t fd){
