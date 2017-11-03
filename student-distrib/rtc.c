@@ -82,7 +82,8 @@ void rtc_handler() {
 *		Side Effects: RTC running at 2Hz
 */
 int32_t rtc_open(const uint8_t* filename){
-	rtc_write(0, NULL, 2);  //call rtc_write with freq of 2Hz
+	int freq = 2;
+	rtc_write(0, &freq, 0);  //call rtc_write with freq of 2Hz
 	return 0;
 }
 
@@ -108,15 +109,19 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
 *		Author: Jonathan
 *		Description: This is the write function for the RTC driver
 *						Changes the frequency of the RTC
-*		Inputs: fd, buf, frequency (only frequency used ... others to meet the sys call format)
+*		Inputs: fd, buf, nbytes (only buf used ... others to meet the sys call format)
 *		Outputs: Frequency to RTC
 *		Returns: -1 if given invalid frequency
 *				 0 else
 *		Side Effects: RTC running at new frequency
 */
-int32_t rtc_write(int32_t fd, const void* buf, int32_t frequency){
+int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 	/* Perform checks to verify the input frequency is in range...
 	Must be power of 2 from min. 2 to max (allowed to user) of 1024 */
+	if(buf == NULL){
+		return -1;
+	}
+	int32_t frequency = *((uint32_t *)buf);
 	if(frequency >= 2 && frequency <= 1024){
 		int32_t f = 2; //frequency to check against
 		int8_t i = 14;	   //inverse power counter (minus 1)
