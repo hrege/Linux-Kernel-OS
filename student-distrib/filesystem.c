@@ -126,6 +126,50 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
   return bytes_read;
 }
 
+/* file_load(uint8_t * fname, uint32_t* addr)
+  Description: Loads program image from blocks into contiguous memory
+  Author: Austin
+  Inputs: fname - file name to be loaded
+          addr - address to write data to
+  Outputs: none
+  Side Effects: Loads file into memory at addr location
+  Return Value: Returns call to read_data, which returns number of bytes read successfully.
+ */
+int32_t file_load(uint8_t * fname, uint32_t* addr){
+	/* Initialize local variables */
+  dentry_t* file_dentry;
+  inode_t* this_inode;
+	
+	/* Check for invalid file name */
+	if( fname == NULL ){
+    printf("invalid file\n");
+		return -1;
+  }
+  
+  if(addr == NULL) {
+    printf("Null address\n");
+    return -1;
+  }
+	
+	/* Extract dentry information using the filename passed in. */
+	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
+		return -1;
+	}
+
+  /* Load inode data (length) */
+  this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (file_dentry->inode_number * BLOCK_SIZE));
+  this_inode->length = *((uint32_t*)this_inode);
+  int bytes_read = 0;
+
+
+  /* Load the entire file at the address passed in. */
+  while(bytes_read < this_inode->length) {
+    bytes_read += read_data(file_dentry->inode_number, bytes_read, addr, this_inode->length);
+   }
+	
+	return 0;
+}	
+
 /* int32_t directory_open(const uint8_t * filename)
   Description: Opens directory structure based on directory name
   Author: Hershel/Austin

@@ -66,6 +66,7 @@ int32_t file_open(const uint8_t * filename);
 int32_t file_close(int32_t fd);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname);
+int32_t file_load(uint8_t * fname, uint32_t* addr);
 
 /* Directory operations functions */
 int32_t directory_open(const uint8_t * filename);
