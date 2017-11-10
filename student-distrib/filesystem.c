@@ -28,6 +28,19 @@ void file_system_init(uint32_t * start_addr) {
   filesystem.data_block_start = ((uint8_t *)start_addr + ((uint8_t)filesystem.boot_block_start->num_inodes) * BLOCK_SIZE);
 }
 
+pcb_init(uint32_t* PCB_start_addr) {
+  //Allocate new PCB struct to address in params
+  PCB_t new_pcb;
+  new_pcb.file_array[]
+
+  *(PCB_start_addr) = (uint_32_t)new_pcb;
+
+  //Assign file descriptor for current task file
+
+  //Each PCB should be stored at top of kernel stack
+  //Use offset from given address to store kernel stack
+}
+
 /* int32_t file_open(const uint8_t * filename)
   Description: Opens files from directory and checks the file type to affirm
                only user files are opened.
@@ -139,18 +152,18 @@ int32_t file_load(uint8_t * fname, uint32_t* addr){
 	/* Initialize local variables */
   dentry_t* file_dentry;
   inode_t* this_inode;
-	
+
 	/* Check for invalid file name */
 	if( fname == NULL ){
     printf("invalid file\n");
 		return -1;
   }
-  
+
   if(addr == NULL) {
     printf("Null address\n");
     return -1;
   }
-	
+
 	/* Extract dentry information using the filename passed in. */
 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
 		return -1;
@@ -166,9 +179,9 @@ int32_t file_load(uint8_t * fname, uint32_t* addr){
   while(bytes_read < this_inode->length) {
     bytes_read += read_data(file_dentry->inode_number, bytes_read, addr, this_inode->length);
    }
-	
+
 	return 0;
-}	
+}
 
 /* int32_t directory_open(const uint8_t * filename)
   Description: Opens directory structure based on directory name

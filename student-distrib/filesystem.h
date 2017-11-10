@@ -16,6 +16,7 @@
 #define BLOCK_SIZE                4096
 #define NUM_DIRECTORY_ENTRIES     63
 #define REGULAR_FILE_TYPE         2
+#define MAX_ACTIVE_FILES          8
 
 /* Global variable to hold current number of files in system */
 extern uint32_t number_of_files;
@@ -57,6 +58,19 @@ extern filesystem_t filesystem;
 typedef struct data_block_t {
   uint8_t data[BLOCK_SIZE];
 } data_block_t;
+
+typedef struct fd_array_t {
+  uint32_t* file_operations[NUM_FILE_OPERATIONS];
+  uint32_t inode_number;
+  uint32_t file_position;
+  uint32_t flags;
+} fd_array_t;
+
+typedef struct PCB_t {
+  fd_array_t file_array[MAX_ACTIVE_FILES];
+  uint32_t process_id;
+  uint32_t* parent_process;
+} PCB_t;
 
 /* Initalization function to set all file system pointers. */
 void file_system_init(uint32_t * start_addr);
