@@ -83,7 +83,7 @@ void idt_init() {
 		SET_IDT_ENTRY(idt[18], &machine_check_asm);
 		SET_IDT_ENTRY(idt[19], &simd_floating_point_exception_asm);
 
-		/*Initialize interrupt IDT entries*/
+		
 
 		/*Initialize system call IDT entries*/
 		idt[SYSTEM_CALL_IDT_ENTRY].seg_selector = KERNEL_CS;
