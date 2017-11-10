@@ -28,8 +28,17 @@ int get_first_fd(){
 }
 
 extern int32_t sys_halt(uint8_t status){
+	int i; // loop variable
+	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
 
+	
 
+	/*Close any files associated with this process*/
+	for(i = 0; i < 8; i++){
+		curr_pcb->file_array[i].file_operations[3](i);
+	}
+
+	return 0;
 }
 extern int32_t sys_execute(const uint8_t* command){
 	dentry_t exec;
