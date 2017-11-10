@@ -8,30 +8,44 @@
 #include "rtc.h"
 #include "keyboard.h"
 
-#define EXEC_IDENTITY     0x7F454C46
-/*Local function to find first fd available in fd_array of pcb*/
+#define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
+
+
+/*	get_first_fd
+*		Description:  Local function to find first fd available in fd_array of pcb
+*		Author: Sam
+*		Inputs: None
+*		Ouptuts: None
+*		Returns: Number of first available fd; 
+*					-1 if fd_array is full
+*/
 int get_first_fd(){
 	int i; // loop variable
 	/*tss placeholder until we figure out what it should be*/
 	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000; 
 
-	
+	/* start at 0 and check until you find one */
 	for(i = 0; i < 8; i++){
 		if(curr_pcb->file_array[i].flags == 0){
 			curr_pcb->file_array[i].flags = 1;
 			return i;
-
 		}
 	}
-
 	return -1;
 }
 
+/*
+*	sys_halt
+*		Description: the system call to halt a process (the process called)
+*		Author: Sam....
+*		Input: ______
+*		Output: ______
+*		Returns: _____
+*		Side effects: closes associated files ________
+*/
 extern int32_t sys_halt(uint8_t status){
 	int i; // loop variable
 	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
-
-	
 
 	/*Close any files associated with this process*/
 	for(i = 0; i < 8; i++){
@@ -40,10 +54,21 @@ extern int32_t sys_halt(uint8_t status){
 
 	return 0;
 }
+
+
+/*
+*	sys_execute
+*		Description: The execute system call to execute a new process
+*		Author: Sam, Jonathan, Austin, Hershel
+*		Inputs: command - a buffer containing the executable name and arguments
+*					(**Arguments not yet supported for CP3)
+*		Outputs: None
+*		Returns: -1 if fails
+*		Side effect: New process starts
+*/
 extern int32_t sys_execute(const uint8_t* command){
 	dentry_t exec;
 	char* file_buffer;
-
 	if(-1 == read_dentry_by_name(command, &exec)){
 		return -1;
 	}
@@ -67,7 +92,7 @@ extern int32_t sys_execute(const uint8_t* command){
 	/*Hershel sets up PCB using TSS stuff*/ 
 
 
-
+	/* Set up stacks before IRET */
 /*
 	
 	-Parse
@@ -80,17 +105,41 @@ extern int32_t sys_execute(const uint8_t* command){
 */
 
 }
+
+/* sys_read
+*		Description: the read system call handler
+*		Author: Sam
+*		Input: fd (which file); buf (buffer to read into); nbytes(how much to read)
+*		Ouputs: none
+*		Returns: the return value from the file specific read handler
+*		Side effect: calls the read handler based on file type
+*/
 extern int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
 
 	return curr_pcb->file_array[fd].file_operations[1](fd, buf, nbytes);
-
 }
+/* sys_write
+*		Description: the write system call handler
+*		Author: Sam
+*		Input: fd (which file); buf (buffer to write from); nbytes(how much to write)
+*		Ouputs: none
+*		Returns: the return value from the file specific write handler
+*		Side effect: calls the write handler based on file type
+*/
 extern int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
 	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
 
 	return curr_pcb->file_array[fd].file_operations[2](fd, buf, nbytes);
 }
+/* sys_open
+*		Description: the open system call handler -- opens file
+*		Author: Sam
+*		Input: filename
+*		Ouputs: none
+*		Returns: -1 for fail; 0 for pass
+*		Side effect: File is opened and has fd in the fd array
+*/
 extern int32_t sys_open(const uint8_t* filename){
 	int fd;
 	/*Place holder*/
@@ -134,16 +183,21 @@ extern int32_t sys_open(const uint8_t* filename){
 	
 	return 0;
 	
-	
-
-
 }
+/* sys_close
+*		Description: the close system call handler -- closes file
+*		Author: Sam
+*		Input: fd number
+*		Ouputs: none
+*		Returns: 0 for pass
+*		Side effect: File ic closed and entry in fd freed
+*/
 extern int32_t sys_close(int32_t fd){
 	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
-
+	//SHOULD WE CHECK IF THE FD IS VALID??????
 	curr_pcb->file_array[i].flags = 0;
 	curr_pcb->file_array[fd].file_operations[3](fd);
-
+	return 0;
 }
 
 
@@ -163,11 +217,6 @@ extern int32_t sys_set_handler(int32_t signum, void* handler_address){
 }
 extern int32_t sys_sigreturn(void){
 	return 0;
-
-}
-
-int get_first_fd(){
-
 
 }
 
