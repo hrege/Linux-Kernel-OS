@@ -164,29 +164,71 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname) {
   return bytes_read;
 }
 
-/* file_check(uint8_t* fname)
-  Description: Verifies that the file given by fname is an
-               executable file (by checking the first 4 bytes
-               to verify that file contains "ELF")
-  Arthur: Austin
-  Inputs: fname - file name to be checked
+// Not necessary for execute, but kept as insurance
+// /* file_check(uint8_t* fname)
+//   Description: Verifies that the file given by fname is an
+//                executable file (by checking the first 4 bytes
+//                to verify that file contains "ELF")
+//   Arthur: Austin
+//   Inputs: fname - file name to be checked
+//   Outputs: none
+//   Side Effects: None
+//   Return Value: Returns 0 if successful, -1 if failed
+//  */
+// int32_t file_check(uint8_t* fname){
+// 	/* Check for invalid inputs */
+// 	if( fname == NULL ){
+//     printf("invalid file\n");
+// 		return -1;
+//   }
+  
+//   /* Initialize local variables */
+//   dentry_t file_dentry;
+//   uint8_t buf[DATA_ELF_SIZE];
+
+//   /* Extract dentry information using the filename passed in. */
+// 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
+// 		return -1;
+//   }
+  
+//   /* Put first 4 bytes in buffer (if executable, this should be ELF) */
+//   read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, DATA_ELF_SIZE);
+
+//   /* Check that buf == ELF */
+//   if((buf[0] == MAGIC_NUMBER) && (buf[1] == 'E') && (buf[2] == 'L') && (buf[3] == 'F')){
+//     return 0;
+//   }
+//   else
+//     return -1;
+// }
+
+/* file_load(uint8_t * fname, uint32_t* addr)
+  Description: Loads program image from blocks into contiguous memory
+  Author: Austin
+  Inputs: fname - file name to be loaded
+          addr - address to write data to
   Outputs: none
-  Side Effects: None
-  Return Value: Returns 0 if successful, -1 if failed
+  Side Effects: Loads file into memory at addr location
+  Return Value: 0 if successful, -1 if failed
  */
-
-int32_t file_load(uint8_t * fname, uint8_t* addr){
-	/* Initialize local variables */
-  dentry_t file_dentry;
-  inode_t* this_inode;
-
-	/* Check for invalid inputs */
+int32_t file_load(uint8_t* fname, void* addr){
+  /* Check for invalid inputs */
 	if( fname == NULL ){
     printf("invalid file\n");
 		return -1;
   }
 
-  /* Extract dentry information using the filename passed in. */
+  if(addr == NULL) {
+    printf("Null address\n");
+    return -1;
+  }
+  
+  /* Initialize local variables */
+  dentry_t file_dentry;
+  inode_t* this_inode;
+  uint32_t bytes_read = 0;
+
+	/* Extract dentry information using the filename passed in. */
 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
 		return -1;
 	}
@@ -194,58 +236,14 @@ int32_t file_load(uint8_t * fname, uint8_t* addr){
   /* Load inode data (length) */
   this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (file_dentry.inode_number * BLOCK_SIZE));
   this_inode->length = *((uint32_t*)this_inode);
-  int bytes_read = 0;
 
   /* Load the entire file at the address passed in. */
   while(bytes_read < this_inode->length) {
     bytes_read += read_data(file_dentry.inode_number, bytes_read, addr, this_inode->length);
-  }
+   }
 
+	return 0;
 }
-
-// Not necessary for execute, but kept as insurance
-// /* file_load(uint8_t * fname, uint32_t* addr)
-//   Description: Loads program image from blocks into contiguous memory
-//   Author: Austin
-//   Inputs: fname - file name to be loaded
-//           addr - address to write data to
-//   Outputs: none
-//   Side Effects: Loads file into memory at addr location
-//   Return Value: 0 if successful, -1 if failed
-//  */
-// int32_t file_load(uint8_t* fname, void* addr){
-//   /* Check for invalid inputs */
-// 	if( fname == NULL ){
-//     printf("invalid file\n");
-// 		return -1;
-//   }
-
-//   if(addr == NULL) {
-//     printf("Null address\n");
-//     return -1;
-//   }
-
-//   /* Initialize local variables */
-//   dentry_t file_dentry;
-//   inode_t* this_inode;
-//   uint32_t bytes_read = 0;
-
-// 	/* Extract dentry information using the filename passed in. */
-// 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
-// 		return -1;
-// 	}
-
-//   /* Load inode data (length) */
-//   this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (file_dentry.inode_number * BLOCK_SIZE));
-//   this_inode->length = *((uint32_t*)this_inode);
-
-//   /* Load the entire file at the address passed in. */
-//   while(bytes_read < this_inode->length) {
-//     bytes_read += read_data(file_dentry.inode_number, bytes_read, addr, this_inode->length);
-//    }
-
-// 	return 0;
-// }
 
 /* int32_t directory_open(const uint8_t * filename)
   Description: Opens directory structure based on directory name

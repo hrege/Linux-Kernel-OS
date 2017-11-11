@@ -100,7 +100,7 @@ int32_t file_close(int32_t fd);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname);
 int32_t file_load(uint8_t* fname, void* addr);
-int32_t file_check(uint8_t* fname);
+//int32_t file_check(uint8_t* fname);
 
 /* Directory operations functions */
 int32_t directory_open(const uint8_t* filename);
