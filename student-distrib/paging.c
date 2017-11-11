@@ -106,8 +106,6 @@ void paging_init(){
  *      Side effects: Alters CR0, CR3 and CR4
  */
 void paging_enable(uint32_t* pdir_addr){
-
-
     asm volatile ("movl %0, %%eax      \n\
             movl %%eax, %%cr3          \n\
             movl %%cr4, %%eax          \n\
@@ -137,6 +135,13 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
     uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
     uint32_t vir_addr = mb_va/PAGE_MB_NUM;
     page_directory[vir_addr] = 0x00000083 | (phys_addr << 22);
+    asm volatile ("movl %%eax, 4(%%esp) \n\
+                   invlpg (%%eax)       \n\
+                   "
+                   :
+                   :
+                   : "eax", "memory", "cc"
+    );
 }
     // Extra notes for MP3.3 implementation:
     //Map 128-132MB VM to 8-12MB PM
