@@ -17,6 +17,11 @@
 #define PROG_LOAD_LOC		0x08048000
 
 int32_t next_pid;
+  struct file_operations_t stdin_ops = {&terminal_open, &terminal_read, NULL, &terminal_close};
+  struct file_operations_t stdout_ops = {&terminal_open, NULL, &terminal_write, &terminal_close};
+  struct file_operations_t regular_ops = {&file_open, &file_read, &file_write, &file_close};
+  struct file_operations_t directory_ops = {&directory_open, &directory_read, &directory_write, &directory_close};
+  struct file_operations_t rtc_ops = {&rtc_open, &rtc_read, &rtc_write, &rtc_close};
 /*	get_first_fd
 *		Description:  Local function to find first fd available in fd_array of pcb
 *		Author: Sam
@@ -188,19 +193,19 @@ extern int32_t sys_open(const uint8_t* filename){
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
 		case STD_IN_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = curr_pcb->stdin_ops;
+		curr_pcb->file_array[fd]->file_operations = &stdin_ops;
 
 		case STD_OUT_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = curr_pcb->stdout_ops;
+		curr_pcb->file_array[fd]->file_operations = &stdout_ops;
 		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
 		case REGULAR_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = curr_pcb->regular_ops;
+		curr_pcb->file_array[fd]->file_operations = &regular_ops;
 
 		case DIRECTORY_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = curr_pcb->directory_ops;
+		curr_pcb->file_array[fd]->file_operations = &directory_ops;
 
 		case RTC_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = curr_pcb->rtc_ops;
+		curr_pcb->file_array[fd]->file_operations = &rtc_ops;
 
 		default:
 		return -1;

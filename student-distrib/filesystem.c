@@ -59,17 +59,7 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PC
   new_pcb.process_id = p_id;
   new_pcb.kern_esp = start_addr;
 
-  /* Initialize FOP Tables */
-  struct file_operations_t temp_stdin = {terminal_open, terminal_read, NULL, terminal_close};
-  struct file_operations_t temp_stdout = {terminal_open, NULL, terminal_write, terminal_close};
-  struct file_operations_t temp_regular = {file_open, file_read, file_write, file_close};
-  struct file_operations_t temp_directory = {directory_open, directory_read, directory_write, directory_close};
-  struct file_operations_t temp_rtc = {rtc_open, rtc_read, rtc_write, rtc_close};
-  new_pcb.stdin_ops = temp_stdin;
-  new_pcb.stdout_ops = temp_stdout;
-  new_pcb.regular_ops = temp_regular;
-  new_pcb.directory_ops = temp_directory;
-  new_pcb.rtc_ops = temp_rtc;
+
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
      otherwise, point to proper offset in kernel stack. */

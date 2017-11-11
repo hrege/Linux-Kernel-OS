@@ -87,11 +87,6 @@ typedef struct fd_array_t {
 
 typedef struct PCB_t {
   fd_array_t file_array[MAX_ACTIVE_FILES];
-  file_operations_t stdin_ops;
-  file_operations_t stdout_ops;
-  file_operations_t regular_ops;
-  file_operations_t directory_ops;
-  file_operations_t rtc_ops;
   uint32_t process_id;
   uint32_t* parent_process;
   uint32_t* kern_esp;

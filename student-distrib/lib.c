@@ -591,7 +591,7 @@ void test_interrupts(void) {
  *          void* eip = location of the first instruction to be executed
  * Return Value: none
  * Function: push correct register values to stack for IRET privledge switch */
-/* void user_prep(void* esp, void* eip) {
+ void user_prep(void* esp, void* eip) {
     asm volatile ("                 \n\
             pushl    %%ds, %%dx      \n\
             pushl    %%dx, %%es      \n\
@@ -599,9 +599,9 @@ void test_interrupts(void) {
             rep     stosw           \n\
             "
             :
-            : "a"(c), "D"(s), "c"(n)
+            : esp, eip
             : "edx", "memory", "cc"
     );
     return s;
 }
-*/
+
