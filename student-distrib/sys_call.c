@@ -7,6 +7,7 @@
 #include "filesystem.h"
 #include "rtc.h"
 #include "keyboard.h"
+#include "types.h"
 
 #define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
 
@@ -81,7 +82,7 @@ extern int32_t sys_execute(const uint8_t* command){
 	}
 
 	if(  *((uint32_t *)file_buffer) != EXEC_IDENTITY){
-			return -1;
+		return -1;
 	}
 
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
