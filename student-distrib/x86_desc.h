@@ -129,6 +129,8 @@ extern uint32_t ldt;
 
 extern uint32_t tss_size;
 extern seg_desc_t tss_desc_ptr;
+extern uint32_t tss_esp_ptr;
+extern uint32_t tss_ss_ptr;
 extern tss_t tss;
 
 /* Sets runtime-settable parameters in the GDT entry for the LDT */

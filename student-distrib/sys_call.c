@@ -9,7 +9,7 @@
 #include "keyboard.h"
 #include "paging.h"
 #include "types.h"
-
+#include "x86_desc.h"
 
 #define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
 #define EIP_SIZE			4
@@ -27,8 +27,8 @@ int32_t next_pid;
 */
 int get_first_fd(){
 	int i; // loop variable
-	/*tss placeholder until we figure out what it should be*/
-	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
+
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
 	/* start at 0 and check until you find one */
 	for(i = 0; i < 8; i++){
@@ -51,7 +51,7 @@ int get_first_fd(){
 */
 extern int32_t sys_halt(uint8_t status){
 	int i; // loop variable
-	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
 	/*Close any files associated with this process*/
 	for(i = 0; i < 8; i++){
@@ -74,9 +74,9 @@ extern int32_t sys_halt(uint8_t status){
 */
 extern int32_t sys_execute(const uint8_t* command){
 	dentry_t exec;
-	char* file_buffer;
-	char* kern_stack_ptr;
-	char* eip[EIP_SIZE];
+	uint8_t* file_buffer;
+	uint32_t* kern_stack_ptr;
+	uint8_t* eip[EIP_SIZE]; //should be array of pointers?
 	int i;
 
 	if(-1 == read_dentry_by_name(command, &exec)){
@@ -97,15 +97,15 @@ extern int32_t sys_execute(const uint8_t* command){
 
 	/*Hershel sets up PCB using TSS stuff*/
 	/*kernel stack pointer for process about to be executed*/
-	kern_stack_ptr = 0x0800000 - 1 - (0x2000 * next_pid);
-	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000))
+	kern_stack_ptr = (uint32_t*)(0x0800000 - 1 - (0x2000 * next_pid));
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss_esp_ptr & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
 
 	}
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
 
-	paging_switch(128, 4 * (exec_pcb.process_id + 2));
+	paging_switch(128, 4 * (exec_pcb->process_id + 2));
 
 
 	/*Load Program */
@@ -132,7 +132,7 @@ extern int32_t sys_execute(const uint8_t* command){
 		-assign pid based on global pid pointer
 	-Context switch
 */
-
+	return 0;
 }
 
 /* sys_read
@@ -144,7 +144,7 @@ extern int32_t sys_execute(const uint8_t* command){
 *		Side effect: calls the read handler based on file type
 */
 extern int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
-	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations[1](fd, buf, nbytes);
 }
@@ -157,7 +157,7 @@ extern int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 *		Side effect: calls the write handler based on file type
 */
 extern int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
-	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations[2](fd, buf, nbytes);
 }
@@ -172,7 +172,7 @@ extern int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
 extern int32_t sys_open(const uint8_t* filename){
 	int fd;
 	/*Place holder*/
-	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
 	/*Read file by name*/
 	dentry_t this_file;
@@ -186,33 +186,31 @@ extern int32_t sys_open(const uint8_t* filename){
 		return -1;
 	}
 	/*Switch by file type and associate correct ops in file_array[fd].file_operations*/
-	switch(this_file.file_type){
-		case STD_IN_FILE_TYPE:
+	switch(this_file.file_type) {
+		case STD_IN_FILE_TYPE :
 		curr_pcb->file_array[fd].file_operations = {&terminal_open, &terminal_read, NULL, &terminal_close};
 
-		case STD_OUT_FILE_TYPE:
+		case STD_OUT_FILE_TYPE :
 		curr_pcb->file_array[fd].file_operations = {&terminal_open, NULL, &terminal_write, &terminal_close};
 		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
-		case REGULAR_FILE_TYPE:
+		case REGULAR_FILE_TYPE :
 		curr_pcb->file_array[fd].file_operations = {&file_open, &file_read, &file_write, &file_close};
 
-		case DIRECTORY_FILE_TYPE:
+		case DIRECTORY_FILE_TYPE :
 		curr_pcb->file_array[fd].file_operations = {&directory_open, &directory_read, &directory_write, &directory_close};
 
-		case RTC_FILE_TYPE:
+		case RTC_FILE_TYPE :
 		curr_pcb->file_array[fd].file_operations = {&rtc_open, &rtc_read, &rtc_write, &rtc_close};
+
 		default:
 		return -1;
-
-
 	}
 
 	curr_pcb->file_array[fd].file_operations[0](filename);
 
-
 	return 0;
-
 }
+
 /* sys_close
 *		Description: the close system call handler -- closes file
 *		Author: Sam
@@ -222,9 +220,9 @@ extern int32_t sys_open(const uint8_t* filename){
 *		Side effect: File ic closed and entry in fd freed
 */
 extern int32_t sys_close(int32_t fd){
-	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 	//SHOULD WE CHECK IF THE FD IS VALID??????
-	curr_pcb->file_array[i].flags = 0;
+	curr_pcb->file_array[fd].flags = 0;
 	curr_pcb->file_array[fd].file_operations[3](fd);
 	return 0;
 }
