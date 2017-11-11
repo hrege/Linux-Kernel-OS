@@ -7,17 +7,25 @@
 #define DENTRY_NUM_SIZE           4
 #define INODE_NUMBER_SIZE         4
 #define DATA_LENGTH_SIZE          4
+#define DATA_ELF_SIZE             4
 #define DENTRY_SIZE               64
 #define END_BOOT_BLOCK            63
 #define NUM_FILES                 62
 #define NUM_RESERVED_BYTES        24
 #define NUM_RESERVED_BOOT_BYTES   52
+#define DATA_READ_SIZE            1024
 #define BLOCK_SIZE                4096
 #define NUM_DIRECTORY_ENTRIES     63
 
 #define STD_IN_FILE_TYPE          0
 #define STD_OUT_FILE_TYPE         1
 #define REGULAR_FILE_TYPE         2
+
+#define MAX_ACTIVE_FILES          8
+#define FOUR_MB                   4194304
+#define EIGHT_KB                  8192
+#define MAGIC_NUMBER              0x7F
+
 #define DIRECTORY_FILE_TYPE       3
 #define RTC_FILE_TYPE             4
 
@@ -63,17 +71,39 @@ typedef struct data_block_t {
   uint8_t data[BLOCK_SIZE];
 } data_block_t;
 
+typedef struct file_operations_t {
+  uint32_t (*sys_open) (const uint8_t* filename);
+  uint32_t (*sys_read) (int32_t fd, void* buf, int32_t nbytes);
+  uint32_t (*sys_write) (int32_t fd, void* buf, int32_t nbytes);
+  uint32_t (*sys_close) (int32_t fd);
+} file_operations_t;
+
+typedef struct fd_array_t {
+  struct file_operations_t * file_operations;
+  uint32_t inode_number;
+  uint32_t file_position;
+  uint32_t flags;
+} fd_array_t;
+
+typedef struct PCB_t {
+  fd_array_t file_array[MAX_ACTIVE_FILES];
+  uint32_t process_id;
+  uint32_t* parent_process;
+} PCB_t;
+
 /* Initalization function to set all file system pointers. */
-void file_system_init(uint32_t * start_addr);
+void file_system_init(uint32_t* start_addr);
 
 /* File operations functions */
-int32_t file_open(const uint8_t * filename);
+int32_t file_open(const uint8_t* filename);
 int32_t file_close(int32_t fd);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname);
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname);
+int32_t file_load(uint8_t* fname, void* addr);
+int32_t file_check(uint8_t* fname);
 
 /* Directory operations functions */
-int32_t directory_open(const uint8_t * filename);
+int32_t directory_open(const uint8_t* filename);
 int32_t directory_close(int32_t fd);
 int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t directory_read(int32_t fd, void* buf, int32_t nbytes);

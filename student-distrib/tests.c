@@ -200,16 +200,16 @@ int rtc_test(){
 	do{
 		freq = freq * 2; //increase to next power of two
 		printf("Calling RTC write with rate of %dHz\n", freq);
-		ret = rtc_write(0, NULL, freq);
+		ret = rtc_write(0, &freq, 0);
 		if(ret==-1){	//make sure it doesnt fail
 			return FAIL;
 		}
 		rtc_helper(4*freq);  //print for 4s
 		clear();
 	}while(freq<1024);
-	
+	freq=2;
 	printf("Putting RTC write freq back to 2Hz\n");
-	ret = rtc_write(0, NULL, 2);
+	ret = rtc_write(0, &freq, 0);
 	if(ret==-1){	//make sure it doesnt fail
 		return FAIL;
 	}
@@ -221,21 +221,17 @@ int rtc_test(){
 	do{
 		freq = freq + 250; //increase to next power of two
 		printf("Calling RTC write with rate of %dHz\n", freq);
-		ret = rtc_write(0, NULL, freq);
+		ret = rtc_write(0, &freq, 0);
 		if(ret==0){	//make sure it doesnt succeed
 			return FAIL;
 		}
 	}while(freq<2500);
 	printf("Calling RTC write with rate of NULLHz\n");
-	ret = rtc_write(0, NULL, NULL);
+	ret = rtc_write(0, NULL, 0);
 	if(ret==0){	//make sure it doesnt succeed
 		return FAIL;
 	}
-	//input check the frequency with NULL (only the 3rd input is used by the function)
-	ret = rtc_write(0, NULL, NULL);
-	if(ret==0){
-		return FAIL;
-	}
+
 	//show that it was not changed... print 10 1's (7.5s)
 	rtc_helper(15);
 	printf("Still running at 2Hz\n");
@@ -269,10 +265,10 @@ int file_syscalls_test() {
 	char* name_1;
 	char* name_2;
 	char* name_3;
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 	uint8_t fd;
 	int32_t nbytes;
-	nbytes = BUF_SIZE;
+	nbytes = NAME_BUF_SIZE;
 
 	name_1 = "cat";
 	name_2 = "notafile";
@@ -333,10 +329,10 @@ int dir_syscalls_test() {
 	char* name_1;
 	char* name_2;
 	char* name_3;
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 	uint8_t fd;
 	int32_t nbytes;
-	nbytes = BUF_SIZE;
+	nbytes = NAME_BUF_SIZE;
 
 	name_1 = "cat";
 	name_2 = "notafile";
@@ -361,7 +357,7 @@ int dir_syscalls_test() {
 	printf("%s\n", buf);
 	memset(&buf, '\0', FILE_NAME_SIZE);
 
-	while(directory_read(fd, &buf, FILE_NAME_SIZE) != 0){
+	while(directory_read(fd, &buf, NAME_BUF_SIZE) != 0){
 		printf("%s\n", buf);
 		memset(&buf, '\0', FILE_NAME_SIZE);
 	}
@@ -405,7 +401,7 @@ int test_read_dentry_by_name() {
 
  	dentry_t test;
  	char* name;
- 	uint8_t buf[BUF_SIZE];
+ 	uint8_t buf[NAME_BUF_SIZE];
 
  /* Regular file test */
   name = "cat";
@@ -479,7 +475,7 @@ int test_read_dentry_by_index() {
   uint32_t index = 0;
   uint32_t retval = 0;
   dentry_t test;
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 
 	/* Test all active indices */
   for(index = 0; index < number_of_files; index++) {
@@ -537,13 +533,13 @@ int test_read_data() {
 	TEST_HEADER;
 	int i = 0;
 	int retval;
-	uint8_t buf[BUF_SIZE];
+	int total_data_read;
 	dentry_t file_dentry;
 
 	/* Test to fetch data using file name (comment out unused file names) */
 	//char* file = "verylargetextwithverylongname.tx";
-	char* file = "frame0.txt";
-	//char* file = "pingpong";
+	//char* file = "frame0.txt";
+	char* file = "pingpong";
 
 	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
 
@@ -553,12 +549,15 @@ int test_read_data() {
 
 	uint32_t length = this_inode->length;
 
-	read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, length);
+	uint8_t buf[length];
+
+	total_data_read = read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, length);
 
 	for(i = 0; i < length; i++) {
 		terminal_write(0,buf+i,1);
 	}
 	printf("\n");
+	printf("Total Data Read: %d\n", total_data_read);
 	/* Passed test */
 	return PASS;
 }
@@ -573,11 +572,11 @@ int test_read_data() {
 *		Side effects: Clears terminal, prints successive dentries
 */
 int test_read_dir() {
-	uint8_t buf[BUF_SIZE];
+	uint8_t buf[NAME_BUF_SIZE];
 	//clear();
 
 	/*Test directory_read() repeatedly until end of directory is reached */
-	while(directory_read(0, &buf, FILE_NAME_SIZE) != 0) {
+	while(directory_read(0, &buf, NAME_BUF_SIZE) != 0) {
 		printf("%s\n", buf);
 		memset(&buf, '\0', FILE_NAME_SIZE);
 	}
@@ -588,6 +587,39 @@ int test_read_dir() {
 }
 
 /* Checkpoint 3 tests */
+
+// Not necessary, but kept a insurance
+// /* test_file_check()
+// *		Description: tests the executable file checking function for:
+// *						- Executable file
+// *						- Non-executable, regular file
+// *		Author: Austin
+// *		Input: None
+// *		Output: PASS for success, FAIL for failure
+// *		Side effects: Functionality Verification
+// */
+// int test_file_check() {
+// 	clear();
+// 	TEST_HEADER;	
+
+// 	/* File names to check */
+// 	char* file1 = "pingpong";
+// 	char* file2 = "frame0.txt";
+
+// 	/* Test an executable file */
+// 	if (file_check((uint8_t*)file1) == -1){
+// 		return FAIL;
+// 	}
+
+// 	/* Test a non-executable, regular file */
+// 	if (file_check((uint8_t*)file2) == 0){
+// 		return FAIL;
+// 	}
+
+// 	/* Passed tests */
+// 	return PASS;
+// }
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -598,8 +630,8 @@ void launch_tests(){
 
 		// launch your tests here
 	//TEST_OUTPUT("paging_test", paging_test());
-	TEST_OUTPUT("terminal_driver_test", terminal_driver_test());
-	TEST_OUTPUT("RTC TEST", rtc_test());
+	//TEST_OUTPUT("terminal_driver_test", terminal_driver_test());
+	//TEST_OUTPUT("RTC TEST", rtc_test());
 	//TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
 	//TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
 	//TEST_OUTPUT("read_data_test", test_read_data());
