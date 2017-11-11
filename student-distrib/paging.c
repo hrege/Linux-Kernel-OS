@@ -139,7 +139,7 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
                    invlpg (%%eax)       \n\
                    "
                    :
-                   : "m"(pdir_addr)
+                   :
                    : "eax", "memory", "cc"
     );
 }
