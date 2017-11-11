@@ -20,6 +20,8 @@
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
 static uint32_t * file_system_addr;
+uint32_t next_pid;
+next_pid = 0;
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */

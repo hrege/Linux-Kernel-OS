@@ -83,7 +83,7 @@ void idt_init() {
 		SET_IDT_ENTRY(idt[18], &machine_check_asm);
 		SET_IDT_ENTRY(idt[19], &simd_floating_point_exception_asm);
 
-		/*Initialize interrupt IDT entries*/
+		
 
 		/*Initialize system call IDT entries*/
 		idt[SYSTEM_CALL_IDT_ENTRY].seg_selector = KERNEL_CS;
@@ -99,7 +99,7 @@ void idt_init() {
 		idt[SYSTEM_CALL_IDT_ENTRY].dpl = USER_PROTECTION;
 		//Ignore initialization for 15
 		idt[SYSTEM_CALL_IDT_ENTRY].present = 1;
-		SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], &sys_call);
+		SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], &sys_call_asm);
 
 		/*Initialize keyboard interrupt IDT entry*/
 		idt[KEYBOARD_IDT_ENTRY].seg_selector = KERNEL_CS;

@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "x86_desc.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -582,6 +583,26 @@ void test_interrupts(void) {
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
         video_mem[i << 1]++;
     }
+}
+
+/* void* user_prep(void* esp, void* eip);
+ * Description: IRET prep to jump to user space
+ * Inputs:    void* esp = pointer to bottom of executable loaded in memory
+ *          void* eip = location of the first instruction to be executed
+ * Return Value: none
+ * Function: push correct register values to stack for IRET privledge switch */
+void user_prep(void* esp, void* eip) {
+    asm volatile ("                 \n\
+            movw    %%ds, %%dx      \n\
+            movw    %%dx, %%es      \n\
+            cld                     \n\
+            rep     stosw           \n\
+            "
+            :
+            : "a"(c), "D"(s), "c"(n)
+            : "edx", "memory", "cc"
+    );
+    return s;
 }
 
 

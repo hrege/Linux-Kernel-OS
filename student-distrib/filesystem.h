@@ -16,11 +16,19 @@
 #define DATA_READ_SIZE            1024
 #define BLOCK_SIZE                4096
 #define NUM_DIRECTORY_ENTRIES     63
+
+#define STD_IN_FILE_TYPE          0
+#define STD_OUT_FILE_TYPE         1
 #define REGULAR_FILE_TYPE         2
+
 #define MAX_ACTIVE_FILES          8
 #define FOUR_MB                   4194304
 #define EIGHT_KB                  8192
 #define MAGIC_NUMBER              0x7F
+
+#define DIRECTORY_FILE_TYPE       3
+#define RTC_FILE_TYPE             4
+
 
 /* Global variable to hold current number of files in system */
 extern uint32_t number_of_files;
