@@ -28,17 +28,41 @@ void file_system_init(uint32_t * start_addr) {
   filesystem.data_block_start = ((uint8_t *)start_addr + ((uint8_t)filesystem.boot_block_start->num_inodes) * BLOCK_SIZE);
 }
 
-pcb_init(uint32_t* PCB_start_addr) {
-  //Allocate new PCB struct to address in params
+/*
+ *  Description: Creates PCB data structure for current process being handled and
+ *               maps to proper location in kernel page.
+ *  Author: Hershel
+ *  Inputs: start_addr - pointer to end of kernel page
+ *          p_id - ID for current process being handled
+ *          parent_PCB - pointer to kernel stack of parent process
+ *  Outputs: none
+ *  Side Effects: Creates new PCB for current process in address specified by
+ *                virtual memory paging.
+ *  Return Value: Returns 0 on success, -1 on failure.
+ */
+
+int pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
+  /* Return invalid process ID if it doesn't fall in given range. */
+  if(p_id != 0 && p_id != 1) {
+    return -1;
+  }
+
+  /* Create new PCB struct and set process id. */
   PCB_t new_pcb;
-  new_pcb.file_array[]
+  new_pcb.process_id = p_id;
 
-  *(PCB_start_addr) = (uint_32_t)new_pcb;
-
-  //Assign file descriptor for current task file
-
-  //Each PCB should be stored at top of kernel stack
-  //Use offset from given address to store kernel stack
+  /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
+     otherwise, point to proper offset in kernel stack. */
+  if(p_id == 0) {
+    new_pcb.parent_process = NULL;
+    *((PCB_t*)(((uint8_t*)start_addr) + (FOUR_MB - EIGHT_KB))) = new_pcb;
+  }
+  else {
+    /* FIX - need to store extra reference to child process (stack pointer of parent)*/
+    new_pcb.parent_process = parent_PCB; //Offset starting address by 4MB - 8kB for start of parent PCB
+    *(PCB_t*)((uint8_t*)start_addr + (FOUR_MB - (p_id*EIGHT_KB))) = new_pcb;
+  }
+  return 0;
 }
 
 /* int32_t file_open(const uint8_t * filename)
@@ -148,9 +172,9 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
   Side Effects: Loads file into memory at addr location
   Return Value: Returns call to read_data, which returns number of bytes read successfully.
  */
-int32_t file_load(uint8_t * fname, uint32_t* addr){
+int32_t file_load(uint8_t * fname, uint8_t* addr){
 	/* Initialize local variables */
-  dentry_t* file_dentry;
+  dentry_t file_dentry;
   inode_t* this_inode;
 
 	/* Check for invalid file name */
@@ -170,14 +194,14 @@ int32_t file_load(uint8_t * fname, uint32_t* addr){
 	}
 
   /* Load inode data (length) */
-  this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (file_dentry->inode_number * BLOCK_SIZE));
+  this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (file_dentry.inode_number * BLOCK_SIZE));
   this_inode->length = *((uint32_t*)this_inode);
   int bytes_read = 0;
 
 
   /* Load the entire file at the address passed in. */
   while(bytes_read < this_inode->length) {
-    bytes_read += read_data(file_dentry->inode_number, bytes_read, addr, this_inode->length);
+    bytes_read += read_data(file_dentry.inode_number, bytes_read, addr, this_inode->length);
    }
 
 	return 0;

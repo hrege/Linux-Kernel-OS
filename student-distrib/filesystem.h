@@ -17,6 +17,8 @@
 #define NUM_DIRECTORY_ENTRIES     63
 #define REGULAR_FILE_TYPE         2
 #define MAX_ACTIVE_FILES          8
+#define FOUR_MB                   4194304
+#define EIGHT_KB                  8192
 
 /* Global variable to hold current number of files in system */
 extern uint32_t number_of_files;
@@ -59,8 +61,15 @@ typedef struct data_block_t {
   uint8_t data[BLOCK_SIZE];
 } data_block_t;
 
+typedef struct file_operations_t {
+  uint32_t (*sys_open) (const uint8_t* filename);
+  uint32_t (*sys_read) (int32_t fd, void* buf, int32_t nbytes);
+  uint32_t (*sys_write) (int32_t fd, void* buf, int32_t nbytes);
+  uint32_t (*sys_close) (int32_t fd);
+} file_operations_t;
+
 typedef struct fd_array_t {
-  uint32_t* file_operations[NUM_FILE_OPERATIONS];
+  struct file_operations_t * file_operations;
   uint32_t inode_number;
   uint32_t file_position;
   uint32_t flags;
@@ -80,7 +89,7 @@ int32_t file_open(const uint8_t * filename);
 int32_t file_close(int32_t fd);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname);
-int32_t file_load(uint8_t * fname, uint32_t* addr);
+int32_t file_load(uint8_t * fname, uint8_t* addr);
 
 /* Directory operations functions */
 int32_t directory_open(const uint8_t * filename);
