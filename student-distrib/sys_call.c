@@ -7,6 +7,7 @@
 #include "filesystem.h"
 #include "rtc.h"
 #include "keyboard.h"
+#include "paging.h"
 
 #define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
 
@@ -69,6 +70,8 @@ extern int32_t sys_halt(uint8_t status){
 extern int32_t sys_execute(const uint8_t* command){
 	dentry_t exec;
 	char* file_buffer;
+	char* kern_stack_ptr;
+
 	if(-1 == read_dentry_by_name(command, &exec)){
 		return -1;
 	}
@@ -84,12 +87,24 @@ extern int32_t sys_execute(const uint8_t* command){
 			return -1;
 	}
 
+
+	/*Hershel sets up PCB using TSS stuff*/ 
+	/*kernel stack pointer for process about to be executed*/
+	kern_stack_ptr = 0x0800000 - 1 - (0x2000 * next_pid);
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000))
+	if(NULL == exec_pcb){
+		return -1;
+
+	}
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
+
+	paging_switch(128, 4 * (exec_pcb.process_id + 2));
+
 
 	/*Load Program */
 
 
-	/*Hershel sets up PCB using TSS stuff*/ 
+
 
 
 	/* Set up stacks before IRET */

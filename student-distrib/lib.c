@@ -593,8 +593,8 @@ void test_interrupts(void) {
  * Function: push correct register values to stack for IRET privledge switch */
 void user_prep(void* esp, void* eip) {
     asm volatile ("                 \n\
-            movw    %%ds, %%dx      \n\
-            movw    %%dx, %%es      \n\
+            pushl    %%ds, %%dx      \n\
+            pushl    %%dx, %%es      \n\
             cld                     \n\
             rep     stosw           \n\
             "

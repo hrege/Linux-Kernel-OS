@@ -94,6 +94,8 @@ typedef struct PCB_t {
 /* Initalization function to set all file system pointers. */
 void file_system_init(uint32_t* start_addr);
 
+int pcb_init(uint8_t* start_addr, uint32_t p_id, uint32_t* parent_PCB);
+
 /* File operations functions */
 int32_t file_open(const uint8_t* filename);
 int32_t file_close(int32_t fd);
