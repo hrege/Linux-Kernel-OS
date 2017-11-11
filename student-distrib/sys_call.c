@@ -129,7 +129,7 @@ extern int32_t sys_execute(const uint8_t* command){
 	-Set up Paging
 	-User level program loader
 	-Creae PCB for the program
-	-assign pid based on global pid pointer
+		-assign pid based on global pid pointer
 	-Context switch
 */
 
