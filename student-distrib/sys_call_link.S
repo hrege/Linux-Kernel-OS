@@ -89,7 +89,8 @@ jmp done
 user_prep:
 pushl 4(%esp)
 pushl $USER_CS
-movl %eflags, %edx
+pushfd
+popl %edx
 orl $0x200, %edx
 pushl %edx
 pushl 8(%esp)
