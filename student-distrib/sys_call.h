@@ -1,6 +1,11 @@
-#ifndef SYS_CALL_H
-#define SYS_CALL_H
+#include "types.h"
 
+#ifndef _SYS_CALL_H
+#define _SYS_CALL_H
+
+#ifndef ASM
+
+extern int32_t next_pid;
 
 extern int32_t sys_halt(uint8_t status);
 extern int32_t sys_execute(const uint8_t* command);
@@ -14,12 +19,5 @@ extern int32_t sys_set_handler(int32_t signum, void* handler_address);
 extern int32_t sys_sigreturn(void);
 
 
-
-
-
-
-
-
-
 #endif
-
+#endif

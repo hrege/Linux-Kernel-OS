@@ -28,13 +28,13 @@ done:
 addl $12, %esp
 popa
 leave
-return
+ret
 
 
 bad_sys_call:
 movl $-1, %eax
-leave 
-return
+leave
+ret
 
 sys_jump:
 .long sys_halt_link, sys_execute_link, sys_read_link, sys_write_link, sys_open_link, sys_close_link, sys_getargs_link, sys_vidmap_link, sys_set_handler_link, sys_sigreturn_link
@@ -81,13 +81,3 @@ sys_sigreturn_link:
 call sys_sigreturn
 
 jmp done
-
-
-
-
-
-
-
-
-
-

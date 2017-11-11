@@ -16,19 +16,19 @@
 #define EIP_LOC				27
 #define PROG_LOAD_LOC		0x08048000
 
-
+int32_t next_pid;
 /*	get_first_fd
 *		Description:  Local function to find first fd available in fd_array of pcb
 *		Author: Sam
 *		Inputs: None
 *		Ouptuts: None
-*		Returns: Number of first available fd; 
+*		Returns: Number of first available fd;
 *					-1 if fd_array is full
 */
 int get_first_fd(){
 	int i; // loop variable
 	/*tss placeholder until we figure out what it should be*/
-	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000; 
+	PCB_t* curr_pcb = tss.esp0 & 0xFFFFE000;
 
 	/* start at 0 and check until you find one */
 	for(i = 0; i < 8; i++){
@@ -87,7 +87,7 @@ extern int32_t sys_execute(const uint8_t* command){
 	}
 	/*Read executable into the file_buffer*/
 	if(-1 == read_data(exec.inode_number, 0, file_buffer, filesystem.inode_start[exec.inode_number].length)){
-		return -1; 
+		return -1;
 	}
 
 	if(  *((uint32_t *)file_buffer) != EXEC_IDENTITY){
@@ -95,7 +95,7 @@ extern int32_t sys_execute(const uint8_t* command){
 	}
 
 
-	/*Hershel sets up PCB using TSS stuff*/ 
+	/*Hershel sets up PCB using TSS stuff*/
 	/*kernel stack pointer for process about to be executed*/
 	kern_stack_ptr = 0x0800000 - 1 - (0x2000 * next_pid);
 	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000))
@@ -123,7 +123,7 @@ extern int32_t sys_execute(const uint8_t* command){
 
 	/* Set up stacks before IRET */
 /*
-	
+
 	-Parse
 	-Check if an executable
 	-Set up Paging
@@ -208,10 +208,10 @@ extern int32_t sys_open(const uint8_t* filename){
 	}
 
 	curr_pcb->file_array[fd].file_operations[0](filename);
-	
-	
+
+
 	return 0;
-	
+
 }
 /* sys_close
 *		Description: the close system call handler -- closes file
@@ -248,5 +248,3 @@ extern int32_t sys_sigreturn(void){
 	return 0;
 
 }
-
-

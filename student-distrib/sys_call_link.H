@@ -9,7 +9,7 @@
 
 //Divide by zero exception
 extern void sys_call();
-
+extern void sys_call_asm();
 
 
 

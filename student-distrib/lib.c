@@ -63,7 +63,7 @@ void set_screen_y(int new_y){
 *       Return: screen_x - integer screen location in x
 */
 int get_screen_x(){
-    return screen_x; 
+    return screen_x;
 
 }
 
@@ -89,7 +89,7 @@ int get_screen_y(){
 *   Source: OSDev Text_mode_Cursor page
 */
 void update_cursor(int x, int y){
-  uint16_t pos = y * NUM_COLS + x;  
+  uint16_t pos = y * NUM_COLS + x;
   outb(CURSOR_LSB, INDEX_REG);
   outb((uint8_t) (pos & 0xFF), DATA_REG); //write to lower byte of cursor
   outb(CURSOR_MSB, INDEX_REG);
@@ -591,7 +591,7 @@ void test_interrupts(void) {
  *          void* eip = location of the first instruction to be executed
  * Return Value: none
  * Function: push correct register values to stack for IRET privledge switch */
-void user_prep(void* esp, void* eip) {
+/* void user_prep(void* esp, void* eip) {
     asm volatile ("                 \n\
             pushl    %%ds, %%dx      \n\
             pushl    %%dx, %%es      \n\
@@ -604,6 +604,4 @@ void user_prep(void* esp, void* eip) {
     );
     return s;
 }
-
-
-
+*/

@@ -1,5 +1,6 @@
 #include "lib.h"
 #include "filesystem.h"
+#include "sys_call.h"
 
 filesystem_t filesystem;  /* File system object that contains pointers to each portion of system */
 int32_t cur_read_idx = 0; /* Read index to determine if directory has been completely read */
@@ -45,11 +46,12 @@ void file_system_init(uint32_t* start_addr) {
 struct PCB_t * pcb_init(uint8_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
   /* Return invalid process ID if it doesn't fall in given range. */
   if(p_id != 0 && p_id != 1) {
-    return -1;
+    return NULL;
   }
 
   /* Create new PCB struct and set process id. */
   PCB_t new_pcb;
+  PCB_t* PCB_ptr = &new_pcb;
   new_pcb.process_id = p_id;
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
@@ -64,7 +66,8 @@ struct PCB_t * pcb_init(uint8_t* start_addr, uint32_t p_id, uint32_t* parent_PCB
     *(PCB_t*)(start_addr + (FOUR_MB - (p_id*EIGHT_KB))) = new_pcb;
   }
   next_pid++;
-  return 0;
+
+  return PCB_ptr;
 }
 
 /* int32_t file_open(const uint8_t * filename)
@@ -182,7 +185,7 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname) {
 //     printf("invalid file\n");
 // 		return -1;
 //   }
-  
+
 //   /* Initialize local variables */
 //   dentry_t file_dentry;
 //   uint8_t buf[DATA_ELF_SIZE];
@@ -191,7 +194,7 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname) {
 // 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
 // 		return -1;
 //   }
-  
+
 //   /* Put first 4 bytes in buffer (if executable, this should be ELF) */
 //   read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, DATA_ELF_SIZE);
 
@@ -223,7 +226,7 @@ int32_t file_load(uint8_t* fname, void* addr){
     printf("Null address\n");
     return -1;
   }
-  
+
   /* Initialize local variables */
   dentry_t file_dentry;
   inode_t* this_inode;
