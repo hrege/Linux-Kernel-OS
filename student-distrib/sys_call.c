@@ -186,27 +186,10 @@ extern int32_t sys_open(const uint8_t* filename){
 		return -1;
 	}
 	/*Switch by file type and associate correct ops in file_array[fd].file_operations*/
-	switch(this_file.file_type) {
-		case STD_IN_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = {&terminal_open, &terminal_read, NULL, &terminal_close};
+	
+	
 
-		case STD_OUT_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = {&terminal_open, NULL, &terminal_write, &terminal_close};
-		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
-		case REGULAR_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = {&file_open, &file_read, &file_write, &file_close};
-
-		case DIRECTORY_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = {&directory_open, &directory_read, &directory_write, &directory_close};
-
-		case RTC_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = {&rtc_open, &rtc_read, &rtc_write, &rtc_close};
-
-		default:
-		return -1;
-	}
-
-	curr_pcb->file_array[fd].file_operations[0](filename);
+	curr_pcb->file_array->file_operations->device_open[this_file.file_type](filename);
 
 	return 0;
 }

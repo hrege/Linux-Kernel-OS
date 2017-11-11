@@ -72,14 +72,14 @@ typedef struct data_block_t {
 } data_block_t;
 
 typedef struct file_operations_t {
-  uint32_t (*sys_open) (const uint8_t* filename);
-  uint32_t (*sys_read) (int32_t fd, void* buf, int32_t nbytes);
-  uint32_t (*sys_write) (int32_t fd, void* buf, int32_t nbytes);
-  uint32_t (*sys_close) (int32_t fd);
-} file_operations_t;
+  uint32_t (*device_open[5]) (const uint8_t* filename) = {&terminal_open, &terminal_open, &file_open, &directory_open, &rtc_open};
+  uint32_t (*device_read[5]) (int32_t fd, void* buf, int32_t nbytes) = {&terminal_read, NULL, &file_read, &directory_read, &rtc_read};
+  uint32_t (*device_write[5]) (int32_t fd, void* buf, int32_t nbytes) = {NULL, &terminal_write, &file_write, &directory_write, &rtc_write};
+  uint32_t (*device_close[5]) (int32_t fd) = {&terminal_close, &terminal_close, &file_close, &directory_close, &rtc_close};
+} file_operations_t; 
 
 typedef struct fd_array_t {
-  struct file_operations_t* file_operations[NUM_FILE_OPERATIONS];
+  struct file_operations_t* file_operations;
   uint32_t inode_number;
   uint32_t file_position;
   uint32_t flags;
