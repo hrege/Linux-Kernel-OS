@@ -7,6 +7,7 @@
 #define DENTRY_NUM_SIZE           4
 #define INODE_NUMBER_SIZE         4
 #define DATA_LENGTH_SIZE          4
+#define DATA_ELF_SIZE             4
 #define DENTRY_SIZE               64
 #define END_BOOT_BLOCK            63
 #define NUM_FILES                 62
@@ -19,6 +20,7 @@
 #define MAX_ACTIVE_FILES          8
 #define FOUR_MB                   4194304
 #define EIGHT_KB                  8192
+#define MAGIC_NUMBER              0x7F
 
 /* Global variable to hold current number of files in system */
 extern uint32_t number_of_files;
@@ -82,17 +84,18 @@ typedef struct PCB_t {
 } PCB_t;
 
 /* Initalization function to set all file system pointers. */
-void file_system_init(uint32_t * start_addr);
+void file_system_init(uint32_t* start_addr);
 
 /* File operations functions */
-int32_t file_open(const uint8_t * filename);
+int32_t file_open(const uint8_t* filename);
 int32_t file_close(int32_t fd);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname);
-int32_t file_load(uint8_t * fname, uint8_t* addr);
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname);
+int32_t file_load(uint8_t* fname, void* addr);
+int32_t file_check(uint8_t* fname);
 
 /* Directory operations functions */
-int32_t directory_open(const uint8_t * filename);
+int32_t directory_open(const uint8_t* filename);
 int32_t directory_close(int32_t fd);
 int32_t directory_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t directory_read(int32_t fd, void* buf, int32_t nbytes);

@@ -14,7 +14,7 @@ uint32_t number_of_files; /* Global variable to hold the current number of files
   Side Effects: sets all filesystem pointers to correct locations based on filesys.img
   Return Value: none
  */
-void file_system_init(uint32_t * start_addr) {
+void file_system_init(uint32_t* start_addr) {
   /* Define start of file system as address calculated in kernel.c */
   if(start_addr == NULL) {
     printf("Null start_addr\n");
@@ -27,6 +27,7 @@ void file_system_init(uint32_t * start_addr) {
   filesystem.inode_start = (inode_t *)((uint8_t *)start_addr + BLOCK_SIZE);
   filesystem.data_block_start = ((uint8_t *)start_addr + ((uint8_t)filesystem.boot_block_start->num_inodes) * BLOCK_SIZE);
 }
+
 
 /*
  *  Description: Creates PCB data structure for current process being handled and
@@ -74,7 +75,7 @@ int pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
   Side Effects: none
   Return Value: returns 0 if successful open, -1 if error
  */
-int32_t file_open(const uint8_t * filename) {
+int32_t file_open(const uint8_t* filename) {
   if(filename == NULL) {
     printf("Null filename\n");
     return -1;
@@ -127,7 +128,7 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
   return -1;
 }
 
-/* int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname)
+/* int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname)
   Description: Reads contents of file from directory
   Author: Hershel/Austin
   Inputs: fd - file descriptor defining which file needs to be read
@@ -138,7 +139,7 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
   Side Effects: Checks if file exists in current directory
   Return Value: Returns call to read_data, which returns number of bytes read successfully.
  */
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname) {
   if(buf == NULL) {
     printf("Null buffer pointer\n");
     return -1;
@@ -163,32 +164,29 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t * fname) {
   return bytes_read;
 }
 
-/* file_load(uint8_t * fname, uint32_t* addr)
-  Description: Loads program image from blocks into contiguous memory
-  Author: Austin
-  Inputs: fname - file name to be loaded
-          addr - address to write data to
+/* file_check(uint8_t* fname)
+  Description: Verifies that the file given by fname is an
+               executable file (by checking the first 4 bytes
+               to verify that file contains "ELF")
+  Arthur: Austin
+  Inputs: fname - file name to be checked
   Outputs: none
-  Side Effects: Loads file into memory at addr location
-  Return Value: Returns call to read_data, which returns number of bytes read successfully.
+  Side Effects: None
+  Return Value: Returns 0 if successful, -1 if failed
  */
+
 int32_t file_load(uint8_t * fname, uint8_t* addr){
 	/* Initialize local variables */
   dentry_t file_dentry;
   inode_t* this_inode;
 
-	/* Check for invalid file name */
+	/* Check for invalid inputs */
 	if( fname == NULL ){
     printf("invalid file\n");
 		return -1;
   }
 
-  if(addr == NULL) {
-    printf("Null address\n");
-    return -1;
-  }
-
-	/* Extract dentry information using the filename passed in. */
+  /* Extract dentry information using the filename passed in. */
 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
 		return -1;
 	}
@@ -198,14 +196,56 @@ int32_t file_load(uint8_t * fname, uint8_t* addr){
   this_inode->length = *((uint32_t*)this_inode);
   int bytes_read = 0;
 
-
   /* Load the entire file at the address passed in. */
   while(bytes_read < this_inode->length) {
     bytes_read += read_data(file_dentry.inode_number, bytes_read, addr, this_inode->length);
-   }
+  }
 
-	return 0;
 }
+
+// Not necessary for execute, but kept as insurance
+// /* file_load(uint8_t * fname, uint32_t* addr)
+//   Description: Loads program image from blocks into contiguous memory
+//   Author: Austin
+//   Inputs: fname - file name to be loaded
+//           addr - address to write data to
+//   Outputs: none
+//   Side Effects: Loads file into memory at addr location
+//   Return Value: 0 if successful, -1 if failed
+//  */
+// int32_t file_load(uint8_t* fname, void* addr){
+//   /* Check for invalid inputs */
+// 	if( fname == NULL ){
+//     printf("invalid file\n");
+// 		return -1;
+//   }
+
+//   if(addr == NULL) {
+//     printf("Null address\n");
+//     return -1;
+//   }
+
+//   /* Initialize local variables */
+//   dentry_t file_dentry;
+//   inode_t* this_inode;
+//   uint32_t bytes_read = 0;
+
+// 	/* Extract dentry information using the filename passed in. */
+// 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
+// 		return -1;
+// 	}
+
+//   /* Load inode data (length) */
+//   this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (file_dentry.inode_number * BLOCK_SIZE));
+//   this_inode->length = *((uint32_t*)this_inode);
+
+//   /* Load the entire file at the address passed in. */
+//   while(bytes_read < this_inode->length) {
+//     bytes_read += read_data(file_dentry.inode_number, bytes_read, addr, this_inode->length);
+//    }
+
+// 	return 0;
+// }
 
 /* int32_t directory_open(const uint8_t * filename)
   Description: Opens directory structure based on directory name
@@ -215,7 +255,7 @@ int32_t file_load(uint8_t * fname, uint8_t* addr){
   Side Effects: Checks to see if filename exists in directory
   Return Value: returns 0 on success and -1 on failure
  */
-int32_t directory_open(const uint8_t * filename) {
+int32_t directory_open(const uint8_t* filename) {
   if(filename == NULL) {
     printf("Null filename\n");
     return -1;

@@ -537,9 +537,9 @@ int test_read_data() {
 	dentry_t file_dentry;
 
 	/* Test to fetch data using file name (comment out unused file names) */
-	char* file = "verylargetextwithverylongname.tx";
+	//char* file = "verylargetextwithverylongname.tx";
 	//char* file = "frame0.txt";
-	//char* file = "pingpong";
+	char* file = "pingpong";
 
 	retval = read_dentry_by_name((uint8_t*)file, &(file_dentry));
 
@@ -587,6 +587,39 @@ int test_read_dir() {
 }
 
 /* Checkpoint 3 tests */
+
+// Not necessary, but kept a insurance
+// /* test_file_check()
+// *		Description: tests the executable file checking function for:
+// *						- Executable file
+// *						- Non-executable, regular file
+// *		Author: Austin
+// *		Input: None
+// *		Output: PASS for success, FAIL for failure
+// *		Side effects: Functionality Verification
+// */
+// int test_file_check() {
+// 	clear();
+// 	TEST_HEADER;	
+
+// 	/* File names to check */
+// 	char* file1 = "pingpong";
+// 	char* file2 = "frame0.txt";
+
+// 	/* Test an executable file */
+// 	if (file_check((uint8_t*)file1) == -1){
+// 		return FAIL;
+// 	}
+
+// 	/* Test a non-executable, regular file */
+// 	if (file_check((uint8_t*)file2) == 0){
+// 		return FAIL;
+// 	}
+
+// 	/* Passed tests */
+// 	return PASS;
+// }
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -601,7 +634,7 @@ void launch_tests(){
 	//TEST_OUTPUT("RTC TEST", rtc_test());
 	//TEST_OUTPUT("dentry_by_name_test", test_read_dentry_by_name());
 	//TEST_OUTPUT("dentry_by_index_test", test_read_dentry_by_index());
-	TEST_OUTPUT("read_data_test", test_read_data());
+	//TEST_OUTPUT("read_data_test", test_read_data());
 	//TEST_OUTPUT("dir_read_test", test_read_dir());
 	//TEST_OUTPUT("file_syscalls_test", file_syscalls_test());
 	//TEST_OUTPUT("dir_syscalls_test", dir_syscalls_test());
