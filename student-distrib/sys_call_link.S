@@ -5,11 +5,12 @@
 
 #include "sys_call.h"
 #include "sys_call_link.H"
+#include "x86_desc.h"
 
 # Assembly linkage functions for C handlers
 # Generic Interface.  */
 
-.global sys_call_asm
+.global sys_call_asm, user_prep
 sys_call_asm:
 cmpl $0, %eax
 jle bad_sys_call
@@ -81,3 +82,18 @@ sys_sigreturn_link:
 call sys_sigreturn
 
 jmp done
+
+
+
+
+user_prep:
+pushl 4(%esp)
+pushl $USER_CS
+movl %eflags, %edx
+orl $0x200, %edx
+pushl %edx
+pushl 8(%esp)
+pushl $USER_DS
+IRET
+
+

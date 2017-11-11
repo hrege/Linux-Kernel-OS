@@ -10,6 +10,7 @@
 //Divide by zero exception
 extern void sys_call();
 extern void sys_call_asm();
+extern void user_prep(uint32_t eip, uint32_t esp);
 
 
 

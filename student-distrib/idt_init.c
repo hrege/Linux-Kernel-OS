@@ -100,7 +100,7 @@ void idt_init() {
 		idt[SYSTEM_CALL_IDT_ENTRY].dpl = USER_PROTECTION;
 		//Ignore initialization for 15
 		idt[SYSTEM_CALL_IDT_ENTRY].present = 1;
-		SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], &sys_call_asm);
+		SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], sys_call_asm);
 
 		/*Initialize keyboard interrupt IDT entry*/
 		idt[KEYBOARD_IDT_ENTRY].seg_selector = KERNEL_CS;

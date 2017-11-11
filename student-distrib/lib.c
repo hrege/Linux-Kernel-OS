@@ -585,23 +585,5 @@ void test_interrupts(void) {
     }
 }
 
-/* void* user_prep(void* esp, void* eip);
- * Description: IRET prep to jump to user space
- * Inputs:    void* esp = pointer to bottom of executable loaded in memory
- *          void* eip = location of the first instruction to be executed
- * Return Value: none
- * Function: push correct register values to stack for IRET privledge switch */
- void user_prep(void* esp, void* eip) {
-    asm volatile ("                 \n\
-            pushl    %%ds, %%dx      \n\
-            pushl    %%dx, %%es      \n\
-            cld                     \n\
-            rep     stosw           \n\
-            "
-            :
-            : esp, eip
-            : "edx", "memory", "cc"
-    );
-    return s;
-}
+
 
