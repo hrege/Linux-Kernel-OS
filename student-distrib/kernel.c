@@ -20,8 +20,8 @@
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
 static uint32_t * file_system_addr;
-uint32_t next_pid;
-next_pid = 0;
+extern uint32_t next_pid;
+
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -146,6 +146,8 @@ void entry(unsigned long magic, unsigned long addr) {
         tss.esp0 = 0x800000;
         ltr(KERNEL_TSS);
     }
+    /*Set up pid tracker*/
+    next_pid = 0;
 
     file_system_init(file_system_addr);
 

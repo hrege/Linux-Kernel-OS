@@ -7,8 +7,14 @@
 #include "filesystem.h"
 #include "rtc.h"
 #include "keyboard.h"
+#include "paging.h"
+#include "types.h"
+
 
 #define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
+#define EIP_SIZE			4
+#define EIP_LOC				27
+#define PROG_LOAD_LOC		0x08048000
 
 
 /*	get_first_fd
@@ -69,6 +75,10 @@ extern int32_t sys_halt(uint8_t status){
 extern int32_t sys_execute(const uint8_t* command){
 	dentry_t exec;
 	char* file_buffer;
+	char* kern_stack_ptr;
+	char* eip[EIP_SIZE];
+	int i;
+
 	if(-1 == read_dentry_by_name(command, &exec)){
 		return -1;
 	}
@@ -76,20 +86,39 @@ extern int32_t sys_execute(const uint8_t* command){
 		return -1;
 	}
 	/*Read executable into the file_buffer*/
-	if(-1 == read_data(exec.inode_number, 0, file_buffer, filesystem.inode_start[exec.inode_number])){
+	if(-1 == read_data(exec.inode_number, 0, file_buffer, filesystem.inode_start[exec.inode_number].length)){
 		return -1; 
 	}
 
 	if(  *((uint32_t *)file_buffer) != EXEC_IDENTITY){
-			return -1;
+		return -1;
 	}
-
-	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
-
-	/*Load Program */
 
 
 	/*Hershel sets up PCB using TSS stuff*/ 
+	/*kernel stack pointer for process about to be executed*/
+	kern_stack_ptr = 0x0800000 - 1 - (0x2000 * next_pid);
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000))
+	if(NULL == exec_pcb){
+		return -1;
+
+	}
+	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
+
+	paging_switch(128, 4 * (exec_pcb.process_id + 2));
+
+
+	/*Load Program */
+	for(i = 0; i < filesystem.inode_start[exec.inode_number].length; i++){
+		*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
+	}
+
+	/*Load first instruction location into eip (reverse order since it's little-endian)*/
+	for(i = 0; i < EIP_SIZE; i++){
+		eip[i] = file_buffer[EIP_LOC - i];
+	}
+
+
 
 
 	/* Set up stacks before IRET */
@@ -100,7 +129,7 @@ extern int32_t sys_execute(const uint8_t* command){
 	-Set up Paging
 	-User level program loader
 	-Creae PCB for the program
-	-assign pid based on global pid pointer
+		-assign pid based on global pid pointer
 	-Context switch
 */
 

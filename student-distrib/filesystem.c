@@ -33,16 +33,17 @@ void file_system_init(uint32_t* start_addr) {
  *  Description: Creates PCB data structure for current process being handled and
  *               maps to proper location in kernel page.
  *  Author: Hershel
- *  Inputs: start_addr - pointer to end of kernel page
+ *  Inputs: start_addr - pointer associated kernel stack
  *          p_id - ID for current process being handled
  *          parent_PCB - pointer to kernel stack of parent process
  *  Outputs: none
  *  Side Effects: Creates new PCB for current process in address specified by
  *                virtual memory paging.
+                  Increments next_pid
  *  Return Value: Returns 0 on success, -1 on failure.
  */
 
-int pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
+struct PCB_t * pcb_init(uint8_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
   /* Return invalid process ID if it doesn't fall in given range. */
   if(p_id != 0 && p_id != 1) {
     return -1;
@@ -51,18 +52,20 @@ int pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
   /* Create new PCB struct and set process id. */
   PCB_t new_pcb;
   new_pcb.process_id = p_id;
+  new_pcb.kern_esp = start_addr;
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
      otherwise, point to proper offset in kernel stack. */
   if(p_id == 0) {
     new_pcb.parent_process = NULL;
-    *((PCB_t*)(((uint8_t*)start_addr) + (FOUR_MB - EIGHT_KB))) = new_pcb;
+    *((PCB_t*)((start_addr & 0xFFFFE000))) = new_pcb;
   }
   else {
     /* FIX - need to store extra reference to child process (stack pointer of parent)*/
     new_pcb.parent_process = parent_PCB; //Offset starting address by 4MB - 8kB for start of parent PCB
-    *(PCB_t*)((uint8_t*)start_addr + (FOUR_MB - (p_id*EIGHT_KB))) = new_pcb;
+    *(PCB_t*)(start_addr & 0xFFFFE000) = new_pcb;
   }
+  next_pid++;
   return 0;
 }
 

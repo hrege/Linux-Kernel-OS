@@ -10,6 +10,7 @@
 
 #define VIDEO 0xB8                       //VIDEO from lib.c without 3 least significant bits
 #define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
+#define PAGE_MB_NUM 4
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
 static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table     
@@ -77,7 +78,7 @@ void paging_init(){
 
     //Set rest of PDEs to "not present"
     int i;
-    for(i = 2; i < TABLE_SIZE; i++){
+    for(i = 4; i < TABLE_SIZE; i++){
         page_directory[i] = 0x00000000 | (i<<22);
     }
 
@@ -94,8 +95,6 @@ void paging_init(){
     paging_enable(page_directory);
 }
 
-
-
 /* Author: Austin
  * void* paging_enable(uint32_t* pdir_addr)
  *      Inputs: pdir_addr - pointer to the page directory
@@ -106,10 +105,7 @@ void paging_init(){
  *                Sets CR3 to pdir_addr value.
  *      Side effects: Alters CR0, CR3 and CR4
  */
-//, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
-
-
     asm volatile ("movl %0, %%eax      \n\
             movl %%eax, %%cr3          \n\
             movl %%cr4, %%eax          \n\
@@ -126,5 +122,30 @@ void paging_enable(uint32_t* pdir_addr){
     return;
 }
 
+/* Author: Austin
+ * void paging_switch(uint32_t mb_va, uin32_t mb_pa)
+ *      Inputs: mb_va - MB location of virtual address
+ *              mb_pa - MB location of physical address
+ *      Return Value: void
+ *      Function: Sets 4MB-page PDE at the virtual address to
+ *                the proper physical address
+ *      Side effects: None
+ */
+void paging_switch(uint32_t mb_va, uint32_t mb_pa){
+    uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
+    uint32_t vir_addr = mb_va/PAGE_MB_NUM;
+    page_directory[vir_addr] = 0x00000083 | (phys_addr << 22);
+    asm volatile ("movl %%eax, 4(%%esp) \n\
+                   invlpg (%%eax)       \n\
+                   "
+                   :
+                   :
+                   : "eax", "memory", "cc"
+    );
+}
+    // Extra notes for MP3.3 implementation:
+    //Map 128-132MB VM to 8-12MB PM
+    //page_directory[32] = 0x00800083;
 
-
+    //Map 128-132MB VM to 12-16MB PM
+    //page_directory[32] = 0x00C00083;
