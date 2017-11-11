@@ -1,6 +1,8 @@
 #include "lib.h"
 #include "filesystem.h"
 #include "sys_call.h"
+#include "rtc.h"
+#include "keyboard.h"
 
 filesystem_t filesystem;  /* File system object that contains pointers to each portion of system */
 int32_t cur_read_idx = 0; /* Read index to determine if directory has been completely read */
@@ -27,6 +29,7 @@ void file_system_init(uint32_t* start_addr) {
   /* Set pointers to the beginning of the inodes and the data blocks in memory. */
   filesystem.inode_start = (inode_t *)((uint8_t *)start_addr + BLOCK_SIZE);
   filesystem.data_block_start = ((uint8_t *)start_addr + ((uint8_t)filesystem.boot_block_start->num_inodes) * BLOCK_SIZE);
+
 }
 
 
@@ -55,6 +58,18 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PC
   PCB_t* PCB_ptr = &new_pcb;
   new_pcb.process_id = p_id;
   new_pcb.kern_esp = start_addr;
+
+  /* Initialize FOP Tables */
+  struct file_operations_t temp_stdin = {terminal_open, terminal_read, NULL, terminal_close};
+  struct file_operations_t temp_stdout = {terminal_open, NULL, terminal_write, terminal_close};
+  struct file_operations_t temp_regular = {file_open, file_read, file_write, file_close};
+  struct file_operations_t temp_directory = {directory_open, directory_read, directory_write, directory_close};
+  struct file_operations_t temp_rtc = {rtc_open, rtc_read, rtc_write, rtc_close};
+  new_pcb.stdin_ops = temp_stdin;
+  new_pcb.stdout_ops = temp_stdout;
+  new_pcb.regular_ops = temp_regular;
+  new_pcb.directory_ops = temp_directory;
+  new_pcb.rtc_ops = temp_rtc;
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
      otherwise, point to proper offset in kernel stack. */

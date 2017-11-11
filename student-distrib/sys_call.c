@@ -55,7 +55,7 @@ extern int32_t sys_halt(uint8_t status){
 
 	/*Close any files associated with this process*/
 	for(i = 0; i < 8; i++){
-		curr_pcb->file_array[i].file_operations[3](i);
+		curr_pcb->file_array[i].file_operations->device_close(i);
 	}
 
 	return 0;
@@ -146,7 +146,7 @@ extern int32_t sys_execute(const uint8_t* command){
 extern int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
-	return curr_pcb->file_array[fd].file_operations[1](fd, buf, nbytes);
+	return curr_pcb->file_array[fd].file_operations->device_read(fd, buf, nbytes);
 }
 /* sys_write
 *		Description: the write system call handler
@@ -159,7 +159,7 @@ extern int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 extern int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
-	return curr_pcb->file_array[fd].file_operations[2](fd, buf, nbytes);
+	return curr_pcb->file_array[fd].file_operations->device_write(fd, buf, nbytes);
 }
 /* sys_open
 *		Description: the open system call handler -- opens file
@@ -185,11 +185,30 @@ extern int32_t sys_open(const uint8_t* filename){
 	if(fd == -1){
 		return -1;
 	}
-	/*Switch by file type and associate correct ops in file_array[fd].file_operations*/
-	
-	
+	/* Initialize correct FOP associations */
+	switch(this_file.file_type) {
+		case STD_IN_FILE_TYPE :
+		curr_pcb->file_array[fd]->file_operations = curr_pcb->stdin_ops;
 
-	curr_pcb->file_array->file_operations->device_open[this_file.file_type](filename);
+		case STD_OUT_FILE_TYPE :
+		curr_pcb->file_array[fd]->file_operations = curr_pcb->stdout_ops;
+		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
+		case REGULAR_FILE_TYPE :
+		curr_pcb->file_array[fd]->file_operations = curr_pcb->regular_ops;
+
+		case DIRECTORY_FILE_TYPE :
+		curr_pcb->file_array[fd]->file_operations = curr_pcb->directory_ops;
+
+		case RTC_FILE_TYPE :
+		curr_pcb->file_array[fd]->file_operations = curr_pcb->rtc_ops;
+
+		default:
+		return -1;
+
+	}
+
+	/* Open the file*/
+	curr_pcb->file_array[fd].file_operations->device_open(filename);
 
 	return 0;
 }
@@ -206,7 +225,7 @@ extern int32_t sys_close(int32_t fd){
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 	//SHOULD WE CHECK IF THE FD IS VALID??????
 	curr_pcb->file_array[fd].flags = 0;
-	curr_pcb->file_array[fd].file_operations[3](fd);
+	curr_pcb->file_array[fd].file_operations->device_close(fd);
 	return 0;
 }
 
