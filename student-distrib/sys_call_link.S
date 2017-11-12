@@ -84,12 +84,10 @@ call sys_sigreturn
 jmp done
 
 
-
-
 user_prep:
 pushl 4(%esp)
 pushl $USER_CS
-pushfd
+pushfl
 popl %edx
 orl $0x200, %edx
 pushl %edx
