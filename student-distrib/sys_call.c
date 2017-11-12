@@ -10,13 +10,14 @@
 #include "paging.h"
 #include "types.h"
 #include "x86_desc.h"
+#include "sys_call_link.H"
 
 #define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
 #define EIP_SIZE			4
 #define EIP_LOC				27
 #define PROG_LOAD_LOC		0x08048000
 #define USER_STACK_POINTER	0x083FFFFF
-int32_t next_pid;
+uint32_t next_pid;
   struct file_operations_t stdin_ops = {&terminal_open, &terminal_read, NULL, &terminal_close};
   struct file_operations_t stdout_ops = {&terminal_open, NULL, &terminal_write, &terminal_close};
   struct file_operations_t regular_ops = {&file_open, &file_read, &file_write, &file_close};
@@ -54,7 +55,7 @@ int get_first_fd(){
 *		Returns: _____
 *		Side effects: closes associated files ________
 */
-extern int32_t sys_halt(uint8_t status){
+extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
@@ -77,11 +78,11 @@ extern int32_t sys_halt(uint8_t status){
 *		Returns: -1 if fails
 *		Side effect: New process starts
 */
-extern int32_t sys_execute(const uint8_t* command){
+extern uint32_t sys_execute(const uint8_t* command){
 	dentry_t exec;
 	uint8_t* file_buffer;
 	uint32_t* kern_stack_ptr;
-	uint8_t* eip[EIP_SIZE]; //should be array of pointers?
+	uint8_t* eip;
 	int i;
 
 	if(-1 == read_dentry_by_name(command, &exec)){
@@ -124,7 +125,7 @@ extern int32_t sys_execute(const uint8_t* command){
 	}
 
 
-	call user_prep(*((uint32_t*)eip), USER_STACK_POINTER);
+	user_prep(*((uint32_t*)eip), USER_STACK_POINTER);
 
 	/* Set up stacks before IRET */
 /*
@@ -148,7 +149,7 @@ extern int32_t sys_execute(const uint8_t* command){
 *		Returns: the return value from the file specific read handler
 *		Side effect: calls the read handler based on file type
 */
-extern int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
+extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations->device_read(fd, buf, nbytes);
@@ -161,7 +162,7 @@ extern int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 *		Returns: the return value from the file specific write handler
 *		Side effect: calls the write handler based on file type
 */
-extern int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
+extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations->device_write(fd, buf, nbytes);
@@ -174,7 +175,7 @@ extern int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
 *		Returns: -1 for fail; 0 for pass
 *		Side effect: File is opened and has fd in the fd array
 */
-extern int32_t sys_open(const uint8_t* filename){
+extern uint32_t sys_open(const uint8_t* filename){
 	int fd;
 	/*Place holder*/
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
@@ -193,19 +194,19 @@ extern int32_t sys_open(const uint8_t* filename){
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
 		case STD_IN_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &stdin_ops;
+		curr_pcb->file_array[fd].file_operations = &stdin_ops;
 
 		case STD_OUT_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &stdout_ops;
+		curr_pcb->file_array[fd].file_operations = &stdout_ops;
 		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
 		case REGULAR_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &regular_ops;
+		curr_pcb->file_array[fd].file_operations = &regular_ops;
 
 		case DIRECTORY_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &directory_ops;
+		curr_pcb->file_array[fd].file_operations = &directory_ops;
 
 		case RTC_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &rtc_ops;
+		curr_pcb->file_array[fd].file_operations = &rtc_ops;
 
 		default:
 		return -1;
@@ -226,7 +227,7 @@ extern int32_t sys_open(const uint8_t* filename){
 *		Returns: 0 for pass
 *		Side effect: File ic closed and entry in fd freed
 */
-extern int32_t sys_close(int32_t fd){
+extern uint32_t sys_close(uint32_t fd){
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
 	//SHOULD WE CHECK IF THE FD IS VALID??????
 	curr_pcb->file_array[fd].flags = 0;
@@ -237,19 +238,19 @@ extern int32_t sys_close(int32_t fd){
 
 /*    BELOW NOT FOR CP3   */
 
-extern int32_t sys_getargs(uint8_t* buf, int32_t nbytes){
+extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
 	return 0;
 
 }
-extern int32_t sys_vidmap(uint8_t** screen_start){
+extern uint32_t sys_vidmap(uint8_t** screen_start){
 	return 0;
 
 }
-extern int32_t sys_set_handler(int32_t signum, void* handler_address){
+extern uint32_t sys_set_handler(uint32_t signum, void* handler_address){
 	return 0;
 
 }
-extern int32_t sys_sigreturn(void){
+extern uint32_t sys_sigreturn(void){
 	return 0;
 
 }
