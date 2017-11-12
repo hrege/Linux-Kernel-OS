@@ -8,7 +8,7 @@
 
 .globl ldt_size, tss_size
 .globl gdt_desc, ldt_desc, tss_desc
-.globl tss, tss_desc_ptr, tss_esp_ptr, tss_ss_ptr, ldt, ldt_desc_ptr
+.globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_desc_ptr, gdt_ptr
 .globl idt_desc_ptr, idt
 
@@ -39,13 +39,13 @@ tss_bottom:
 #
 #Author Jonathan
 #Pointers to the two important things in the tss
-tss_esp_ptr:
-    .word tss_bottom - 8
+#tss_esp_ptr:
+#    .word tss_bottom - 8
 
-    .align  16
-tss_ss_ptr:
-    .word tss_bottom - 16
-    .align  16
+#    .align  16
+#tss_ss_ptr:
+#    .word tss_bottom - 16
+#    .align  16
 #
 #
 gdt:

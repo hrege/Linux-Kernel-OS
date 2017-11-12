@@ -133,7 +133,7 @@ int terminal_driver_test(){
 		return FAIL;
 	}
 
-	
+
 
 	test_close = terminal_close(1);
 	if(test_close != 0){
@@ -151,8 +151,8 @@ int terminal_driver_test(){
 /*
 *	rtc_helper
 *		Author: Jonathan
-*		Description: helper for the rtc_test function. 
-*				   		Uses rtc_read to print a 1 after a rtc_iterrupt for a 
+*		Description: helper for the rtc_test function.
+*				   		Uses rtc_read to print a 1 after a rtc_iterrupt for a
 *				 		specified number of rtc_interrupts.
 *		Inputs: integer n number of interrupts to print after
 *		Outputs: none
@@ -170,7 +170,7 @@ void rtc_helper(int n){
 	printf("\n");
 	return;
 }
-/* 
+/*
 *	rtc_test
 *		Author: Jonathan
 *		Description: Tests, the rtc functions. This verifies that the return value for each function
@@ -186,14 +186,14 @@ int rtc_test(){
 	printf("\n");
 	TEST_HEADER;
 	printf("This test will print the character '1' when an RTC interrupt occurs \n(as determined using rtc_read)\nStarting with rtc_open which will set it to 2Hz\n");
-	
+
 	//Initialize to 2Hz, check ret value, and print 20 1's (10s)
 	int ret;  //to hold return vals
 	ret = rtc_open(NULL);
 	if(ret!=0){
 		return FAIL;
 	}
-	rtc_helper(20);  
+	rtc_helper(20);
 	clear();
 	int freq = 2;
 	//Call RTC write for each possible rate and print for ~4s
@@ -236,17 +236,17 @@ int rtc_test(){
 	rtc_helper(15);
 	printf("Still running at 2Hz\n");
 
-	//verify that rtc close returns 0 
+	//verify that rtc close returns 0
 	ret = rtc_close(0);
 	if(ret!=0){
 		return FAIL;
 	}
 	return PASS;
-} 
+}
 
 
 
-/* file_syscalls_test() 
+/* file_syscalls_test()
 *		Description: tests the file system calls in the following order:
 					 - file_open
 					 - file_read
@@ -257,6 +257,7 @@ int rtc_test(){
 *		Output: PASS for success, FAIL for failure
 *		Side effects: Clears terminal, prints to terminal
 */
+
 int file_syscalls_test() {
 	clear();
 	TEST_HEADER;
@@ -287,10 +288,10 @@ int file_syscalls_test() {
 	}
 
 	/* Test file_read */
-	if(file_read(fd, &buf, nbytes, (uint8_t *)name_1) == -1){
+	if(file_read(fd, &buf, nbytes) == -1){
 		return FAIL;
 	}
-	if(file_read(fd, &buf, nbytes, (uint8_t *)name_2) == 0){
+	if(file_read(fd, &buf, nbytes) == 0){
 		return FAIL;
 	}
 
@@ -308,7 +309,7 @@ int file_syscalls_test() {
   return PASS;
 }
 
-/* dir_syscalls_test() 
+/* dir_syscalls_test()
 *		Description: tests the directory system calls in the following order:
 					 - dir_open
 					 - dir_read
@@ -323,7 +324,7 @@ int dir_syscalls_test() {
 	clear();
 
 	TEST_HEADER;
-	
+
 
 	uint8_t i;
 	char* name_1;
@@ -395,7 +396,7 @@ int dir_syscalls_test() {
 *		Side effects: Clears terminal, prints dentry info
 */
 int test_read_dentry_by_name() {
-	clear();	
+	clear();
 	TEST_HEADER;
 
 
@@ -491,7 +492,7 @@ int test_read_dentry_by_index() {
 			printf("Inode number is: %d\n", test.inode_number);
     }
 	}
-	
+
 	/* Test index above number of files */
 	retval = read_dentry_by_index(number_of_files + 1, &test);
 	if(retval == -1) {
@@ -600,7 +601,7 @@ int test_read_dir() {
 // */
 // int test_file_check() {
 // 	clear();
-// 	TEST_HEADER;	
+// 	TEST_HEADER;
 
 // 	/* File names to check */
 // 	char* file1 = "pingpong";
