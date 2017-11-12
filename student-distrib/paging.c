@@ -132,7 +132,6 @@ void paging_enable(uint32_t* pdir_addr){
  *      Side effects: None
  */
 void paging_switch(uint32_t mb_va, uint32_t mb_pa){
-
     asm volatile ("movl 4(%%esp), %%eax  \n\
                    invlpg (%%eax)       \n\
                    "
