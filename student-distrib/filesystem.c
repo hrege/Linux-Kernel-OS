@@ -506,10 +506,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     block_data = (data_block_t *)(filesystem.data_block_start + ((curr_block + 1) * BLOCK_SIZE));
     for(j = 0; j < BLOCK_SIZE; j++) {
       *(buf + i*BLOCK_SIZE + j + offset) = block_data->data[j];
-      size_left--;
       if(size_left == 0){
         break;
       }
+      size_left--;
     }
     if(size_left == 0){
       break;

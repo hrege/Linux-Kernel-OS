@@ -84,6 +84,7 @@ extern uint32_t sys_halt(uint8_t status){
 *		Side effect: New process starts
 */
 extern uint32_t sys_execute(const uint8_t* command){
+	uint32_t mag_num;
 	dentry_t exec;
 	uint8_t* file_buffer;
 	uint32_t* kern_stack_ptr;
@@ -96,12 +97,18 @@ extern uint32_t sys_execute(const uint8_t* command){
 	if(exec.file_type != REGULAR_FILE_TYPE){
 		return -1;
 	}
+
+	inode_t* this_inode;
+	this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (exec.inode_number * BLOCK_SIZE));
+	this_inode->length = *((uint32_t*)this_inode);
+
 	/*Read executable into the file_buffer*/
-	if(-1 == read_data(exec.inode_number, 0, file_buffer, filesystem.inode_start[exec.inode_number].length)){
+	if(-1 == read_data(exec.inode_number, 0, file_buffer, 4)){ //filesystem.inode_start[exec.inode_number].length
 		return -1;
 	}
 
-	if(  *((uint32_t *)file_buffer) != EXEC_IDENTITY){
+	mag_num = (((uint32_t)(file_buffer[0]) << 24) | ((uint32_t)(file_buffer[1]) << 16) | ((uint32_t)(file_buffer[2]) << 8) | (uint32_t)(file_buffer[3]));
+	if(mag_num != EXEC_IDENTITY){
 		return -1;
 	}
 
