@@ -56,7 +56,7 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PC
 
   /* Create new PCB struct and set process id. */
   PCB_t new_pcb;
-  PCB_t* PCB_ptr = &new_pcb;
+  PCB_t* PCB_ptr;
   new_pcb.process_id = p_id;
   new_pcb.kern_esp = start_addr;
 
@@ -72,6 +72,8 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PC
     *((PCB_t*)((uint32_t)start_addr & 0xFFFFE000)) = new_pcb;
   }
   next_pid++;
+
+  PCB_ptr = (PCB_t*)((uint32_t)start_addr & 0xFFFFE000);
 
   return PCB_ptr;
 }
