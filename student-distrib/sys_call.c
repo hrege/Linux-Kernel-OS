@@ -193,19 +193,19 @@ extern int32_t sys_open(const uint8_t* filename){
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
 		case STD_IN_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &stdin_ops;
+		curr_pcb->file_array[fd].file_operations = &stdin_ops;
 
 		case STD_OUT_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &stdout_ops;
+		curr_pcb->file_array[fd].file_operations = &stdout_ops;
 		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
 		case REGULAR_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &regular_ops;
+		curr_pcb->file_array[fd].file_operations = &regular_ops;
 
 		case DIRECTORY_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &directory_ops;
+		curr_pcb->file_array[fd].file_operations = &directory_ops;
 
 		case RTC_FILE_TYPE :
-		curr_pcb->file_array[fd]->file_operations = &rtc_ops;
+		curr_pcb->file_array[fd].file_operations = &rtc_ops;
 
 		default:
 		return -1;

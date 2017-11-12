@@ -72,10 +72,10 @@ typedef struct data_block_t {
 } data_block_t;
 
 typedef struct file_operations_t {
-  uint32_t (*device_open) (const uint8_t* filename);
-  uint32_t (*device_read) (int32_t fd, void* buf, int32_t nbytes);
-  uint32_t (*device_write) (int32_t fd, void* buf, int32_t nbytes);
-  uint32_t (*device_close) (int32_t fd);
+  uint32_t* (*device_open) (const uint8_t* filename);
+  uint32_t* (*device_read) (int32_t fd, void* buf, int32_t nbytes);
+  uint32_t* (*device_write) (int32_t fd, void* buf, int32_t nbytes);
+  uint32_t* (*device_close) (int32_t fd);
 } file_operations_t;
 
 typedef struct fd_array_t {
