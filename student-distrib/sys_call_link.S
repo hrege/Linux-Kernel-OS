@@ -95,6 +95,6 @@ pushfl		#getting EFLAGS register and putting it into edx, enabling interrupts an
 popl %edx
 orl $0x200, %edx
 pushl %edx
-pushl 8(%ebp)	#user esp
+pushl 20(%esp)	#user esp
 pushl D_SEG #user ss
 IRET

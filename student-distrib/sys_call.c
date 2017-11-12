@@ -126,12 +126,12 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 
 	/*Load Program */
-	for(i = 0; i < filesystem.inode_start[exec.inode_number].length; i++){
+	for(i = 0; i < this_inode->length; i++){
 		*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
 	}
 
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
-	eip = (uint32_t)(file_buffer[EIP_LOC]) << 24 | (uint32_t)(file_buffer[EIP_LOC - 1]) << 16 | (uint32_t)(file_buffer[EIP_LOC - 2]) << 8 | (uint32_t)(file_buffer[EIP_LOC - 3]);
+	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);

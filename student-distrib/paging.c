@@ -74,7 +74,7 @@ void paging_init(){
 
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
-    page_directory[1] = 0x00400083;
+    page_directory[1] = 0x00400183;
 
     //Set rest of PDEs to "not present"
     int i;
@@ -129,11 +129,11 @@ void paging_enable(uint32_t* pdir_addr){
  *      Return Value: void
  *      Function: Sets 4MB-page PDE at the virtual address to
  *                the proper physical address
- *      Side effects: None
+ *      Side effects: Flushes the entire TLB
  */
 void paging_switch(uint32_t mb_va, uint32_t mb_pa){
-    asm volatile ("movl 4(%%esp), %%eax  \n\
-                   invlpg (%%eax)       \n\
+    asm volatile ("movl %%cr3, %%eax  \n\
+                   movl %%eax, %%cr3      \n\
                    "
                    :
                    :
@@ -141,7 +141,7 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
     );
     uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
     uint32_t vir_addr = mb_va/PAGE_MB_NUM;
-    page_directory[vir_addr] = 0x00000083 | (phys_addr << 22);
+    page_directory[vir_addr] = (0x00000087 | (phys_addr << 22));
 }
     // Extra notes for MP3.3 implementation:
     //Map 128-132MB VM to 8-12MB PM
