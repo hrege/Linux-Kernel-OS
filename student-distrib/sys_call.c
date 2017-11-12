@@ -18,6 +18,8 @@
 #define PROG_LOAD_LOC		0x08048000
 
 #define USER_STACK_POINTER	0x083FFFFF
+#define BOTTOM_KERN_PAGE_PTR  0x007FFFFF
+#define EIGHT_KB			8192
 
 uint32_t next_pid;
 file_operations_t stdin_ops = {terminal_open, terminal_read, NULL, terminal_close};
@@ -115,7 +117,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 	/*Hershel sets up PCB using TSS stuff*/
 	/*kernel stack pointer for process about to be executed*/
-	kern_stack_ptr = (uint32_t*)(0x0800000 - 1 - (0x2000 * next_pid));
+	kern_stack_ptr = (uint32_t*)(0x0800000 - 1 - (EIGHT_KB * next_pid));
 	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
@@ -133,6 +135,8 @@ extern uint32_t sys_execute(const uint8_t* command){
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
+	tss.esp0 = kern_stack_ptr;
+	tss.ss0 = KERNEL_DS;
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);
 /*

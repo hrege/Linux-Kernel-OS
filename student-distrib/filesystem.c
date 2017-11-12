@@ -49,11 +49,6 @@ void file_system_init(uint32_t* start_addr) {
  */
 
 struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
-  /* Return invalid process ID if it doesn't fall in given range. */
-  if(p_id != 0 && p_id != 1) {
-    return NULL;
-  }
-
   /* Create new PCB struct and set process id. */
   PCB_t new_pcb;
   PCB_t* PCB_ptr;
@@ -68,7 +63,7 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PC
   }
   else {
     /* FIX - need to store extra reference to child process (stack pointer of parent)*/
-    new_pcb.parent_process = parent_PCB; //Offset starting address by 4MB - 8kB for start of parent PCB
+    new_pcb.parent_process = parent_PCB; 
     *((PCB_t*)((uint32_t)start_addr & 0xFFFFE000)) = new_pcb;
   }
   next_pid++;

@@ -89,12 +89,13 @@ jmp done
 
 user_prep:
 cli
-pushl 4(%esp) #user EIP
-pushl CODE_SEG #user cs
+pushl D_SEG #user ss
+pushl 12(%esp)	#user esp
 pushfl		#getting EFLAGS register and putting it into edx, enabling interrupts and pushing to stack for IRET
 popl %edx
 orl $0x200, %edx
 pushl %edx
-pushl 20(%esp)	#user esp
-pushl D_SEG #user ss
+pushl CODE_SEG #user cs
+pushl 20(%esp) #user EIP
+pushl $0
 IRET

@@ -132,16 +132,16 @@ void paging_enable(uint32_t* pdir_addr){
  *      Side effects: Flushes the entire TLB
  */
 void paging_switch(uint32_t mb_va, uint32_t mb_pa){
-    asm volatile ("movl %%cr3, %%eax  \n\
+    uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
+    uint32_t vir_addr = mb_va/PAGE_MB_NUM;
+    page_directory[vir_addr] = (0x00000087 | (phys_addr << 22));
+        asm volatile ("movl %%cr3, %%eax  \n\
                    movl %%eax, %%cr3      \n\
                    "
                    :
                    :
                    : "eax", "memory", "cc"
     );
-    uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
-    uint32_t vir_addr = mb_va/PAGE_MB_NUM;
-    page_directory[vir_addr] = (0x00000087 | (phys_addr << 22));
 }
     // Extra notes for MP3.3 implementation:
     //Map 128-132MB VM to 8-12MB PM
