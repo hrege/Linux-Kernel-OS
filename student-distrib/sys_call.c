@@ -122,7 +122,6 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 	}
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
-
 	paging_switch(128, 4 * (exec_pcb->process_id + 2));
 
 
@@ -132,12 +131,10 @@ extern uint32_t sys_execute(const uint8_t* command){
 	}
 
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
-
 	eip = (uint32_t)(file_buffer[EIP_LOC]) << 24 | (uint32_t)(file_buffer[EIP_LOC - 1]) << 16 | (uint32_t)(file_buffer[EIP_LOC - 2]) << 8 | (uint32_t)(file_buffer[EIP_LOC - 3]);
 
-	user_prep(eip, USER_STACK_POINTER);
-
 	/* Set up stacks before IRET */
+	user_prep(eip, USER_STACK_POINTER);
 /*
 
 	-Parse
