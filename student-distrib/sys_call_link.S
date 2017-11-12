@@ -85,14 +85,14 @@ jmp done
 
 
 user_prep:
-pushl 4(%esp)
-pushl $USER_CS
-pushfl
+pushl 4(%esp) #user EIP
+pushl $USER_CS #user cs
+pushfl		#getting EFLAGS register and putting it into edx, enabling interrupts and pushing to stack for IRET
 popl %edx
 orl $0x200, %edx
 pushl %edx
-pushl 8(%esp)
-pushl $USER_DS
+pushl 8(%esp)	#user esp
+pushl $USER_DS #user ss
 IRET
 
 

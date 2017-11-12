@@ -16,13 +16,13 @@
 #define EIP_SIZE			4
 #define EIP_LOC				27
 #define PROG_LOAD_LOC		0x08048000
-#define USER_STACK_POINTER	0x083FFFFF
+#define USER_STACK_POINTER	0x083FFFFF //132 MB - 1B to point to the last byte in the 
 uint32_t next_pid;
-  struct file_operations_t stdin_ops = {&terminal_open, &terminal_read, NULL, &terminal_close};
-  struct file_operations_t stdout_ops = {&terminal_open, NULL, &terminal_write, &terminal_close};
-  struct file_operations_t regular_ops = {&file_open, &file_read, &file_write, &file_close};
-  struct file_operations_t directory_ops = {&directory_open, &directory_read, &directory_write, &directory_close};
-  struct file_operations_t rtc_ops = {&rtc_open, &rtc_read, &rtc_write, &rtc_close};
+struct file_operations_t stdin_ops = {terminal_open, terminal_read, NULL, terminal_close};
+struct file_operations_t stdout_ops = {terminal_open, NULL, terminal_write, terminal_close};
+struct file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
+struct file_operations_t directory_ops = {&directory_open, &directory_read, &directory_write, &directory_close};
+struct file_operations_t rtc_ops = {&rtc_open, &rtc_read, &rtc_write, &rtc_close};
 /*	get_first_fd
 *		Description:  Local function to find first fd available in fd_array of pcb
 *		Author: Sam
