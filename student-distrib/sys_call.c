@@ -88,7 +88,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	dentry_t exec;
 	uint8_t* file_buffer;
 	uint32_t* kern_stack_ptr;
-	uint8_t* eip;
+	uint32_t eip;
 	int i;
 
 	if(-1 == read_dentry_by_name(command, &exec)){
@@ -103,7 +103,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	this_inode->length = *((uint32_t*)this_inode);
 
 	/*Read executable into the file_buffer*/
-	if(-1 == read_data(exec.inode_number, 0, file_buffer, 4)){ //filesystem.inode_start[exec.inode_number].length
+	if(-1 == read_data(exec.inode_number, 0, file_buffer, this_inode->length)){ //filesystem.inode_start[exec.inode_number].length
 		return -1;
 	}
 
@@ -132,12 +132,10 @@ extern uint32_t sys_execute(const uint8_t* command){
 	}
 
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
-	for(i = 0; i < EIP_SIZE; i++){
-		eip[i] = file_buffer[EIP_LOC - i];
-	}
 
+	eip = (uint32_t)(file_buffer[EIP_LOC]) << 24 | (uint32_t)(file_buffer[EIP_LOC - 1]) << 16 | (uint32_t)(file_buffer[EIP_LOC - 2]) << 8 | (uint32_t)(file_buffer[EIP_LOC - 3]);
 
-	user_prep(*((uint32_t*)eip), USER_STACK_POINTER);
+	user_prep(eip, USER_STACK_POINTER);
 
 	/* Set up stacks before IRET */
 /*
