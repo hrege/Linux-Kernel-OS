@@ -28,6 +28,5 @@ Higher Rate = lower Frequency apparently
 
 Bug: Caps and shift never turn off
 Solution:
-
-
+Needed to put release shift scancode handler and caps lock bug was cause because I(Sam) remapped my caps lock key to give my windows keyboard a CMD button for my Mac because my onboard keyboard and trackpad broke for no reason. 
 
