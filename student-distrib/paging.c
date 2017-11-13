@@ -1,5 +1,4 @@
 // Paging Initialization and Enabling
-//////////////////
 //include defines etc.
 #include "x86_desc.h"
 #include "idt_init.h"

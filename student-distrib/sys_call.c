@@ -22,8 +22,8 @@
 #define EIGHT_KB			8192
 
 uint32_t next_pid;
-file_operations_t stdin_ops = {terminal_open, terminal_read, NULL, terminal_close};
-file_operations_t stdout_ops = {terminal_open, NULL, terminal_write, terminal_close};
+file_operations_t stdin_ops = {terminal_open, terminal_read, blank_write, terminal_close};
+file_operations_t stdout_ops = {terminal_open, blank_read, terminal_write, terminal_close};
 file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
 file_operations_t directory_ops = {directory_open, directory_read, directory_write, directory_close};
 file_operations_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close};
@@ -114,18 +114,15 @@ extern uint32_t sys_execute(const uint8_t* command){
 		return -1;
 	}
 
-
-	/*Hershel sets up PCB using TSS stuff*/
-	/*kernel stack pointer for process about to be executed*/
+	/*Kernel stack pointer for process about to be executed*/
 	kern_stack_ptr = (uint32_t*)(0x0800000 - 4 - (EIGHT_KB * next_pid));
-	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)((uint32_t)kern_stack_ptr & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
-
 	}
+
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
 	paging_switch(128, 4 * (exec_pcb->process_id + 2));
-
 
 	/*Load Program */
 	for(i = 0; i < this_inode->length; i++){
@@ -139,16 +136,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	tss.ss0 = KERNEL_DS;
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);
-/*
 
-	-Parse
-	-Check if an executable
-	-Set up Paging
-	-User level program loader
-	-Creae PCB for the program
-		-assign pid based on global pid pointer
-	-Context switch
-*/
 	return 0;
 }
 
@@ -251,17 +239,20 @@ extern uint32_t sys_close(uint32_t fd){
 
 extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
 	return 0;
-
 }
 extern uint32_t sys_vidmap(uint8_t** screen_start){
 	return 0;
-
 }
 extern uint32_t sys_set_handler(uint32_t signum, void* handler_address){
 	return 0;
-
 }
 extern uint32_t sys_sigreturn(void){
 	return 0;
+}
 
+extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
+	return 0;
+}
+extern int32_t blank_read(int32_t fd, void* buf, int32_t nbytes) {
+	return 0;
 }

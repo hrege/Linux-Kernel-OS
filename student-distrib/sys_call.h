@@ -17,7 +17,8 @@ extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes);
 extern uint32_t sys_vidmap(uint8_t** screen_start);
 extern uint32_t sys_set_handler(uint32_t signum, void* handler_address);
 extern uint32_t sys_sigreturn(void);
-
+extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes);
+extern int32_t blank_read(int32_t fd, void* buf, int32_t nbytes);
 
 #endif
 #endif
