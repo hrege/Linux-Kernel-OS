@@ -13,8 +13,20 @@
 #include "sys_call_link.H"
 
 uint32_t next_pid;
-file_operations_t stdin_ops = {terminal_open, terminal_read, blank_write, terminal_close};
-file_operations_t stdout_ops = {terminal_open, blank_read, terminal_write, terminal_close};
+file_operations_t stdin_ops;
+// stdin_ops.device_open = terminal_open;
+// stdin_ops.device_close = terminal_close;
+// stdin_ops.device_read = terminal_read;
+// stdin_ops.device_write = blank_write;
+
+
+file_operations_t stdout_ops;
+// stdout_ops.device_open = terminal_open;
+// stdout_ops.device_read = blank_read;
+// stdout_ops.device_write = terminal_write;
+// stdout_ops.device_close = terminal_close;
+
+
 file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
 file_operations_t directory_ops = {directory_open, directory_read, directory_write, directory_close};
 file_operations_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close};
@@ -112,8 +124,21 @@ extern uint32_t sys_execute(const uint8_t* command){
 	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
-
 	}
+
+	exec_pcb->file_array[0].file_operations.device_open = terminal_open;
+	exec_pcb->file_array[0].file_operations.device_close = terminal_close;
+	exec_pcb->file_array[0].file_operations.device_read = terminal_read;
+	exec_pcb->file_array[0].file_operations.device_write = blank_write;
+
+	exec_pcb->file_array[1].file_operations.device_open = terminal_open;
+	exec_pcb->file_array[1].file_operations.device_close = terminal_close;
+	exec_pcb->file_array[1].file_operations.device_read = blank_read;
+	exec_pcb->file_array[1].file_operations.device_write = terminal_write;
+
+	exec_pcb->file_array[0].flags = 1;
+	exec_pcb->file_array[1].flags = 1;
+
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
 	paging_switch(128, 4 * (exec_pcb->process_id + 2));
 
@@ -152,6 +177,10 @@ extern uint32_t sys_execute(const uint8_t* command){
 *		Side effect: calls the read handler based on file type
 */
 extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
+	if(fd > 8 || fd < 0) {
+		return -1;
+	}
+
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations.device_read(fd, buf, nbytes);
@@ -165,6 +194,10 @@ extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 *		Side effect: calls the write handler based on file type
 */
 extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
+	if(fd > 8 || fd < 0) {
+		return -1;
+	}
+
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations.device_write(fd, buf, nbytes);
@@ -195,12 +228,6 @@ extern uint32_t sys_open(const uint8_t* filename){
 	}
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
-		case STD_IN_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = stdin_ops;
-
-		case STD_OUT_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = stdout_ops;
-		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
 		case REGULAR_FILE_TYPE :
 		curr_pcb->file_array[fd].file_operations = regular_ops;
 
@@ -230,8 +257,12 @@ extern uint32_t sys_open(const uint8_t* filename){
 *		Side effect: File ic closed and entry in fd freed
 */
 extern uint32_t sys_close(uint32_t fd){
+	if(fd > 8 || fd < 0) {
+		return -1;
+	}
+
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
-	//SHOULD WE CHECK IF THE FD IS VALID??????
+
 	curr_pcb->file_array[fd].flags = 0;
 	curr_pcb->file_array[fd].file_operations.device_close(fd);
 	return 0;

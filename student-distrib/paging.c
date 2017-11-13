@@ -90,7 +90,7 @@ void paging_init(){
     }
 
     //Set PTE for the video memory
-    page_table[VIDEO] = 0x000B8003;
+    page_table[VIDEO] = 0x000B8103;
 
     // Set control registers to enable paging.
     paging_enable(page_directory);
