@@ -7,6 +7,7 @@
 #include "i8259.h"
 #include "paging.h"
 
+
 #define VIDEO_IDX       0xB8                       //VIDEO from lib.c without 3 least significant bits
 #define VIDEO_LOC       0x000B8000
 #define TABLE_SIZE      1024                     //1024 entries in Page directory and Page table
@@ -17,6 +18,10 @@
 #define READ_WRITE      2
 #define PTE_ENTRY_VAL   7
 #define PDE_ENTRY_VAL   3
+#define VIDEO 0xB8                       //VIDEO from lib.c without 3 least significant bits
+#define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
+#define PAGE_MB_NUM 4
+
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
 static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table
@@ -80,6 +85,7 @@ void paging_init(){
 
     //Set rest of PDEs to "not present"
     int i;
+
     for(i = 2; i < TABLE_SIZE; i++){
         page_directory[i] = 0x00000000 | READ_WRITE;
     }
@@ -94,6 +100,7 @@ void paging_init(){
     //Set PTE for the video memory
 
     page_table[VIDEO_IDX] = VIDEO_LOC | PTE_ENTRY_VAL;
+
 
     page_directory[0] = ((uint32_t)page_table) | PDE_ENTRY_VAL;
 
@@ -139,7 +146,11 @@ void paging_enable(uint32_t* pdir_addr){
  *      Return Value: void
  *      Function: Sets 4MB-page PDE at the virtual address to
  *                the proper physical address
+<<<<<<< HEAD
  *      Side effects: Flushes the entire TLB
+=======
+ *      Side effects: None
+>>>>>>> fba34ac97bcece92bd9c936ba6a27a548d218122
  */
 void paging_switch(uint32_t mb_va, uint32_t mb_pa){
     uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
