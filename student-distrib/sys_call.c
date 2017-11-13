@@ -16,13 +16,19 @@
 #define EIP_SIZE			4
 #define EIP_LOC				27
 #define PROG_LOAD_LOC		0x08048000
+
 #define USER_STACK_POINTER	0x083FFFFF
+#define BOTTOM_KERN_PAGE_PTR  0x007FFFFF
+#define EIGHT_KB			8192
+
 uint32_t next_pid;
-  struct file_operations_t stdin_ops = {&terminal_open, &terminal_read, NULL, &terminal_close};
-  struct file_operations_t stdout_ops = {&terminal_open, NULL, &terminal_write, &terminal_close};
-  struct file_operations_t regular_ops = {&file_open, &file_read, &file_write, &file_close};
-  struct file_operations_t directory_ops = {&directory_open, &directory_read, &directory_write, &directory_close};
-  struct file_operations_t rtc_ops = {&rtc_open, &rtc_read, &rtc_write, &rtc_close};
+file_operations_t stdin_ops = {terminal_open, terminal_read, NULL, terminal_close};
+file_operations_t stdout_ops = {terminal_open, NULL, terminal_write, terminal_close};
+file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
+file_operations_t directory_ops = {directory_open, directory_read, directory_write, directory_close};
+file_operations_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close};
+
+
 /*	get_first_fd
 *		Description:  Local function to find first fd available in fd_array of pcb
 *		Author: Sam
@@ -31,10 +37,11 @@ uint32_t next_pid;
 *		Returns: Number of first available fd;
 *					-1 if fd_array is full
 */
+
 int get_first_fd(){
 	int i; // loop variable
 
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	/* start at 0 and check until you find one */
 	for(i = 0; i < 8; i++){
@@ -57,11 +64,11 @@ int get_first_fd(){
 */
 extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	/*Close any files associated with this process*/
 	for(i = 0; i < 8; i++){
-		curr_pcb->file_array[i].file_operations->device_close(i);
+		curr_pcb->file_array[i].file_operations.device_close(i);
 	}
 
 	return 0;
@@ -79,10 +86,11 @@ extern uint32_t sys_halt(uint8_t status){
 *		Side effect: New process starts
 */
 extern uint32_t sys_execute(const uint8_t* command){
+	uint32_t mag_num;
 	dentry_t exec;
 	uint8_t* file_buffer;
 	uint32_t* kern_stack_ptr;
-	uint8_t* eip;
+	uint32_t eip;
 	int i;
 
 	if(-1 == read_dentry_by_name(command, &exec)){
@@ -91,43 +99,46 @@ extern uint32_t sys_execute(const uint8_t* command){
 	if(exec.file_type != REGULAR_FILE_TYPE){
 		return -1;
 	}
+
+	inode_t* this_inode;
+	this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (exec.inode_number * BLOCK_SIZE));
+	this_inode->length = *((uint32_t*)this_inode);
+
 	/*Read executable into the file_buffer*/
-	if(-1 == read_data(exec.inode_number, 0, file_buffer, filesystem.inode_start[exec.inode_number].length)){
+	if(-1 == read_data(exec.inode_number, 0, file_buffer, this_inode->length)){ //filesystem.inode_start[exec.inode_number].length
 		return -1;
 	}
 
-	if(  *((uint32_t *)file_buffer) != EXEC_IDENTITY){
+	mag_num = (((uint32_t)(file_buffer[0]) << 24) | ((uint32_t)(file_buffer[1]) << 16) | ((uint32_t)(file_buffer[2]) << 8) | (uint32_t)(file_buffer[3]));
+	if(mag_num != EXEC_IDENTITY){
 		return -1;
 	}
 
 
 	/*Hershel sets up PCB using TSS stuff*/
 	/*kernel stack pointer for process about to be executed*/
-	kern_stack_ptr = (uint32_t*)(0x0800000 - 1 - (0x2000 * next_pid));
-	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss_esp_ptr & 0xFFFFE000));
+	kern_stack_ptr = (uint32_t*)(0x0800000 - 1 - (EIGHT_KB * next_pid));
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
 
 	}
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
-
 	paging_switch(128, 4 * (exec_pcb->process_id + 2));
 
 
 	/*Load Program */
-	for(i = 0; i < filesystem.inode_start[exec.inode_number].length; i++){
+	for(i = 0; i < this_inode->length; i++){
 		*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
 	}
 
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
-	for(i = 0; i < EIP_SIZE; i++){
-		eip[i] = file_buffer[EIP_LOC - i];
-	}
+	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
-
-	user_prep(*((uint32_t*)eip), USER_STACK_POINTER);
-
+	tss.esp0 = kern_stack_ptr;
+	tss.ss0 = KERNEL_DS;
 	/* Set up stacks before IRET */
+	user_prep(eip, USER_STACK_POINTER);
 /*
 
 	-Parse
@@ -150,9 +161,9 @@ extern uint32_t sys_execute(const uint8_t* command){
 *		Side effect: calls the read handler based on file type
 */
 extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
-	return curr_pcb->file_array[fd].file_operations->device_read(fd, buf, nbytes);
+	return curr_pcb->file_array[fd].file_operations.device_read(fd, buf, nbytes);
 }
 /* sys_write
 *		Description: the write system call handler
@@ -163,9 +174,9 @@ extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 *		Side effect: calls the write handler based on file type
 */
 extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
-	return curr_pcb->file_array[fd].file_operations->device_write(fd, buf, nbytes);
+	return curr_pcb->file_array[fd].file_operations.device_write(fd, buf, nbytes);
 }
 /* sys_open
 *		Description: the open system call handler -- opens file
@@ -178,7 +189,7 @@ extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
 extern uint32_t sys_open(const uint8_t* filename){
 	int fd;
 	/*Place holder*/
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	/*Read file by name*/
 	dentry_t this_file;
@@ -194,19 +205,19 @@ extern uint32_t sys_open(const uint8_t* filename){
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
 		case STD_IN_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = &stdin_ops;
+		curr_pcb->file_array[fd].file_operations = stdin_ops;
 
 		case STD_OUT_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = &stdout_ops;
+		curr_pcb->file_array[fd].file_operations = stdout_ops;
 		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
 		case REGULAR_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = &regular_ops;
+		curr_pcb->file_array[fd].file_operations = regular_ops;
 
 		case DIRECTORY_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = &directory_ops;
+		curr_pcb->file_array[fd].file_operations = directory_ops;
 
 		case RTC_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = &rtc_ops;
+		curr_pcb->file_array[fd].file_operations = rtc_ops;
 
 		default:
 		return -1;
@@ -214,7 +225,7 @@ extern uint32_t sys_open(const uint8_t* filename){
 	}
 
 	/* Open the file*/
-	curr_pcb->file_array[fd].file_operations->device_open(filename);
+	curr_pcb->file_array[fd].file_operations.device_open(filename);
 
 	return 0;
 }
@@ -228,10 +239,10 @@ extern uint32_t sys_open(const uint8_t* filename){
 *		Side effect: File ic closed and entry in fd freed
 */
 extern uint32_t sys_close(uint32_t fd){
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss_esp_ptr & 0xFFFFE000);
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 	//SHOULD WE CHECK IF THE FD IS VALID??????
 	curr_pcb->file_array[fd].flags = 0;
-	curr_pcb->file_array[fd].file_operations->device_close(fd);
+	curr_pcb->file_array[fd].file_operations.device_close(fd);
 	return 0;
 }
 

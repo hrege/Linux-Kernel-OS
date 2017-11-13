@@ -3,6 +3,7 @@
 #include "sys_call.h"
 #include "rtc.h"
 #include "keyboard.h"
+#include "x86_desc.h"
 
 filesystem_t filesystem;  /* File system object that contains pointers to each portion of system */
 int32_t cur_read_idx = 0; /* Read index to determine if directory has been completely read */
@@ -48,18 +49,11 @@ void file_system_init(uint32_t* start_addr) {
  */
 
 struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
-  /* Return invalid process ID if it doesn't fall in given range. */
-  if(p_id != 0 && p_id != 1) {
-    return NULL;
-  }
-
   /* Create new PCB struct and set process id. */
   PCB_t new_pcb;
-  PCB_t* PCB_ptr = &new_pcb;
+  PCB_t* PCB_ptr;
   new_pcb.process_id = p_id;
   new_pcb.kern_esp = start_addr;
-
-
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
      otherwise, point to proper offset in kernel stack. */
@@ -69,10 +63,12 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PC
   }
   else {
     /* FIX - need to store extra reference to child process (stack pointer of parent)*/
-    new_pcb.parent_process = parent_PCB; //Offset starting address by 4MB - 8kB for start of parent PCB
+    new_pcb.parent_process = parent_PCB; 
     *((PCB_t*)((uint32_t)start_addr & 0xFFFFE000)) = new_pcb;
   }
   next_pid++;
+
+  PCB_ptr = (PCB_t*)((uint32_t)start_addr & 0xFFFFE000);
 
   return PCB_ptr;
 }
@@ -150,18 +146,19 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
   Side Effects: Checks if file exists in current directory
   Return Value: Returns call to read_data, which returns number of bytes read successfully.
  */
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname) {
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
+  PCB_t* curr_pcb;
+  uint8_t* fname;
   if(buf == NULL) {
     printf("Null buffer pointer\n");
     return -1;
   }
-  if(fname == NULL) {
-    printf("Null fname\n");
-    return -1;
-  }
+
   int retval;
   dentry_t file_dentry;
 
+  curr_pcb = (PCB_t*)(tss.esp0 & 0xFFFFE000);
+  fname = (uint8_t*)(curr_pcb->file_array[fd].fname);
   /* Call read_by_name to pass in correct dentry */
   retval = read_dentry_by_name(fname, &(file_dentry));
   if(retval == -1) {
@@ -506,10 +503,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     block_data = (data_block_t *)(filesystem.data_block_start + ((curr_block + 1) * BLOCK_SIZE));
     for(j = 0; j < BLOCK_SIZE; j++) {
       *(buf + i*BLOCK_SIZE + j + offset) = block_data->data[j];
-      size_left--;
       if(size_left == 0){
         break;
       }
+      size_left--;
     }
     if(size_left == 0){
       break;

@@ -13,7 +13,7 @@
 #define PAGE_MB_NUM 4
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
-static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table     
+static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table
 /* Author: Austin
         PDE and PTE bits based on ISA Vol.3, pg. 3-32
             PDE for 4MB-Page
@@ -62,10 +62,10 @@ static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       //
  *      Return Value: void
  *      Function: Initializes two arrays of size 1024: one page directory and one page table.
  *                Sets PDEs and PTEs to proper values, and calls paging_enable to set
- *                flags to proper values. 
+ *                flags to proper values.
  *      Side effects: Alters CR0, CR3 and CR4
  */
-void paging_init(){         
+void paging_init(){
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
 
 
@@ -74,7 +74,7 @@ void paging_init(){
 
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
-    page_directory[1] = 0x00400083;
+    page_directory[1] = 0x00400183;
 
     //Set rest of PDEs to "not present"
     int i;
@@ -87,11 +87,11 @@ void paging_init(){
     for(j = 0; j < TABLE_SIZE; j++){
         page_table[j] = 0x00000002 | (i<<12);
     }
-        
+
     //Set PTE for the video memory
     page_table[VIDEO] = 0x000B8003;
 
-    // Set control registers to enable paging.          
+    // Set control registers to enable paging.
     paging_enable(page_directory);
 }
 
@@ -129,14 +129,14 @@ void paging_enable(uint32_t* pdir_addr){
  *      Return Value: void
  *      Function: Sets 4MB-page PDE at the virtual address to
  *                the proper physical address
- *      Side effects: None
+ *      Side effects: Flushes the entire TLB
  */
 void paging_switch(uint32_t mb_va, uint32_t mb_pa){
     uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
     uint32_t vir_addr = mb_va/PAGE_MB_NUM;
-    page_directory[vir_addr] = 0x00000083 | (phys_addr << 22);
-    asm volatile ("movl %%eax, 4(%%esp) \n\
-                   invlpg (%%eax)       \n\
+    page_directory[vir_addr] = (0x00000087 | (phys_addr << 22));
+        asm volatile ("movl %%cr3, %%eax  \n\
+                   movl %%eax, %%cr3      \n\
                    "
                    :
                    :

@@ -72,17 +72,19 @@ typedef struct data_block_t {
 } data_block_t;
 
 typedef struct file_operations_t {
-  uint32_t* (*device_open) (const uint8_t* filename);
-  uint32_t* (*device_read) (int32_t fd, void* buf, int32_t nbytes);
-  uint32_t* (*device_write) (int32_t fd, void* buf, int32_t nbytes);
-  uint32_t* (*device_close) (int32_t fd);
+  int32_t (*device_open)(const uint8_t* filename);
+  int32_t (*device_read)(int32_t fd, void* buf, int32_t nbytes);
+  int32_t (*device_write)(int32_t fd, const void* buf, int32_t nbytes);
+  int32_t (*device_close)(int32_t fd);
+
 } file_operations_t;
 
 typedef struct fd_array_t {
-  struct file_operations_t* file_operations;
+  file_operations_t file_operations;
   uint32_t inode_number;
   uint32_t file_position;
   uint32_t flags;
+  uint32_t fname;
 } fd_array_t;
 
 typedef struct PCB_t {
@@ -101,7 +103,7 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PC
 int32_t file_open(const uint8_t* filename);
 int32_t file_close(int32_t fd);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes, uint8_t* fname);
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t file_load(uint8_t* fname, void* addr);
 //int32_t file_check(uint8_t* fname);
 
