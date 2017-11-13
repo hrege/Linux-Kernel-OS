@@ -91,7 +91,7 @@ extern uint32_t sys_halt(uint8_t status){
 extern uint32_t sys_execute(const uint8_t* command){
 	uint32_t mag_num;
 	dentry_t exec;
-	uint8_t* file_buffer;
+	uint8_t file_buffer[5300];
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
 	int i;

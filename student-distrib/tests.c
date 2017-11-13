@@ -630,6 +630,7 @@ int execute_input_test(){
 
 	return PASS;
 }
+
 /*
 *		PCB_test 
 *			Author: Jonathan
@@ -652,6 +653,42 @@ int pcb_test(){
 		}
 	}	
 	return PASS;
+}
+
+/*
+*		shell_test 
+*			Author: Austin
+*			Description: Checks if shell execution is successful
+*			Inputs: None
+*			Ouptuts: Pass/Fail
+*			Side-effect: Attempts to execute shell
+*/
+int shell_test(){
+	TEST_HEADER;
+	uint8_t* ptr = (uint8_t*)("shell");
+	if(sys_execute(ptr) == -1){
+		return FAIL;
+	}
+	else
+		return PASS;	
+	}
+	
+/*
+*		testprint_test 
+*			Author: Austin
+*			Description: Checks if testprint execution is successful
+*			Inputs: None
+*			Ouptuts: Pass/Fail
+*			Side-effect: Attempts to execute testprint
+*/
+int testprint_test(){
+	TEST_HEADER;
+	uint8_t* ptr = (uint8_t*)("testprint");
+	if(sys_execute(ptr) == -1){
+		return FAIL;
+	}
+	else
+		return PASS;	
 }
 
 
@@ -712,7 +749,7 @@ int pcb_test(){
 /* Test suite entry point */
 void launch_tests(){
 	clear();
-	TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("idt_test", idt_test());
 
 		// launch your tests here
 	//TEST_OUTPUT("paging_test", paging_test());
@@ -725,7 +762,9 @@ void launch_tests(){
 	//TEST_OUTPUT("file_syscalls_test", file_syscalls_test());
 	//TEST_OUTPUT("dir_syscalls_test", dir_syscalls_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
-	TEST_OUTPUT("execute_input_test", execute_input_test());
-	TEST_OUTPUT("pcb_test", pcb_test());
+	//TEST_OUTPUT("execute_input_test", execute_input_test());
+	//TEST_OUTPUT("pcb_test", pcb_test());
+	//TEST_OUTPUT("shell_test", shell_test());
+	TEST_OUTPUT("testprint_test", testprint_test());
 	return;
 }

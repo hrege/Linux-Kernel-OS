@@ -178,9 +178,9 @@ void entry(unsigned long magic, unsigned long addr) {
 #endif
     /* Execute the first program ("shell") ... */
     // uint8_t* ptr = (uint8_t*)("shell");
-    uint8_t* ptr = (uint8_t*)("testprint");
-    sys_execute(ptr);
-
+    // uint8_t* ptr = (uint8_t*)("testprint");
+    // sys_execute(ptr);
+    
     /* Spin (nicely, so we don't chew up cycles) *///
     asm volatile (".1: hlt; jmp .1;");
 }
