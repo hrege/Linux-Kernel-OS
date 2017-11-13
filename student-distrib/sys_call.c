@@ -11,19 +11,23 @@
 #include "types.h"
 #include "x86_desc.h"
 #include "sys_call_link.H"
-
-#define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
-#define EIP_SIZE			4
-#define EIP_LOC				27
-#define PROG_LOAD_LOC		0x08048000
-
-#define USER_STACK_POINTER	0x083FFFFC
-#define BOTTOM_KERN_PAGE_PTR  0x007FFFFC
-#define EIGHT_KB			8192
+#include "lib.h"
 
 uint32_t next_pid;
-file_operations_t stdin_ops = {terminal_open, terminal_read, NULL, terminal_close};
-file_operations_t stdout_ops = {terminal_open, NULL, terminal_write, terminal_close};
+file_operations_t stdin_ops;
+// stdin_ops.device_open = terminal_open;
+// stdin_ops.device_close = terminal_close;
+// stdin_ops.device_read = terminal_read;
+// stdin_ops.device_write = blank_write;
+
+
+file_operations_t stdout_ops;
+// stdout_ops.device_open = terminal_open;
+// stdout_ops.device_read = blank_read;
+// stdout_ops.device_write = terminal_write;
+// stdout_ops.device_close = terminal_close;
+
+
 file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
 file_operations_t directory_ops = {directory_open, directory_read, directory_write, directory_close};
 file_operations_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close};
@@ -44,7 +48,7 @@ int get_first_fd(){
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	/* start at 0 and check until you find one */
-	for(i = 0; i < 8; i++){
+	for(i = 0; i < MAX_ACTIVE_FILES; i++){
 		if(curr_pcb->file_array[i].flags == 0){
 			curr_pcb->file_array[i].flags = 1;
 			return i;
@@ -56,11 +60,11 @@ int get_first_fd(){
 /*
 *	sys_halt
 *		Description: the system call to halt a process (the process called)
-*		Author: Sam....
-*		Input: ______
-*		Output: ______
-*		Returns: _____
-*		Side effects: closes associated files ________
+*		Author: Sam
+*		Input: status - status of execution (256 if halted by exception)	
+*		Outputs: Halts process
+*		Returns: status (returned to execute)
+*		Side effects: closes associated files
 */
 extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
@@ -68,7 +72,7 @@ extern uint32_t sys_halt(uint8_t status){
 
 	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
 	/*Close any files associated with this process*/
-	for(i = 0; i < 8; i++){
+	for(i = 0; i < MAX_ACTIVE_FILES; i++){
 		curr_pcb->file_array[i].file_operations.device_close(i);
 	}
 
@@ -77,22 +81,26 @@ extern uint32_t sys_halt(uint8_t status){
 
 
 /*
-*	sys_execute
+*	sys_execute 
 *		Description: The execute system call to execute a new process
 *		Author: Sam, Jonathan, Austin, Hershel
 *		Inputs: command - a buffer containing the executable name and arguments
-*					(**Arguments not yet supported for CP3)
 *		Outputs: None
-*		Returns: -1 if fails
+*		Returns: 0 if successful, -1 if fails
 *		Side effect: New process starts
 */
 extern uint32_t sys_execute(const uint8_t* command){
 	uint32_t mag_num;
 	dentry_t exec;
-	uint8_t* file_buffer;
+	uint8_t file_buffer[5300];
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
 	int i;
+	if(next_pid >= MAX_PROCESS){
+		return -1;
+	}
+
+	clear();
 
 	if(-1 == read_dentry_by_name(command, &exec)){
 		return -1;
@@ -118,14 +126,27 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 	/*Hershel sets up PCB using TSS stuff*/
 	/*kernel stack pointer for process about to be executed*/
-	kern_stack_ptr = (uint32_t*)(0x0800000 - 4 - (EIGHT_KB * next_pid));
+	kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
 	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
-
 	}
+
+	exec_pcb->file_array[0].file_operations.device_open = terminal_open;
+	exec_pcb->file_array[0].file_operations.device_close = terminal_close;
+	exec_pcb->file_array[0].file_operations.device_read = terminal_read;
+	exec_pcb->file_array[0].file_operations.device_write = blank_write;
+
+	exec_pcb->file_array[1].file_operations.device_open = terminal_open;
+	exec_pcb->file_array[1].file_operations.device_close = terminal_close;
+	exec_pcb->file_array[1].file_operations.device_read = blank_read;
+	exec_pcb->file_array[1].file_operations.device_write = terminal_write;
+
+	exec_pcb->file_array[0].flags = 1;
+	exec_pcb->file_array[1].flags = 1;
+
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
-	paging_switch(128, 4 * (exec_pcb->process_id + 2));
+	paging_switch(USER_PROG_VM, STACK_ROW_SIZE * (exec_pcb->process_id + PID_OFF));
 
 
 	/*Load Program */
@@ -136,20 +157,12 @@ extern uint32_t sys_execute(const uint8_t* command){
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
+	/* Set TSS values (more for safety than necessity) */
 	tss.esp0 = (uint32_t)kern_stack_ptr;
 	tss.ss0 = KERNEL_DS;
+
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);
-/*
-
-	-Parse
-	-Check if an executable
-	-Set up Paging
-	-User level program loader
-	-Creae PCB for the program
-		-assign pid based on global pid pointer
-	-Context switch
-*/
 	return 0;
 }
 
@@ -162,10 +175,15 @@ extern uint32_t sys_execute(const uint8_t* command){
 *		Side effect: calls the read handler based on file type
 */
 extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
+	if(fd > MAX_FILES || fd < 0) {
+		return -1;
+	}
+
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations.device_read(fd, buf, nbytes);
 }
+
 /* sys_write
 *		Description: the write system call handler
 *		Author: Sam
@@ -175,10 +193,15 @@ extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 *		Side effect: calls the write handler based on file type
 */
 extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
+	if(fd > MAX_FILES || fd < 0) {
+		return -1;
+	}
+
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	return curr_pcb->file_array[fd].file_operations.device_write(fd, buf, nbytes);
 }
+
 /* sys_open
 *		Description: the open system call handler -- opens file
 *		Author: Sam
@@ -205,12 +228,6 @@ extern uint32_t sys_open(const uint8_t* filename){
 	}
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
-		case STD_IN_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = stdin_ops;
-
-		case STD_OUT_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = stdout_ops;
-		//Only need to open terminal once and stdin will always be called prior terminal_open(1);
 		case REGULAR_FILE_TYPE :
 		curr_pcb->file_array[fd].file_operations = regular_ops;
 
@@ -240,8 +257,12 @@ extern uint32_t sys_open(const uint8_t* filename){
 *		Side effect: File ic closed and entry in fd freed
 */
 extern uint32_t sys_close(uint32_t fd){
+	if(fd > MAX_FILES || fd < 0) {
+		return -1;
+	}
+
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
-	//SHOULD WE CHECK IF THE FD IS VALID??????
+
 	curr_pcb->file_array[fd].flags = 0;
 	curr_pcb->file_array[fd].file_operations.device_close(fd);
 	return 0;
@@ -265,4 +286,11 @@ extern uint32_t sys_set_handler(uint32_t signum, void* handler_address){
 extern uint32_t sys_sigreturn(void){
 	return 0;
 
+}
+
+extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
+	return 0;
+}
+extern int32_t blank_read(int32_t fd, void* buf, int32_t nbytes) {
+	return 0;
 }

@@ -20,6 +20,8 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
+#define     MB_8        0x800000
+
 static uint32_t * file_system_addr;
 extern uint32_t next_pid;
 
@@ -144,8 +146,13 @@ void entry(unsigned long magic, unsigned long addr) {
 
         tss.ldt_segment_selector = KERNEL_LDT;
         tss.ss0 = KERNEL_DS;
+<<<<<<< HEAD
         tss.esp0 = 0x7FFFFC;
 
+=======
+        tss.esp0 = EIGHT_MB;
+        tss.io_base_addr = sizeof(tss);
+>>>>>>> fbc8dd1f9260ec15b2c6e4845e083b12ab5df448
         ltr(KERNEL_TSS);
     }
     /*Set up pid tracker*/
@@ -170,14 +177,15 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-    uint8_t* ptr = (uint8_t*)("shell");
-    sys_execute(ptr);
+    // uint8_t* ptr = (uint8_t*)("shell");
+    // uint8_t* ptr = (uint8_t*)("testprint");
+    // sys_execute(ptr);
+    
     /* Spin (nicely, so we don't chew up cycles) *///
     asm volatile (".1: hlt; jmp .1;");
 }

@@ -7,9 +7,9 @@
 #include "rtc.h"
 
 #define FULL_MASK				0xFF
-#define IGNORE_SLAVE		0x4
-#define MAX_IRQ_LINES		8
-#define TOTAL_IRQ_LINES 16
+#define IGNORE_SLAVE			0x4
+#define MAX_IRQ_LINES			8
+#define TOTAL_IRQ_LINES 		16
 
 /* Interrupt masks to determine which interrupts are enabled and disabled */
 uint8_t master_mask; /* IRQs 0-7  */

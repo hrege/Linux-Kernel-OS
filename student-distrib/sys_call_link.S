@@ -10,12 +10,16 @@
 # Assembly linkage functions for C handlers
 # Generic Interface.  */
 
+KERNEL_CS_A:  .long 0x10
+KERNEL_DS_A:  .long 0x18
 USER_CS_A:    .long 0x23
 USER_DS_A:    .long 0x2B
 ZERO:         .long 0x0
 
 .global sys_call_asm, user_prep
 sys_call_asm:
+pushl %ebp
+movl %esp, %ebp
 cmpl $0, %eax
 jle bad_sys_call
 
@@ -27,13 +31,14 @@ pushl %edx
 pushl %ecx
 pushl %ebx
 movl $-4, %ebx
+sti
 jmp *sys_jump(%ebx, %eax, 4)
 
 done:
 addl $12, %esp
 popa
 leave
-ret
+iret
 
 
 bad_sys_call:
@@ -103,6 +108,6 @@ orl $0x200, %edx
 pushl %edx
 pushl USER_CS_A       #user CS
 pushl 20(%esp)      #user EIP
-pushl ZERO          
 IRET
+jmp done
 

@@ -122,7 +122,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 		return -1;
 	}
 	int32_t frequency = *((uint32_t *)buf);
-	if(frequency >= 2 && frequency <= 1024){
+	if(frequency >= MIN_FREQ && frequency <= MAX_FREQ){
 		int32_t f = 2; //frequency to check against
 		int8_t i = 14;	   //inverse power counter (minus 1)
 		do{

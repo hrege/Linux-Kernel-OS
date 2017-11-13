@@ -594,35 +594,103 @@ int test_read_dir() {
 /*
 *	execute_test
 *		Author: Jonathan
-*		Description: tests the execute system call
+*		Description: tests the execute system call input verifications
 *		Inputs: None
 *		Outputs: None
 *		Returns: Pass/Fail
 */
-int execute_test(){
+int execute_input_test(){
 	//Check passing name that isn't a file
-	uint32_t ret;
-	char* filedne = 'NotAFile';
+	TEST_HEADER;
+	printf("Executing NULL\n");
+	uint8_t* ptr = NULL;
+	if (-1 != sys_execute(ptr))
+	{
+		return FAIL;
+	}
+	printf("Executing thatsthejoke.jpg\n");
+    uint8_t* filedne = (uint8_t*)("thatsthejoke.jpg");
 	if (-1 != sys_execute(filedne))
 	{
 		return FAIL;
 	}
 	//check passing  file type thats not-regular
-	char* fileDirect = '.'
+	printf("Executing directory file\n");
+    uint8_t* fileDirect = (uint8_t*)(".");
 	if(-1 != sys_execute(fileDirect)){
 		return FAIL;
 	}
+	/*Wait for page fault at vid mem to be fixed: */
+
 	//pass non-executable regular file
-	char* regFile = 'frame0.txt'
-	if(-1 != sys_execute(regFile)){
-		return FAIL;
-	}
+ //    uint8_t* regFile = (uint8_t*)("frame1.txt");
+	// if(-1 != sys_execute(regFile)){
+	// 	return FAIL;
+	// }
 
 	return PASS;
 }
+
 /*
-*		PCB_test and fd_test
+*		PCB_test 
+*			Author: Jonathan
+*			Description: Checks PCBs initializiton up to 6
+*			Inputs: None
+*			Ouptuts: Pass Fail
+*			Side-effect: WILL CHANGE PID -- DO NOT RUN USER PROGRAMS AND THIS TEST
 */
+int pcb_test(){
+	TEST_HEADER;
+	uint32_t* kern_stack_ptr;
+	PCB_t * pcbs[6] = {(PCB_t *)0x7fe000, (PCB_t *)0x7fc000, (PCB_t *)0x7fa000, (PCB_t *)0x7f8000, (PCB_t *)0x7f6000, (PCB_t *)0x7f4000}; //PCB locations for pid 0-5
+	int i;
+	for(i = 0; i<6; i++){
+		printf("Setting up process for PID #%d\n", next_pid);
+		kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
+		PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
+		if(NULL == exec_pcb || pcbs[next_pid-1] != exec_pcb) { //check location
+			return FAIL;
+		}
+	}	
+	return PASS;
+}
+
+/*
+*		shell_test 
+*			Author: Austin
+*			Description: Checks if shell execution is successful
+*			Inputs: None
+*			Ouptuts: Pass/Fail
+*			Side-effect: Attempts to execute shell
+*/
+int shell_test(){
+	TEST_HEADER;
+	uint8_t* ptr = (uint8_t*)("shell");
+	if(sys_execute(ptr) == -1){
+		return FAIL;
+	}
+	else
+		return PASS;	
+	}
+	
+/*
+*		testprint_test 
+*			Author: Austin
+*			Description: Checks if testprint execution is successful
+*			Inputs: None
+*			Ouptuts: Pass/Fail
+*			Side-effect: Attempts to execute testprint
+*/
+int testprint_test(){
+	TEST_HEADER;
+	uint8_t* ptr = (uint8_t*)("testprint");
+	if(sys_execute(ptr) == -1){
+		return FAIL;
+	}
+	else
+		return PASS;	
+}
+
 
 //set up the PCB for process # given
 
@@ -635,7 +703,7 @@ int execute_test(){
 
 //remove stuff from the fd
 
-//make sure it is not there
+//make sure it is not there*/
 
 
 
@@ -680,7 +748,8 @@ int execute_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	clear();
+	//TEST_OUTPUT("idt_test", idt_test());
 
 		// launch your tests here
 	//TEST_OUTPUT("paging_test", paging_test());
@@ -693,5 +762,9 @@ void launch_tests(){
 	//TEST_OUTPUT("file_syscalls_test", file_syscalls_test());
 	//TEST_OUTPUT("dir_syscalls_test", dir_syscalls_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
+	//TEST_OUTPUT("execute_input_test", execute_input_test());
+	//TEST_OUTPUT("pcb_test", pcb_test());
+	//TEST_OUTPUT("shell_test", shell_test());
+	TEST_OUTPUT("testprint_test", testprint_test());
 	return;
 }
