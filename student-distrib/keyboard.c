@@ -24,7 +24,7 @@ static int ctrl_flag;
    0. Only that key - 1: Shift is pressed
    2: Caps is on  	- 3: CAPS on & Shift pressed
  */
-char scancode_map[NUM_SCANCODES][NUM_CASES] = {
+const char scancode_map[NUM_SCANCODES][NUM_CASES] = {
       { 0x00, 0x00, 0x00, 0x00 }, /* Nothing */
       { 0x00, 0x00, 0x00, 0x00 }, /* ESC */ // 0x1B to restore
 
@@ -272,7 +272,7 @@ void keyboard_handler() {
     flag = buffer_length;
     update_cursor(get_screen_x(), get_screen_y());
     buffer_length = 0;
-
+    sti();
 
   }
 

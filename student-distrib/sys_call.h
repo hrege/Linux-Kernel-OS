@@ -15,10 +15,14 @@
 #define EIGHT_KB			8192
 #define EIGHT_MB			8388608
 #define STACK_ROW_SIZE      4
+#define USER_PROG_VM        128
+#define PID_OFF             2
+#define MAX_FILES           8
 
-
+/* Declare variables */
 extern uint32_t next_pid;
 
+/* Declare functions */
 extern uint32_t sys_halt(uint8_t status);
 extern uint32_t sys_execute(const uint8_t* command);
 extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes);

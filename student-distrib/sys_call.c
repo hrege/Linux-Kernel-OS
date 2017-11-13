@@ -11,6 +11,7 @@
 #include "types.h"
 #include "x86_desc.h"
 #include "sys_call_link.H"
+#include "lib.h"
 
 uint32_t next_pid;
 file_operations_t stdin_ops;
@@ -59,11 +60,11 @@ int get_first_fd(){
 /*
 *	sys_halt
 *		Description: the system call to halt a process (the process called)
-*		Author: Sam....
-*		Input: ______
-*		Output: ______
-*		Returns: _____
-*		Side effects: closes associated files ________
+*		Author: Sam
+*		Input: status - status of execution (256 if halted by exception)	
+*		Outputs: Halts process
+*		Returns: status (returned to execute)
+*		Side effects: closes associated files
 */
 extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
@@ -83,9 +84,8 @@ extern uint32_t sys_halt(uint8_t status){
 *		Description: The execute system call to execute a new process
 *		Author: Sam, Jonathan, Austin, Hershel
 *		Inputs: command - a buffer containing the executable name and arguments
-*					(**Arguments not yet supported for CP3)
 *		Outputs: None
-*		Returns: -1 if fails
+*		Returns: 0 if successful, -1 if fails
 *		Side effect: New process starts
 */
 extern uint32_t sys_execute(const uint8_t* command){
@@ -95,6 +95,8 @@ extern uint32_t sys_execute(const uint8_t* command){
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
 	int i;
+
+	clear();
 
 	if(-1 == read_dentry_by_name(command, &exec)){
 		return -1;
@@ -140,7 +142,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	exec_pcb->file_array[1].flags = 1;
 
 	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
-	paging_switch(128, 4 * (exec_pcb->process_id + 2));
+	paging_switch(USER_PROG_VM, STACK_ROW_SIZE * (exec_pcb->process_id + PID_OFF));
 
 
 	/*Load Program */
@@ -151,20 +153,12 @@ extern uint32_t sys_execute(const uint8_t* command){
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
+	/* Set TSS values (more for safety than necessity) */
 	tss.esp0 = (uint32_t)kern_stack_ptr;
 	tss.ss0 = KERNEL_DS;
+
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);
-/*
-
-	-Parse
-	-Check if an executable
-	-Set up Paging
-	-User level program loader
-	-Creae PCB for the program
-		-assign pid based on global pid pointer
-	-Context switch
-*/
 	return 0;
 }
 
@@ -177,7 +171,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 *		Side effect: calls the read handler based on file type
 */
 extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
-	if(fd > 8 || fd < 0) {
+	if(fd > MAX_FILES || fd < 0) {
 		return -1;
 	}
 
@@ -185,6 +179,7 @@ extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 
 	return curr_pcb->file_array[fd].file_operations.device_read(fd, buf, nbytes);
 }
+
 /* sys_write
 *		Description: the write system call handler
 *		Author: Sam
@@ -194,7 +189,7 @@ extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 *		Side effect: calls the write handler based on file type
 */
 extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
-	if(fd > 8 || fd < 0) {
+	if(fd > MAX_FILES || fd < 0) {
 		return -1;
 	}
 
@@ -202,6 +197,7 @@ extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
 
 	return curr_pcb->file_array[fd].file_operations.device_write(fd, buf, nbytes);
 }
+
 /* sys_open
 *		Description: the open system call handler -- opens file
 *		Author: Sam
@@ -257,7 +253,7 @@ extern uint32_t sys_open(const uint8_t* filename){
 *		Side effect: File ic closed and entry in fd freed
 */
 extern uint32_t sys_close(uint32_t fd){
-	if(fd > 8 || fd < 0) {
+	if(fd > MAX_FILES || fd < 0) {
 		return -1;
 	}
 
