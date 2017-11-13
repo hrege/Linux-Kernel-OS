@@ -647,7 +647,7 @@ int pcb_test(){
 	for(i = 0; i<6; i++){
 		printf("Setting up process for PID #%d\n", next_pid);
 		kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
-		PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
+		PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (PCB_t *)(tss.esp0 & 0xFFFFE000));
 		if(NULL == exec_pcb || pcbs[next_pid-1] != exec_pcb) { //check location
 			return FAIL;
 		}
@@ -764,7 +764,7 @@ void launch_tests(){
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 	//TEST_OUTPUT("execute_input_test", execute_input_test());
 	//TEST_OUTPUT("pcb_test", pcb_test());
-	//TEST_OUTPUT("shell_test", shell_test());
-	TEST_OUTPUT("testprint_test", testprint_test());
+	TEST_OUTPUT("shell_test", shell_test());
+	//TEST_OUTPUT("testprint_test", testprint_test());
 	return;
 }

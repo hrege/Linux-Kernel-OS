@@ -20,6 +20,7 @@
 #define PID_OFF             2
 #define MAX_FILES           8
 #define MAX_PROCESS			6  //current support limit
+#define EXEC_BUFF_SIZE      5700
 
 
 extern uint32_t next_pid;
