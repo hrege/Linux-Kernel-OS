@@ -8,6 +8,7 @@
 #include "paging.h"
 
 #define VIDEO_IDX       0xB8                       //VIDEO from lib.c without 3 least significant bits
+#define VIDEO_LOC       0xB8000
 #define TABLE_SIZE      1024                     //1024 entries in Page directory and Page table
 #define PAGE_MB_NUM     4
 #define PTE_OFFSET      12
@@ -68,8 +69,8 @@ static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       //
  */
 void paging_init(){
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-    page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x007);
-
+    //page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x007);
+    page_directory[0] = (0x00000107);
 
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
