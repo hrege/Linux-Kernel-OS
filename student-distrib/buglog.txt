@@ -30,4 +30,9 @@ Bug: Caps and shift never turn off
 Solution:
 
 
+Checkpoint 3:
+
+Bug:  Target Remote does not work
+Solution:
+Hershel needs to open test_debug
 
