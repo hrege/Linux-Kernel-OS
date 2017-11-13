@@ -1,5 +1,4 @@
 // Paging Initialization and Enabling
-//////////////////
 //include defines etc.
 #include "x86_desc.h"
 #include "idt_init.h"
@@ -78,7 +77,7 @@ void paging_init(){
 
     //Set rest of PDEs to "not present"
     int i;
-    for(i = 4; i < TABLE_SIZE; i++){
+    for(i = 2; i < TABLE_SIZE; i++){
         page_directory[i] = 0x00000000 | (i<<22);
     }
 
@@ -111,7 +110,7 @@ void paging_enable(uint32_t* pdir_addr){
             movl %%cr4, %%eax          \n\
             orl  $0x00000010, %%eax     \n\
             movl %%eax, %%cr4          \n\
-            movl %%cr0, %%eax   \n\
+            movl %%cr0, %%eax           \n\
             orl  $0x80000001, %%eax     \n\
             movl %%eax, %%cr0          \n\
             "
