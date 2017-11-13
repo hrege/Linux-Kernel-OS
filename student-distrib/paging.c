@@ -7,7 +7,7 @@
 #include "i8259.h"
 #include "paging.h"
 
-#define VIDEO           0xB8                       //VIDEO from lib.c without 3 least significant bits
+#define VIDEO_IDX       0xB8                       //VIDEO from lib.c without 3 least significant bits
 #define TABLE_SIZE      1024                     //1024 entries in Page directory and Page table
 #define PAGE_MB_NUM     4
 #define PTE_OFFSET      12
@@ -68,9 +68,7 @@ static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       //
  */
 void paging_init(){
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-
-
-    page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x003);
+    page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x007);
 
 
 
@@ -90,7 +88,7 @@ void paging_init(){
     }
 
     //Set PTE for the video memory
-    page_table[VIDEO] = 0x000B8103;
+    page_table[VIDEO_IDX] = 0x000B8007;
 
     // Set control registers to enable paging.
     paging_enable(page_directory);
