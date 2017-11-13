@@ -103,5 +103,5 @@ orl $0x200, %edx
 pushl %edx
 pushl USER_CS_A       #user CS
 pushl 20(%esp)      #user EIP
-pushl ZERO          
 IRET
+jmp done

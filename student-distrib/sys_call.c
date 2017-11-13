@@ -136,7 +136,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
 	tss.esp0 = (uint32_t)kern_stack_ptr;
-	//tss.ss0 = KERNEL_DS;
+	tss.ss0 = KERNEL_DS;
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);
 /*

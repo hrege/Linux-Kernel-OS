@@ -78,14 +78,14 @@ void paging_init(){
 
     //Set rest of PDEs to "not present"
     int i;
-    for(i = 4; i < TABLE_SIZE; i++){
+    for(i = 2; i < TABLE_SIZE; i++){
         page_directory[i] = 0x00000000 | (i<<22);
     }
 
     //Set rest of PTEs to "not present"
     int j;
     for(j = 0; j < TABLE_SIZE; j++){
-        page_table[j] = 0x00000002 | (i<<12);
+        page_table[j] = 0x00000000 | (j<<12);
     }
 
     //Set PTE for the video memory
@@ -111,7 +111,7 @@ void paging_enable(uint32_t* pdir_addr){
             movl %%cr4, %%eax          \n\
             orl  $0x00000010, %%eax     \n\
             movl %%eax, %%cr4          \n\
-            movl %%cr0, %%eax   \n\
+            movl %%cr0, %%eax           \n\
             orl  $0x80000001, %%eax     \n\
             movl %%eax, %%cr0          \n\
             "
