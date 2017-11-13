@@ -16,6 +16,8 @@
 #define EIGHT_MB			8388608
 #define STACK_ROW_SIZE      4
 
+#define MAX_PROCESS			6  //current support limit
+
 
 extern uint32_t next_pid;
 

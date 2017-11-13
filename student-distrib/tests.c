@@ -631,15 +631,26 @@ int execute_input_test(){
 	return PASS;
 }
 /*
-*		PCB_test and fd_test
+*		PCB_test 
+*			Author: Jonathan
+*			Description: Checks PCBs initializiton up to 6
+*			Inputs: None
+*			Ouptuts: Pass Fail
+*			Side-effect: WILL CHANGE PID -- DO NOT RUN USER PROGRAMS AND THIS TEST
 */
 int pcb_test(){
 	TEST_HEADER;
 	uint32_t* kern_stack_ptr;
-	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
-	if(NULL == exec_pcb){
-		return FAIL;
-	}
+	PCB_t * pcbs[6] = {(PCB_t *)0x7fe000, (PCB_t *)0x7fc000, (PCB_t *)0x7fa000, (PCB_t *)0x7f8000, (PCB_t *)0x7f6000, (PCB_t *)0x7f4000}; //PCB locations for pid 0-5
+	int i;
+	for(i = 0; i<6; i++){
+		printf("Setting up process for PID #%d\n", next_pid);
+		kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
+		PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
+		if(NULL == exec_pcb || pcbs[next_pid-1] != exec_pcb) { //check location
+			return FAIL;
+		}
+	}	
 	return PASS;
 }
 
@@ -700,6 +711,7 @@ int pcb_test(){
 
 /* Test suite entry point */
 void launch_tests(){
+	clear();
 	TEST_OUTPUT("idt_test", idt_test());
 
 		// launch your tests here

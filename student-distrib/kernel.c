@@ -172,14 +172,13 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-    uint8_t* ptr = (uint8_t*)("shell");
-    sys_execute(ptr);
+    //uint8_t* ptr = (uint8_t*)("shell");
+    //sys_execute(ptr);
     /* Spin (nicely, so we don't chew up cycles) *///
     asm volatile (".1: hlt; jmp .1;");
 }
