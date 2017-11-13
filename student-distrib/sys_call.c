@@ -287,3 +287,10 @@ extern uint32_t sys_sigreturn(void){
 	return 0;
 
 }
+
+extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
+	return 0;
+}
+extern int32_t blank_read(int32_t fd, void* buf, int32_t nbytes) {
+	return 0;
+}
