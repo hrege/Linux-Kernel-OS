@@ -5,6 +5,18 @@
 
 #ifndef ASM
 
+#define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
+#define EIP_SIZE			4
+#define EIP_LOC				27
+#define PROG_LOAD_LOC		0x08048000
+
+#define USER_STACK_POINTER	0x083FFFFC
+#define BOTTOM_KERN_PAGE_PTR  0x007FFFFC
+#define EIGHT_KB			8192
+#define EIGHT_MB			8388608
+#define STACK_ROW_SIZE      4
+
+
 extern uint32_t next_pid;
 
 extern uint32_t sys_halt(uint8_t status);

@@ -20,6 +20,8 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
+#define     MB_8        0x800000
+
 static uint32_t * file_system_addr;
 extern uint32_t next_pid;
 
@@ -144,7 +146,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
         tss.ldt_segment_selector = KERNEL_LDT;
         tss.ss0 = KERNEL_DS;
-        tss.esp0 = 0x800000;
+        tss.esp0 = EIGHT_MB;
         tss.io_base_addr = sizeof(tss);
         ltr(KERNEL_TSS);
     }
