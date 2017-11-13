@@ -31,11 +31,24 @@ Solution:
 Needed to put release shift scancode handler and caps lock bug was cause because I(Sam) remapped my caps lock key to give my windows keyboard a CMD button for my Mac because my onboard keyboard and trackpad broke for no reason. 
 
 
-
 Checkpoint 3:
 
 Bug:  Target Remote does not work
 Solution:
 Hershel needs to open test_debug
 
+Bug: IRET Appeared to Segfault
+Solution: 
+Error was actually in sys_calls (not initializing fd_array).
 
+Bug: paging had issues initializing
+Solution:
+Changed the "i" to a "j" (the for loop specified i, but j was used in the loop variables...).
+
+Bug: Constant Variables were not working properly in sys_calls_link.S
+Solution:
+Declare equivalent local versions of the variables and call those instead.
+
+Checkpoint 4:
+
+Checkpoint 5:
