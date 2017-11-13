@@ -599,27 +599,37 @@ int test_read_dir() {
 *		Outputs: None
 *		Returns: Pass/Fail
 */
-// int execute_test(){
-// 	//Check passing name that isn't a file
-// 	uint32_t ret;
-// 	char* filedne = 'NotAFile';
-// 	if (-1 != sys_execute(filedne))
-// 	{
-// 		return FAIL;
-// 	}
-// 	//check passing  file type thats not-regular
-// 	char* fileDirect = '.'
-// 	if(-1 != sys_execute(fileDirect)){
-// 		return FAIL;
-// 	}
-// 	//pass non-executable regular file
-// 	char* regFile = 'frame0.txt'
-// 	if(-1 != sys_execute(regFile)){
-// 		return FAIL;
-// 	}
-//
-// 	return PASS;
-// }
+int execute_input_test(){
+	//Check passing name that isn't a file
+	TEST_HEADER;
+	printf("Executing NULL\n");
+	uint8_t* ptr = NULL;
+	if (-1 != sys_execute(ptr))
+	{
+		return FAIL;
+	}
+	printf("Executing thatsthejoke.jpg\n");
+    uint8_t* filedne = (uint8_t*)("thatsthejoke.jpg");
+	if (-1 != sys_execute(filedne))
+	{
+		return FAIL;
+	}
+	//check passing  file type thats not-regular
+	printf("Executing directory file\n");
+    uint8_t* fileDirect = (uint8_t*)(".");
+	if(-1 != sys_execute(fileDirect)){
+		return FAIL;
+	}
+	/*Wait for page fault at vid mem to be fixed: */
+
+	//pass non-executable regular file
+ //    uint8_t* regFile = (uint8_t*)("frame1.txt");
+	// if(-1 != sys_execute(regFile)){
+	// 	return FAIL;
+	// }
+
+	return PASS;
+}
 /*
 *		PCB_test and fd_test
 */
@@ -635,7 +645,7 @@ int test_read_dir() {
 
 //remove stuff from the fd
 
-//make sure it is not there
+//make sure it is not there*/
 
 
 
@@ -693,5 +703,6 @@ void launch_tests(){
 	//TEST_OUTPUT("file_syscalls_test", file_syscalls_test());
 	//TEST_OUTPUT("dir_syscalls_test", dir_syscalls_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
+	TEST_OUTPUT("execute_input_test", execute_input_test());
 	return;
 }
