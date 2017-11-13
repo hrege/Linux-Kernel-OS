@@ -594,7 +594,7 @@ int test_read_dir() {
 /*
 *	execute_test
 *		Author: Jonathan
-*		Description: tests the execute system call
+*		Description: tests the execute system call input verifications
 *		Inputs: None
 *		Outputs: None
 *		Returns: Pass/Fail
@@ -633,6 +633,16 @@ int execute_input_test(){
 /*
 *		PCB_test and fd_test
 */
+int pcb_test(){
+	TEST_HEADER;
+	uint32_t* kern_stack_ptr;
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
+	if(NULL == exec_pcb){
+		return FAIL;
+	}
+	return PASS;
+}
+
 
 //set up the PCB for process # given
 
@@ -704,5 +714,6 @@ void launch_tests(){
 	//TEST_OUTPUT("dir_syscalls_test", dir_syscalls_test());
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 	TEST_OUTPUT("execute_input_test", execute_input_test());
+	TEST_OUTPUT("pcb_test", pcb_test());
 	return;
 }
