@@ -90,14 +90,14 @@ typedef struct fd_array_t {
 typedef struct PCB_t {
   fd_array_t file_array[MAX_ACTIVE_FILES];
   uint32_t process_id;
-  uint32_t* parent_process;
+  PCB_t* parent_process;
   uint32_t* kern_esp;
 } PCB_t;
 
 /* Initalization function to set all file system pointers. */
 void file_system_init(uint32_t* start_addr);
 
-struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB);
+struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB);
 
 /* File operations functions */
 int32_t file_open(const uint8_t* filename);

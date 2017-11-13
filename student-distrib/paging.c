@@ -78,7 +78,7 @@ void paging_init(){
 
     //Set rest of PDEs to "not present"
     int i;
-    for(i = 4; i < TABLE_SIZE; i++){
+    for(i = 2; i < TABLE_SIZE; i++){
         page_directory[i] = 0x00000000 | (i<<22);
     }
 
@@ -89,7 +89,7 @@ void paging_init(){
     }
 
     //Set PTE for the video memory
-    page_table[VIDEO] = 0x000B8003;
+    page_table[VIDEO] = 0x000B8103;
 
     // Set control registers to enable paging.
     paging_enable(page_directory);

@@ -48,7 +48,7 @@ void file_system_init(uint32_t* start_addr) {
  *  Return Value: Returns 0 on success, -1 on failure.
  */
 
-struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, uint32_t* parent_PCB) {
+struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB) {
   /* Create new PCB struct and set process id. */
   PCB_t new_pcb;
   PCB_t* PCB_ptr;

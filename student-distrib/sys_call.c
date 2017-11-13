@@ -66,6 +66,7 @@ extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
+	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
 	/*Close any files associated with this process*/
 	for(i = 0; i < 8; i++){
 		curr_pcb->file_array[i].file_operations.device_close(i);
@@ -136,7 +137,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
 	tss.esp0 = (uint32_t)kern_stack_ptr;
-	//tss.ss0 = KERNEL_DS;
+	tss.ss0 = KERNEL_DS;
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);
 /*
