@@ -85,7 +85,7 @@ void paging_init(){
     //Set rest of PTEs to "not present"
     int j;
     for(j = 0; j < TABLE_SIZE; j++){
-        page_table[j] = 0x00000002 | (i<<12);
+        page_table[j] = 0x00000000 | (j<<12);
     }
 
     //Set PTE for the video memory

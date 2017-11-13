@@ -599,27 +599,27 @@ int test_read_dir() {
 *		Outputs: None
 *		Returns: Pass/Fail
 */
-int execute_test(){
-	//Check passing name that isn't a file
-	uint32_t ret;
-	char* filedne = 'NotAFile';
-	if (-1 != sys_execute(filedne))
-	{
-		return FAIL;
-	}
-	//check passing  file type thats not-regular
-	char* fileDirect = '.'
-	if(-1 != sys_execute(fileDirect)){
-		return FAIL;
-	}
-	//pass non-executable regular file
-	char* regFile = 'frame0.txt'
-	if(-1 != sys_execute(regFile)){
-		return FAIL;
-	}
-
-	return PASS;
-}
+// int execute_test(){
+// 	//Check passing name that isn't a file
+// 	uint32_t ret;
+// 	char* filedne = 'NotAFile';
+// 	if (-1 != sys_execute(filedne))
+// 	{
+// 		return FAIL;
+// 	}
+// 	//check passing  file type thats not-regular
+// 	char* fileDirect = '.'
+// 	if(-1 != sys_execute(fileDirect)){
+// 		return FAIL;
+// 	}
+// 	//pass non-executable regular file
+// 	char* regFile = 'frame0.txt'
+// 	if(-1 != sys_execute(regFile)){
+// 		return FAIL;
+// 	}
+//
+// 	return PASS;
+// }
 /*
 *		PCB_test and fd_test
 */
