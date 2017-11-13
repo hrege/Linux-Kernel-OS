@@ -5,6 +5,7 @@
 
 #ifndef ASM
 
+/* Declare variables */
 #define EXEC_IDENTITY     0x7F454C46	// "Magic Numbers" for an executable
 #define EIP_SIZE			4
 #define EIP_LOC				27
@@ -18,8 +19,9 @@
 #define USER_PROG_VM        128
 #define PID_OFF             2
 #define MAX_FILES           8
+#define MAX_PROCESS			6  //current support limit
 
-/* Declare variables */
+
 extern uint32_t next_pid;
 
 /* Declare functions */

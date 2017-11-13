@@ -95,6 +95,9 @@ extern uint32_t sys_execute(const uint8_t* command){
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
 	int i;
+	if(next_pid >= MAX_PROCESS){
+		return -1;
+	}
 
 	clear();
 
