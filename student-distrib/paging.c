@@ -1,5 +1,4 @@
 // Paging Initialization and Enabling
-//////////////////
 //include defines etc.
 #include "x86_desc.h"
 #include "idt_init.h"
@@ -8,11 +7,19 @@
 #include "i8259.h"
 #include "paging.h"
 
-#define VIDEO 0xB8                       //VIDEO from lib.c without 3 least significant bits
-#define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
+#define VIDEO_IDX       0xB8                       //VIDEO from lib.c without 3 least significant bits
+#define VIDEO_LOC       0x000B8000
+#define TABLE_SIZE      1024                     //1024 entries in Page directory and Page table
+#define PAGE_MB_NUM     4
+#define PTE_OFFSET      12
+#define PDE_OFFSET      22
+#define PTE_MOVE        0x1000
+#define READ_WRITE      2
+#define PTE_ENTRY_VAL   7
+#define PDE_ENTRY_VAL   3
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
-static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table     
+static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table
 /* Author: Austin
         PDE and PTE bits based on ISA Vol.3, pg. 3-32
             PDE for 4MB-Page
@@ -61,16 +68,12 @@ static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       //
  *      Return Value: void
  *      Function: Initializes two arrays of size 1024: one page directory and one page table.
  *                Sets PDEs and PTEs to proper values, and calls paging_enable to set
- *                flags to proper values. 
+ *                flags to proper values.
  *      Side effects: Alters CR0, CR3 and CR4
  */
-void paging_init(){         
+void paging_init(){
     //Set PDE for the Page Table for 0MB-4MB in Physical Memory
-
-
-    page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x003);
-
-
+    //page_directory[0] = ((((uint32_t)&page_table) & 0xFFFFF000) | 0x007);
 
     //Set PDE for 4MB kernel page for 4MB-8MB in Physical Memory
     page_directory[1] = 0x00400083;
@@ -78,23 +81,29 @@ void paging_init(){
     //Set rest of PDEs to "not present"
     int i;
     for(i = 2; i < TABLE_SIZE; i++){
-        page_directory[i] = 0x00000000 | (i<<22);
+        page_directory[i] = 0x00000000 | READ_WRITE;
     }
+        
 
     //Set rest of PTEs to "not present"
     int j;
     for(j = 0; j < TABLE_SIZE; j++){
-        page_table[j] = 0x00000002 | (i<<12);
+        page_table[j] = (j * PTE_MOVE) | READ_WRITE;
     }
-        
-    //Set PTE for the video memory
-    page_table[VIDEO] = 0x000B8003;
 
-    // Set control registers to enable paging.          
+    //Set PTE for the video memory
+
+    page_table[VIDEO_IDX] = VIDEO_LOC | PTE_ENTRY_VAL;
+
+    page_directory[0] = ((uint32_t)page_table) | PDE_ENTRY_VAL;
+
+    page_directory[2] = 0x00000000 | READ_WRITE;
+    page_directory[3] = 0x00000000 | READ_WRITE;
+
+
+    // Set control registers to enable paging.
     paging_enable(page_directory);
 }
-
-
 
 /* Author: Austin
  * void* paging_enable(uint32_t* pdir_addr)
@@ -106,16 +115,13 @@ void paging_init(){
  *                Sets CR3 to pdir_addr value.
  *      Side effects: Alters CR0, CR3 and CR4
  */
-//, uint32_t r1, unint32_t r2, unint32_t r3
 void paging_enable(uint32_t* pdir_addr){
-
-
     asm volatile ("movl %0, %%eax      \n\
             movl %%eax, %%cr3          \n\
             movl %%cr4, %%eax          \n\
             orl  $0x00000010, %%eax     \n\
             movl %%eax, %%cr4          \n\
-            movl %%cr0, %%eax   \n\
+            movl %%cr0, %%eax           \n\
             orl  $0x80000001, %%eax     \n\
             movl %%eax, %%cr0          \n\
             "
@@ -126,5 +132,30 @@ void paging_enable(uint32_t* pdir_addr){
     return;
 }
 
+/* Author: Austin
+ * void paging_switch(uint32_t mb_va, uin32_t mb_pa)
+ *      Inputs: mb_va - MB location of virtual address
+ *              mb_pa - MB location of physical address
+ *      Return Value: void
+ *      Function: Sets 4MB-page PDE at the virtual address to
+ *                the proper physical address
+ *      Side effects: Flushes the entire TLB
+ */
+void paging_switch(uint32_t mb_va, uint32_t mb_pa){
+    uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
+    uint32_t vir_addr = mb_va/PAGE_MB_NUM;
+    page_directory[vir_addr] = (0x00000087 | (phys_addr << PDE_OFFSET));
+        asm volatile ("movl %%cr3, %%eax  \n\
+                   movl %%eax, %%cr3      \n\
+                   "
+                   :
+                   :
+                   : "eax", "memory", "cc"
+    );
+}
+    // Extra notes for MP3.3 implementation:
+    //Map 128-132MB VM to 8-12MB PM
+    //page_directory[32] = 0x00800083;
 
-
+    //Map 128-132MB VM to 12-16MB PM
+    //page_directory[32] = 0x00C00083;

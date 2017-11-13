@@ -24,7 +24,7 @@ static int ctrl_flag;
    0. Only that key - 1: Shift is pressed
    2: Caps is on  	- 3: CAPS on & Shift pressed
  */
-char scancode_map[NUM_SCANCODES][NUM_CASES] = {
+const char scancode_map[NUM_SCANCODES][NUM_CASES] = {
       { 0x00, 0x00, 0x00, 0x00 }, /* Nothing */
       { 0x00, 0x00, 0x00, 0x00 }, /* ESC */ // 0x1B to restore
 
@@ -263,11 +263,7 @@ void keyboard_handler() {
   /*Clear screen*/
   else if(char_out == 'l' && ctrl_flag > 0){
       clear();
-      set_screen_x(0);
-      set_screen_y(0);
-      update_cursor(get_screen_x(), get_screen_y());
       buffer_length = 0;
-
   }
 
   else if(char_out == ENTER){
@@ -276,7 +272,7 @@ void keyboard_handler() {
     flag = buffer_length;
     update_cursor(get_screen_x(), get_screen_y());
     buffer_length = 0;
-
+    sti();
 
   }
 
@@ -379,9 +375,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     if(buf == NULL){
         return -1;
     }
-    if(nbytes > max_buffer_size){
-      nbytes = max_buffer_size;
-    }
+
 
     /* read from buf */
     for(i = 0; i < nbytes; i++){
@@ -421,10 +415,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 */
 int32_t terminal_open(const uint8_t* filename){
   buffer_length = 0;
-  set_screen_x(0);
-  set_screen_y(0);
   clear();
-  update_cursor(get_screen_x(), get_screen_y());
   /*Initialize all flags*/
   lshift_flag = 0;
   rshift_flag = 0;

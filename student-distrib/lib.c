@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "x86_desc.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -11,6 +12,7 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+// const static char* new_vmem = (char *)VIDEO;
 
 /*
 *   get_video_mem
@@ -21,7 +23,7 @@ static char* video_mem = (char *)VIDEO;
 *       Returns: pointer to video memory
 */
 char* get_video_mem(){
-    return video_mem;
+    return (char *)0xB8000;
 
 }
 
@@ -62,7 +64,7 @@ void set_screen_y(int new_y){
 *       Return: screen_x - integer screen location in x
 */
 int get_screen_x(){
-    return screen_x; 
+    return screen_x;
 
 }
 
@@ -88,7 +90,7 @@ int get_screen_y(){
 *   Source: OSDev Text_mode_Cursor page
 */
 void update_cursor(int x, int y){
-  uint16_t pos = y * NUM_COLS + x;  
+  uint16_t pos = y * NUM_COLS + x;
   outb(CURSOR_LSB, INDEX_REG);
   outb((uint8_t) (pos & 0xFF), DATA_REG); //write to lower byte of cursor
   outb(CURSOR_MSB, INDEX_REG);
@@ -106,6 +108,7 @@ void clear_line(void) {
     }
     set_screen_x(0);
     set_screen_y(NUM_ROWS - 1);
+
 }
 
 /* void clear(void);
@@ -115,9 +118,12 @@ void clear_line(void) {
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(0xB8000 + (i << 1)) = ' ';
+        *(uint8_t *)(0xB8000 + (i << 1) + 1) = ATTRIB;
     }
+    set_screen_x(0);    //reset to top left
+    set_screen_y(0);
+    update_cursor(screen_x, screen_y);
 }
 
 /* Standard printf().
@@ -239,10 +245,18 @@ format_char_switch:
 
             default:
                 putc(*buf);
+                    /* check buffer */
+                 if (get_screen_y() == NUM_ROWS){
+                     memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
+                    set_screen_y(NUM_ROWS - 1);
+                    clear_line();
+                }
                 break;
+
         }
         buf++;
     }
+
     update_cursor(screen_x, screen_y);
     return (buf - format);
 }
@@ -269,8 +283,8 @@ void putc(uint8_t c) {
         screen_y++;
         screen_x = 0;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(0xB8000 + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(0xB8000 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_y = (screen_y + (screen_x / NUM_COLS));
         screen_x %= NUM_COLS;

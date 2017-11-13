@@ -11,6 +11,9 @@
 #define	RTC_PIC_IRQ	    8	//RTC is line 8 on the PIC
 #define BIT_SIX_ENABLE  0x40
 
+#define MIN_FREQ        2
+#define MAX_FREQ        1024
+
 /* RTC Registers */
 #define RTC_A_REG	    0x0A
 #define	RTC_B_REG	    0x0B

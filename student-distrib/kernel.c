@@ -11,12 +11,20 @@
 #include "rtc.h"
 #include "keyboard.h"
 #include "paging.h"
+#include "filesystem.h"
+#include "sys_call.h"
 
 #define RUN_TESTS
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
+
+#define     MB_8        0x800000
+
+static uint32_t * file_system_addr;
+extern uint32_t next_pid;
+
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -57,6 +65,9 @@ void entry(unsigned long magic, unsigned long addr) {
         module_t* mod = (module_t*)mbi->mods_addr;
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
+
+            file_system_addr = (uint32_t*) mod->mod_start;  //File System start address
+
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
             printf("First few bytes of module:\n");
             for (i = 0; i < 16; i++) {
@@ -135,9 +146,19 @@ void entry(unsigned long magic, unsigned long addr) {
 
         tss.ldt_segment_selector = KERNEL_LDT;
         tss.ss0 = KERNEL_DS;
-        tss.esp0 = 0x800000;
+<<<<<<< HEAD
+        tss.esp0 = 0x7FFFFC;
+
+=======
+        tss.esp0 = EIGHT_MB;
+        tss.io_base_addr = sizeof(tss);
+>>>>>>> fbc8dd1f9260ec15b2c6e4845e083b12ab5df448
         ltr(KERNEL_TSS);
     }
+    /*Set up pid tracker*/
+    next_pid = 0;
+
+    file_system_init(file_system_addr);
 
     /* Initialize Everything and turn on interrupts */
     /* Initialize PIC */
@@ -156,13 +177,15 @@ void entry(unsigned long magic, unsigned long addr) {
      * without showing you any output */
     printf("Enabling Interrupts\n");
     sti();
-
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-
-    /* Spin (nicely, so we don't chew up cycles) */
+    // uint8_t* ptr = (uint8_t*)("shell");
+    // uint8_t* ptr = (uint8_t*)("testprint");
+    // sys_execute(ptr);
+    
+    /* Spin (nicely, so we don't chew up cycles) *///
     asm volatile (".1: hlt; jmp .1;");
 }

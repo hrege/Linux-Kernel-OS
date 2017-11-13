@@ -36,7 +36,18 @@ tss_bottom:
 
 
     .align  16
+#
+#Author Jonathan
+#Pointers to the two important things in the tss
+#tss_esp_ptr:
+#    .word tss_bottom - 8
 
+#    .align  16
+#tss_ss_ptr:
+#    .word tss_bottom - 16
+#    .align  16
+#
+#
 gdt:
 _gdt:
 
@@ -94,7 +105,7 @@ gdt_bottom:
 
 #struct to use in lgdt in boot.S file ~Sam
     .align 4
-#added for cp 1
+#added for CP11
 #ptr to start of gdt
 #Author: Jonathan
 gdt_desc_ptr:
@@ -124,5 +135,3 @@ _idt:
     .endr
 
 idt_bottom:
-
-
