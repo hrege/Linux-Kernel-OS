@@ -7,9 +7,11 @@
 #include "i8259.h"
 #include "paging.h"
 
-#define VIDEO 0xB8                       //VIDEO from lib.c without 3 least significant bits
-#define TABLE_SIZE 1024                     //1024 entries in Page directory and Page table
-#define PAGE_MB_NUM 4
+#define VIDEO           0xB8                       //VIDEO from lib.c without 3 least significant bits
+#define TABLE_SIZE      1024                     //1024 entries in Page directory and Page table
+#define PAGE_MB_NUM     4
+#define PTE_OFFSET      12
+#define PDE_OFFSET      22
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
 static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table
@@ -78,13 +80,13 @@ void paging_init(){
     //Set rest of PDEs to "not present"
     int i;
     for(i = 2; i < TABLE_SIZE; i++){
-        page_directory[i] = 0x00000000 | (i<<22);
+        page_directory[i] = 0x00000000 | (i<<PDE_OFFSET);
     }
 
     //Set rest of PTEs to "not present"
     int j;
     for(j = 0; j < TABLE_SIZE; j++){
-        page_table[j] = 0x00000000 | (j<<12);
+        page_table[j] = 0x00000000 | (j<<PTE_OFFSET);
     }
 
     //Set PTE for the video memory
@@ -133,7 +135,7 @@ void paging_enable(uint32_t* pdir_addr){
 void paging_switch(uint32_t mb_va, uint32_t mb_pa){
     uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
     uint32_t vir_addr = mb_va/PAGE_MB_NUM;
-    page_directory[vir_addr] = (0x00000087 | (phys_addr << 22));
+    page_directory[vir_addr] = (0x00000087 | (phys_addr << PDE_OFFSET));
         asm volatile ("movl %%cr3, %%eax  \n\
                    movl %%eax, %%cr3      \n\
                    "
