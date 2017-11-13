@@ -10,8 +10,9 @@
 # Assembly linkage functions for C handlers
 # Generic Interface.  */
 
-    CODE_SEG:   .long 0x0023
-    D_SEG:      .long 0x002B
+USER_CS_A:    .long 0x23
+USER_DS_A:    .long 0x2B
+ZERO:         .long 0x0
 
 .global sys_call_asm, user_prep
 sys_call_asm:
@@ -89,14 +90,19 @@ jmp done
 
 user_prep:
 cli
-pushl D_SEG #user ss
-pushl 12(%esp)	#user esp
-pushfl		#getting EFLAGS register and putting it into edx, enabling interrupts and pushing to stack for IRET
+movl USER_DS_A, %edx    #user data segment -> DS Register
+movl %edx, %ds
+movl %edx, %es
+movl %edx, %fs
+movl %edx, %gs
+pushl USER_DS_A       #user SS
+pushl 12(%esp)	    #user ESP
+pushfl		        #get EFLAGS and enable IF (then push to stack)
 popl %edx
 orl $0x200, %edx
 pushl %edx
-pushl CODE_SEG #user cs
-pushl 20(%esp) #user EIP
-pushl $0
+pushl USER_CS_A       #user CS
+pushl 20(%esp)      #user EIP
+pushl ZERO          
 IRET
 

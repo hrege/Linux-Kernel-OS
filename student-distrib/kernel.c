@@ -144,7 +144,8 @@ void entry(unsigned long magic, unsigned long addr) {
 
         tss.ldt_segment_selector = KERNEL_LDT;
         tss.ss0 = KERNEL_DS;
-        tss.esp0 = 0x7FFFFF;
+        tss.esp0 = 0x7FFFFC;
+
         ltr(KERNEL_TSS);
     }
     /*Set up pid tracker*/

@@ -5,6 +5,7 @@
 #include "keyboard.h"
 #include "rtc.h"
 #include "filesystem.h"
+#include "sys_call.h"
 
 #define PASS     	1
 #define FAIL 		0
@@ -588,6 +589,58 @@ int test_read_dir() {
 }
 
 /* Checkpoint 3 tests */
+
+
+/*
+*	execute_test
+*		Author: Jonathan
+*		Description: tests the execute system call
+*		Inputs: None
+*		Outputs: None
+*		Returns: Pass/Fail
+*/
+int execute_test(){
+	//Check passing name that isn't a file
+	uint32_t ret;
+	char* filedne = 'NotAFile';
+	if (-1 != sys_execute(filedne))
+	{
+		return FAIL;
+	}
+	//check passing  file type thats not-regular
+	char* fileDirect = '.'
+	if(-1 != sys_execute(fileDirect)){
+		return FAIL;
+	}
+	//pass non-executable regular file
+	char* regFile = 'frame0.txt'
+	if(-1 != sys_execute(regFile)){
+		return FAIL;
+	}
+
+	return PASS;
+}
+/*
+*		PCB_test and fd_test
+*/
+
+//set up the PCB for process # given
+
+//check PCB value
+
+
+//put some stuff in FD
+
+//check that it is there
+
+//remove stuff from the fd
+
+//make sure it is not there
+
+
+
+
+
 
 // Not necessary, but kept a insurance
 // /* test_file_check()
