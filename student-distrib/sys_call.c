@@ -98,10 +98,10 @@ extern uint32_t sys_halt(uint8_t status){
 extern uint32_t sys_execute(const uint8_t* command){
 	uint32_t mag_num;
 	dentry_t exec;
-	uint8_t file_buffer[5300];
+	uint8_t file_buffer[30];
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
-	int i;
+	// int i;
 	if(next_pid >= MAX_PROCESS){
 		return -1;
 	}
@@ -120,7 +120,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	this_inode->length = *((uint32_t*)this_inode);
 
 	/*Read executable into the file_buffer*/
-	if(-1 == read_data(exec.inode_number, 0, file_buffer, this_inode->length)){ //filesystem.inode_start[exec.inode_number].length
+	if(-1 == read_data(exec.inode_number, 0, file_buffer, 30)){ //filesystem.inode_start[exec.inode_number].length
 		return -1;
 	}
 
@@ -133,7 +133,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	/*Hershel sets up PCB using TSS stuff*/
 	/*kernel stack pointer for process about to be executed*/
 	kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
-	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (PCB_t *)(tss.esp0 & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
 	}
@@ -156,9 +156,12 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 
 	/*Load Program */
-	for(i = 0; i < this_inode->length; i++){
-		*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
+	if(-1 == read_data(exec.inode_number, 0, (uint8_t*)PROG_LOAD_LOC, this_inode->length)){
+		return -1;
 	}
+	// for(i = 0; i < this_inode->length; i++){
+	// 	*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
+	// }
 
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));

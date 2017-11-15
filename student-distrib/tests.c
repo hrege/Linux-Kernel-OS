@@ -647,7 +647,7 @@ int pcb_test(){
 	for(i = 0; i<6; i++){
 		printf("Setting up process for PID #%d\n", next_pid);
 		kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
-		PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (uint32_t *)(tss.esp0 & 0xFFFFE000));
+		PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (PCB_t *)(tss.esp0 & 0xFFFFE000));
 		if(NULL == exec_pcb || pcbs[next_pid-1] != exec_pcb) { //check location
 			return FAIL;
 		}
