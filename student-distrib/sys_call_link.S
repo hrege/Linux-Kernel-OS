@@ -30,7 +30,7 @@ pusha
 pushl %edx
 pushl %ecx
 pushl %ebx
-movl $-4, %ebx
+movl $-4, %ebx #to account for indexing of the jump table
 sti
 jmp *sys_jump(%ebx, %eax, 4)
 

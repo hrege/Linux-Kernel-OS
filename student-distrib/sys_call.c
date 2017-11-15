@@ -70,6 +70,12 @@ extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
+	if(curr_pcb->parent_process->process_id == 0){
+		next_pid = 0;
+		uint8_t* ptr = (uint8_t*)("shell");
+		sys_execute(ptr);
+	}
+
 	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
 	/*Close any files associated with this process*/
 	for(i = 0; i < MAX_ACTIVE_FILES; i++){
