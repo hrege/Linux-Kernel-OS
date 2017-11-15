@@ -36,7 +36,12 @@ jmp *sys_jump(%ebx, %eax, 4)
 
 done:
 addl $12, %esp
-popa
+popl %ecx
+popl %edx
+popl %ebx
+popl %ebp
+popl %esi
+popl %edi
 leave
 iret
 
@@ -110,4 +115,3 @@ pushl USER_CS_A       #user CS
 pushl 20(%esp)      #user EIP
 IRET
 jmp done
-
