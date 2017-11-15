@@ -61,7 +61,7 @@ int get_first_fd(){
 *	sys_halt
 *		Description: the system call to halt a process (the process called)
 *		Author: Sam
-*		Input: status - status of execution (256 if halted by exception)	
+*		Input: status - status of execution (256 if halted by exception)
 *		Outputs: Halts process
 *		Returns: status (returned to execute)
 *		Side effects: closes associated files
@@ -70,7 +70,7 @@ extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
-	if(curr_pcb->parent_process->process_id == 0){
+	if(curr_pcb->process_id == 0){
 		next_pid = 0;
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
@@ -79,7 +79,9 @@ extern uint32_t sys_halt(uint8_t status){
 	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
 	/*Close any files associated with this process*/
 	for(i = 0; i < MAX_ACTIVE_FILES; i++){
-		curr_pcb->file_array[i].file_operations.device_close(i);
+		if(curr_pcb->file_array[i].flags == 1) {
+			curr_pcb->file_array[i].file_operations.device_close(i);
+		}
 	}
 
 	return 0;
@@ -87,7 +89,7 @@ extern uint32_t sys_halt(uint8_t status){
 
 
 /*
-*	sys_execute 
+*	sys_execute
 *		Description: The execute system call to execute a new process
 *		Author: Sam, Jonathan, Austin, Hershel
 *		Inputs: command - a buffer containing the executable name and arguments
