@@ -13,7 +13,7 @@
 #include "sys_call_link.H"
 #include "lib.h"
 
-uint32_t next_pid;
+uint32_t pid_bitmap[MAX_PID];
 file_operations_t stdin_ops;
 // stdin_ops.device_open = terminal_open;
 // stdin_ops.device_close = terminal_close;
@@ -57,6 +57,28 @@ int get_first_fd(){
 	return -1;
 }
 
+/*	get_first_pid
+*		Description:  Local function to find first pid available in pid_bitmap located in kernel memory
+*		Author: Sam
+*		Inputs: None
+*		Ouptuts: None
+*		Returns: Number of first available pid;
+*					-1 if pid_bitmap is full
+*/
+
+int get_first_pid(){
+	int i; // loop variable
+
+	/* start at 0 and check until you find one */
+	for(i = 0; i < MAX_PID; i++){
+		if(pid_bitmap[i] == 0){
+			pid_bitmap[i] = 1;
+			return i;
+		}
+	}
+	return -1;
+}
+
 /*
 *	sys_halt
 *		Description: the system call to halt a process (the process called)
@@ -70,8 +92,13 @@ extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
+	if(pid_bitmap[curr_pcb->process_id] == 0){
+		return -1;
+	}
+
+	pid_bitmap[curr_pcb->process_id] = 0;
+
 	if(curr_pcb->process_id == 0){
-		next_pid = 0;
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
 	}
@@ -103,8 +130,11 @@ extern uint32_t sys_execute(const uint8_t* command){
 	uint8_t file_buffer[30];
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
+	uint32_t next_pid;
 	// int i;
-	if(next_pid >= MAX_PROCESS){
+
+	next_pid = get_first_pid();
+	if(next_pid == -1){
 		return -1;
 	}
 

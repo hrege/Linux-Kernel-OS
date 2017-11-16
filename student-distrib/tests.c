@@ -643,7 +643,9 @@ int pcb_test(){
 	TEST_HEADER;
 	uint32_t* kern_stack_ptr;
 	PCB_t * pcbs[6] = {(PCB_t *)0x7fe000, (PCB_t *)0x7fc000, (PCB_t *)0x7fa000, (PCB_t *)0x7f8000, (PCB_t *)0x7f6000, (PCB_t *)0x7f4000}; //PCB locations for pid 0-5
+	uint32_t next_pid = get_first_pid();
 	int i;
+
 	for(i = 0; i<6; i++){
 		printf("Setting up process for PID #%d\n", next_pid);
 		kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));

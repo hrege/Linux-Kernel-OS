@@ -16,6 +16,7 @@
 
 #define RUN_TESTS
 
+
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
@@ -23,8 +24,7 @@
 #define     MB_8        0x800000
 
 static uint32_t * file_system_addr;
-extern uint32_t next_pid;
-
+int i;//loop variable
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -150,8 +150,12 @@ void entry(unsigned long magic, unsigned long addr) {
 
         ltr(KERNEL_TSS);
     }
-    /*Set up pid tracker*/
-    next_pid = 0;
+
+
+    /*Set up pid_bitmap with all free pids*/
+    for(i = 0; i < MAX_PID; i++){
+        pid_bitmap[i] = 0;
+    }
 
     file_system_init(file_system_addr);
 

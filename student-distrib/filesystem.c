@@ -66,7 +66,7 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB) 
     new_pcb.parent_process = parent_PCB; 
     *((PCB_t*)((uint32_t)start_addr & 0xFFFFE000)) = new_pcb;
   }
-  next_pid++;
+  
 
   PCB_ptr = (PCB_t*)((uint32_t)start_addr & 0xFFFFE000);
 

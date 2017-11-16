@@ -11,6 +11,7 @@
 static volatile uint8_t line_buffer[max_buffer_size];
 static volatile int buffer_length;
 static volatile int flag; //0 to sleep termianl_read() positive number for bytes to copy 
+static int line_start;
 static int rshift_flag;
 static int lshift_flag;
 static int caps_flag;
@@ -228,11 +229,11 @@ void keyboard_handler() {
 
   }
   else if(keyboard_input == BACKSPACE_SCAN){
-      if(buffer_length > 0){
+      if(buffer_length > 0 && (get_screen_x() > line_start || (buffer_length + line_start) >= 80)){
         buffer_length--;
       }
       else{
-        set_screen_x(0);
+        set_screen_x(line_start);
         send_eoi(KEYBOARD_IRQ);
         return;
       }
@@ -272,6 +273,7 @@ void keyboard_handler() {
     flag = buffer_length;
     update_cursor(get_screen_x(), get_screen_y());
     buffer_length = 0;
+    line_start = 0;
     sti();
 
   }
@@ -384,10 +386,12 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
       }
       if(((char *)buf)[i] == ENTER){
          putc('\n');	//enter is newline
+         line_start = 0;
       }
       else if(((char *)buf)[i] != 0) {
         putc(((char *)buf)[i]);	//otherwise print the char and put it in line buffer
         line_buffer[buffer_length] = ((char *)buf)[i];
+        line_start++;
       }  
 
       /*Take care of scrolling when screen_y reaches maximum*/

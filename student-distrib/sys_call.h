@@ -20,9 +20,12 @@
 #define PID_OFF             2
 #define MAX_FILES           8
 #define MAX_PROCESS			6  //current support limit
+#define MAX_PID     10
 
 
-extern uint32_t next_pid;
+extern uint32_t pid_bitmap[MAX_PID];
+
+extern int get_first_pid();
 
 /* Declare functions */
 extern uint32_t sys_halt(uint8_t status);
