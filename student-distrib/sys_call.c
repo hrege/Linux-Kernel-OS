@@ -216,7 +216,14 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);	
+    asm volatile ("						\n\
+            execute_comeback:             \n\
 
+            "
+            :
+            : 
+            : 
+    );
 
 	return 0;
 }
