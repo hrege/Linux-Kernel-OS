@@ -26,7 +26,14 @@ jle bad_sys_call
 cmpl $11, %eax
 jge bad_sys_call
 
-pusha
+#save registers
+pushl %edi
+pushl %esi
+pushl %ebp
+pushl %ebx
+pushl %edx
+pushl %ecx
+#push args
 pushl %edx
 pushl %ecx
 pushl %ebx
@@ -35,7 +42,9 @@ sti
 jmp *sys_jump(%ebx, %eax, 4)
 
 done:
+#for 3 args
 addl $12, %esp
+#restore registers
 popl %ecx
 popl %edx
 popl %ebx
