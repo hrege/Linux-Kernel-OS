@@ -54,6 +54,7 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB) 
   struct PCB_t* PCB_ptr;
   new_pcb.process_id = p_id;
   new_pcb.kern_esp = start_addr;
+  new_pcb.kern_ebp = start_addr;
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
      otherwise, point to proper offset in kernel stack. */

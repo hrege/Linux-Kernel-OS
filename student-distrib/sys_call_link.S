@@ -16,7 +16,7 @@ USER_CS_A:    .long 0x23
 USER_DS_A:    .long 0x2B
 ZERO:         .long 0x0
 
-.global sys_call_asm, user_prep
+.global sys_call_asm, user_prep, execute_comeback
 sys_call_asm:
 pushl %ebp
 movl %esp, %ebp
@@ -124,3 +124,7 @@ pushl USER_CS_A       #user CS
 pushl 20(%esp)      #user EIP
 IRET
 jmp done
+
+execute_comeback:
+leave
+ret

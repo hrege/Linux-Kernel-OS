@@ -103,6 +103,7 @@ extern uint32_t sys_halt(uint8_t status){
 		sys_execute(ptr);
 	}
 
+
 	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
 	/*Close any files associated with this process*/
 	for(i = 0; i < MAX_ACTIVE_FILES; i++){
@@ -110,7 +111,18 @@ extern uint32_t sys_halt(uint8_t status){
 			curr_pcb->file_array[i].file_operations.device_close(i);
 		}
 	}
+	/*Need to restore stack frame stored in pcb*/
+	tss.esp0 = curr_pcb->parent_process->kern_esp;
+	//restore execute_esp and execute_ebp and jmp to execute_comeback
+    asm volatile goto ("						\n\
+    		movl %1		                             \n\
+            jmp     execute_comeback             \n\
 
+            "
+            :
+            : 
+            : execute_comeback
+    );
 	return 0;
 }
 
@@ -203,7 +215,9 @@ extern uint32_t sys_execute(const uint8_t* command){
 	tss.ss0 = KERNEL_DS;
 
 	/* Set up stacks before IRET */
-	user_prep(eip, USER_STACK_POINTER);
+	user_prep(eip, USER_STACK_POINTER);	
+
+
 	return 0;
 }
 

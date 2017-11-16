@@ -92,6 +92,7 @@ typedef struct PCB_t {
   uint32_t process_id;
   struct PCB_t* parent_process;
   uint32_t* kern_esp;
+  uint32_t* kern_ebp;
 } PCB_t;
 
 /* Initalization function to set all file system pointers. */
