@@ -64,10 +64,10 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB) 
   }
   else {
     /* FIX - need to store extra reference to child process (stack pointer of parent)*/
-    new_pcb.parent_process = parent_PCB; 
+    new_pcb.parent_process = parent_PCB;
     *((PCB_t*)((uint32_t)start_addr & 0xFFFFE000)) = new_pcb;
   }
-  
+
 
   PCB_ptr = (PCB_t*)((uint32_t)start_addr & 0xFFFFE000);
 

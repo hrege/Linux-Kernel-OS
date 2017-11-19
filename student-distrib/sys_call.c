@@ -112,17 +112,19 @@ extern uint32_t sys_halt(uint8_t status){
 		}
 	}
 	/*Need to restore stack frame stored in pcb*/
-	tss.esp0 = curr_pcb->parent_process->kern_esp;
-	//restore execute_esp and execute_ebp and jmp to execute_comeback
-    asm volatile goto ("						\n\
-    		movl %1		                             \n\
-            jmp     execute_comeback             \n\
+	tss.esp0 = (uint32_t)curr_pcb->parent_process->kern_esp;
 
-            "
-            :
-            : 
-            : execute_comeback
-    );
+	/* Restore ESP from calling Execute function. This works
+		 and sends program to sys_execute
+	 */
+  asm volatile(
+												""
+			"movl %0, %%esp;"
+			"jmp execute_comeback;"
+			:
+			:"r"(curr_pcb->parent_process->kern_esp)
+			:"eax"
+			);
 	return 0;
 }
 
@@ -215,15 +217,12 @@ extern uint32_t sys_execute(const uint8_t* command){
 	tss.ss0 = KERNEL_DS;
 
 	/* Set up stacks before IRET */
-	user_prep(eip, USER_STACK_POINTER);	
-    asm volatile ("						\n\
-            execute_comeback:             \n\
-            "
-            :
-            : 
-            : 
-    );
-
+	user_prep(eip, USER_STACK_POINTER);
+	asm volatile(
+			"execute_comeback:;"
+			"LEAVE;"
+			"RET;"
+	);
 	return 0;
 }
 
