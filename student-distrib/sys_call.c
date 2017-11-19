@@ -91,12 +91,12 @@ int get_first_pid(){
 extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
 	/* Halt outline compilation from Office Hrs. and ULK
-		-Account for returning from the only running process? Depends on how we relaunch shell
+		-Account for returning from the only running process? Depends on how we relaunch shell ... loop in kernel? or relaunch here?
 		-Make process # available
 		-Set current process back to parent
 		-If our pcb has a child counter decrement that (we don't and its a design choice - not required)
 		-Load the parent page directory (going to need assembly here - can access pcb struct elements by by casting their pointers to uint32 for use in assembly)
-		-Set kerel stack bottom and tss.esp0 back to parent
+		-Set kerel stack bottom and tss.esp0 back to parent (should be from PCB?)
 		-reset stack pointers (esp and ebp)
 		-depending on how you set up stack you may need to pop off one or two things here to remove useless stuff
 		-leave
