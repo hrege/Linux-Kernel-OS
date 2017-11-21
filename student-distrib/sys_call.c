@@ -155,19 +155,58 @@ extern uint32_t sys_execute(const uint8_t* command){
 	uint32_t mag_num;
 	dentry_t exec;
 	uint8_t file_buffer[30];
+	uint8_t exe_name[FILE_NAME_SIZE];
+	uint8_t exe_len = 0;
+	uint8_t temp_arg_buf[128];
+	uint8_t arg_len_count = 0;
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
 	uint32_t next_pid;
-	// int i;
+	int i;
 
+	//check valid PID and command buffer
 	next_pid = get_first_pid();
-	if(next_pid == -1){
+	if(next_pid == -1 || command == NULL){
 		return -1;
 	}
 
-	clear();
+	clear(); //WHY??
+	int args = 0; //indicator of whether we are reading arguments or not
+	/*  PARSE THE COMMAND FOR EXECULTABLE AND ARGS */
+	for(i=0; command[i] != '\0'; i++){
+		//if this is the executabke
+		if(!args){
+			//if we reach the end of the executable
+			if(command[i] == ' '){
+				exe_name[i] = '\0';
+				exe_len = i + 1;
+				args = 1;
+			}
+			//if the input it too long
+			else if(i>=32){
+				return -1;
+			}
+			//if its all good copy the executable
+			else{
+				exec_name[i] = command[i];
+			}
+		}
+		//if it is not the executable copy into args buf
+		else{
+			temp_arg_buf[i-exe_len] = command[i];
+			arg_len_count++;
+		}
+	}
+	//account for a null terminated executable name (no space)
+	if(!args){
+		exe_name[i]='\0';
+	}
+	//null terminate the arg buf
+	temp_arg_buf[i-exe_len] = '\0';
+	arg_len_count++;
 
-	if(-1 == read_dentry_by_name(command, &exec)){
+
+	if(-1 == read_dentry_by_name(&exe_name, &exec)){
 		return -1;
 	}
 	if(exec.file_type != REGULAR_FILE_TYPE){
@@ -196,7 +235,11 @@ extern uint32_t sys_execute(const uint8_t* command){
 	if(NULL == exec_pcb){
 		return -1;
 	}
+	/* Put args into PCB */
+	exec_pcb->arg_len = arg_len_count;
+	strcpy((int8_t*)exec_pcb->arguments,(const int8_t*)temp_arg_buf);
 
+	/* Set up standard IN/OUT (should we just call open maybe...)*/
 	exec_pcb->file_array[0].file_operations.device_open = terminal_open;
 	exec_pcb->file_array[0].file_operations.device_close = terminal_close;
 	exec_pcb->file_array[0].file_operations.device_read = terminal_read;
@@ -342,25 +385,55 @@ extern uint32_t sys_close(uint32_t fd){
 }
 
 
-/*    BELOW NOT FOR CP3   */
+/*    BELOW NEW FOR CP4  */
 
+/*
+*	sys_getargs
+*		Author: Jonathan
+*		Description: returns the command line args for a process stored in task data
+*		Inputs: The buffer the program wants the arguments in and the lenght of it
+*		Returns: -1 for fail or 0 for pass
+*		Side-effect: If succeeds then the buffer has the null terminated args in it
+*/
 extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
+	//Input check
+	if(buf == NULL || nbytes == 0){
+		return -1;
+	}
+	//get the pcb
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	//check length
+	if(curr_pcb->arg_len > nbytes){
+		return -1;
+	}
+	//make copy
+	strcpy((int8_t*)buf, (const int8_t*)curr_pcb->arguments);
 	return 0;
-
 }
+
+
 extern uint32_t sys_vidmap(uint8_t** screen_start){
 	return 0;
 
 }
+
+/*
+*	sys_set_handler
+*		Not supported. Returns Fail
+*/
 extern uint32_t sys_set_handler(uint32_t signum, void* handler_address){
-	return 0;
-
+	return 1;
 }
+/*
+*	sys_set_handler
+*		Not supported. Returns Fail
+*/
 extern uint32_t sys_sigreturn(void){
-	return 0;
-
+	return -1;
 }
 
+
+/* Below are place holders for calls table */
 extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
 	return 0;
 }

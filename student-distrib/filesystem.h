@@ -93,6 +93,8 @@ typedef struct PCB_t {
   struct PCB_t* parent_process;
   uint32_t* kern_esp;
   uint32_t* kern_ebp;
+  uint8_t arguments[128]; //128 is max size to type on terminal so can safely be large enough
+  uint8_t arg_len;
 } PCB_t;
 
 /* Initalization function to set all file system pointers. */
