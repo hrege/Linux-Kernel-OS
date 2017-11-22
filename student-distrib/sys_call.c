@@ -153,19 +153,58 @@ extern uint32_t sys_execute(const uint8_t* command){
 	uint32_t mag_num;
 	dentry_t exec;
 	uint8_t file_buffer[30];
+	uint8_t exe_name[FILE_NAME_SIZE];
+	uint8_t exe_len = 0;
+	uint8_t temp_arg_buf[128];
+	uint8_t arg_len_count = 0;
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
 	uint32_t next_pid;
-	// int i;
+	int i;
 
+	//check valid PID and command buffer
 	next_pid = get_first_pid();
-	if(next_pid == -1){
+	if(next_pid == -1 || command == NULL){
 		return -1;
 	}
 
-	clear();
+	clear(); //WHY??
+	int args = 0; //indicator of whether we are reading arguments or not
+	/*  PARSE THE COMMAND FOR EXECULTABLE AND ARGS */
+	for(i=0; command[i] != '\0'; i++){
+		//if this is the executabke
+		if(!args){
+			//if we reach the end of the executable
+			if(command[i] == ' '){
+				exe_name[i] = '\0';
+				exe_len = i + 1;
+				args = 1;
+			}
+			//if the input it too long
+			else if(i>=32){
+				return -1;
+			}
+			//if its all good copy the executable
+			else{
+				exe_name[i] = command[i];
+			}
+		}
+		//if it is not the executable copy into args buf
+		else{
+			temp_arg_buf[i-exe_len] = command[i];
+			arg_len_count++;
+		}
+	}
+	//account for a null terminated executable name (no space)
+	if(!args){
+		exe_name[i]='\0';
+	}
+	//null terminate the arg buf
+	temp_arg_buf[i-exe_len] = '\0';
+	arg_len_count++;
 
-	if(-1 == read_dentry_by_name(command, &exec)){
+
+	if(-1 == read_dentry_by_name(exe_name, &exec)){
 		return -1;
 	}
 	if(exec.file_type != REGULAR_FILE_TYPE){
@@ -194,7 +233,11 @@ extern uint32_t sys_execute(const uint8_t* command){
 	if(NULL == exec_pcb){
 		return -1;
 	}
+	/* Put args into PCB */
+	exec_pcb->arg_len = arg_len_count;
+	strcpy((int8_t*)exec_pcb->arguments,(const int8_t*)temp_arg_buf);
 
+	/* Set up standard IN/OUT (should we just call open maybe...)*/
 	exec_pcb->file_array[0].file_operations.device_open = terminal_open;
 	exec_pcb->file_array[0].file_operations.device_close = terminal_close;
 	exec_pcb->file_array[0].file_operations.device_read = terminal_read;
@@ -354,25 +397,90 @@ extern uint32_t sys_close(uint32_t fd){
 }
 
 
-/*    BELOW NOT FOR CP3   */
+/*    BELOW NEW FOR CP4  */
 
+/*
+*	sys_getargs
+*		Author: Jonathan
+*		Description: returns the command line args for a process stored in task data
+*		Inputs: The buffer the program wants the arguments in and the lenght of it
+*		Returns: -1 for fail or 0 for pass
+*		Side-effect: If succeeds then the buffer has the null terminated args in it
+*/
 extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
+	//Input check
+	if(buf == NULL || nbytes == 0){
+		return -1;
+	}
+	//get the pcb
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	//check length
+	if(curr_pcb->arg_len > nbytes){
+		return -1;
+	}
+	//make copy
+	strcpy((int8_t*)buf, (const int8_t*)curr_pcb->arguments);
 	return 0;
-
 }
+
+/*
+*	sys_vidmap
+*		Author: Jomathan
+*		Description: Maps the text mode video mem into user space at preset virtual addr. 
+*		Inputs: Pointer to where to put the pointer
+*		Return: -1 for fail ... virtual address (const 132MB) upon success
+*		Side_effects: Video Mem mapped to 132MB in virtual mem
+*/
 extern uint32_t sys_vidmap(uint8_t** screen_start){
-	return 0;
+	//check for non-NULL
+	if(screen_start == NULL){
+		return -1;
+	}
+	//figure out where user page is by process number
+
+//Checking valid location not right yet
+
+	// PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	// uint32_t id = curr_pcb->process_id;
+	// //make sure in that user page
+	// if((uint32_t)screen_start < (_8_MB + (_4_MB * id)) || (uint32_t)screen_start > (_8_MB + (_4_MB * (id+1)))){
+	// 	return -1;
+	// }
+
+	/*Set screen start pointer to the virtual location
+		we are using the 4mb starting at 132 MB because that is,
+		at the time this is written, the first 4mb available in memory */
+	*screen_start = (uint8_t *)_132_MB;
+
+	/*map based on video number (this depends on whether we have implemented multiple terminals?)
+	*Call our paging mapping function ... input 1 is virtual location; 2 is physical location
+	*Virtual Location is:  132 MB
+	*Physical Location is:   Video Mem at 0xB8000
+	*/
+	paging_switch((uint32_t)_132_MB,(uint32_t)VIDEO_LOC);
+	
+	//return the virtual location
+	return _132_MB;
 
 }
+
+/*
+*	sys_set_handler
+*		Not supported. Returns Fail
+*/
 extern uint32_t sys_set_handler(uint32_t signum, void* handler_address){
-	return 0;
-
+	return 1;
 }
+/*
+*	sys_set_handler
+*		Not supported. Returns Fail
+*/
 extern uint32_t sys_sigreturn(void){
-	return 0;
-
+	return -1;
 }
 
+
+/* Below are place holders for calls table */
 extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
 	return 0;
 }
