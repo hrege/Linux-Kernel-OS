@@ -411,9 +411,41 @@ extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
 	return 0;
 }
 
-
+/*
+*	sys_vidmap
+*		Author: Jomathan
+*		Description: Maps the text mode video mem into user space at preset virtual addr. 
+*		Inputs: Pointer to where to put the pointer
+*		Return: -1 for fail ... virtual address (const 132MB) upon success
+*		Side_effects: Video Mem mapped to 132MB in virtual mem
+*/
 extern uint32_t sys_vidmap(uint8_t** screen_start){
-	return 0;
+	//check for non-NULL
+	if(screen_start == NULL){
+		return -1;
+	}
+	//figure out where user page is by process number
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	uint32_t id = curr_pcb->process_id;
+	//make sure in that user page
+	if((uint32_t)screen_start < (_8_MB + (_4_MB * id)) || (uint32_t)screen_start > (_8_MB + (_4_MB * (id+1)))){
+		return -1;
+	}
+
+	/*Set screen start pointer to the virtual location
+		we are using the 4mb starting at 132 MB because that is,
+		at the time this is written, the first 4mb available in memory */
+	*screen_start = (uint8_t *)_132_MB;
+
+	/*map based on video number (this depends on whether we have implemented multiple terminals?)
+	*Call our paging mapping function ... input 1 is virtual location; 2 is physical location
+	*Virtual Location is:  132 MB
+	*Physical Location is:   Video Mem at 0xB8000
+	*/
+	paging_switch((uint32_t)_132_MB,(uint32_t)VIDEO_LOC);
+	
+	//return the virtual location
+	return _132_MB;
 
 }
 

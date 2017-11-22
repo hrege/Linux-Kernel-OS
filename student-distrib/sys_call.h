@@ -20,7 +20,10 @@
 #define PID_OFF             2
 #define MAX_FILES           8
 #define MAX_PROCESS			6  //current support limit
-#define MAX_PID     10
+#define MAX_PID     		10
+#define _132_MB				0x8400000
+#define _8_MB				0x800000
+#define _4_MB				0x400000
 
 
 extern uint32_t pid_bitmap[MAX_PID];
