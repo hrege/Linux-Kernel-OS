@@ -123,6 +123,11 @@ pushl %edx
 pushl USER_CS_A       #user CS
 pushl 20(%esp)      #user EIP
 IRET
+popl %edx
+popl %edx
+popl %edx
+popl %edx
+popl %edx
 jmp done
 
 
