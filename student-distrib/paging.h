@@ -3,6 +3,8 @@
 
 #include "types.h"
 
+#define VIDEO_LOC       0x000B8000
+
 // Paging Initialization functions
 void paging_init();
 void paging_enable(uint32_t* pdir_addr);

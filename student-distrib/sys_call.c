@@ -188,7 +188,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 			}
 			//if its all good copy the executable
 			else{
-				exec_name[i] = command[i];
+				exe_name[i] = command[i];
 			}
 		}
 		//if it is not the executable copy into args buf
@@ -206,7 +206,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	arg_len_count++;
 
 
-	if(-1 == read_dentry_by_name(&exe_name, &exec)){
+	if(-1 == read_dentry_by_name(exe_name, &exec)){
 		return -1;
 	}
 	if(exec.file_type != REGULAR_FILE_TYPE){
@@ -425,12 +425,15 @@ extern uint32_t sys_vidmap(uint8_t** screen_start){
 		return -1;
 	}
 	//figure out where user page is by process number
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
-	uint32_t id = curr_pcb->process_id;
-	//make sure in that user page
-	if((uint32_t)screen_start < (_8_MB + (_4_MB * id)) || (uint32_t)screen_start > (_8_MB + (_4_MB * (id+1)))){
-		return -1;
-	}
+
+//Checking valid location not right yet
+
+	// PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	// uint32_t id = curr_pcb->process_id;
+	// //make sure in that user page
+	// if((uint32_t)screen_start < (_8_MB + (_4_MB * id)) || (uint32_t)screen_start > (_8_MB + (_4_MB * (id+1)))){
+	// 	return -1;
+	// }
 
 	/*Set screen start pointer to the virtual location
 		we are using the 4mb starting at 132 MB because that is,

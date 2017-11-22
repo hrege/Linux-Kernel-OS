@@ -8,7 +8,6 @@
 #include "paging.h"
 
 #define VIDEO_IDX       0xB8                       //VIDEO from lib.c without 3 least significant bits
-#define VIDEO_LOC       0x000B8000
 #define TABLE_SIZE      1024                     //1024 entries in Page directory and Page table
 #define PAGE_MB_NUM     4
 #define PTE_OFFSET      12
