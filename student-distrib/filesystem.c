@@ -50,26 +50,25 @@ void file_system_init(uint32_t* start_addr) {
 
 struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB) {
   /* Create new PCB struct and set process id. */
-  struct PCB_t new_pcb;
   struct PCB_t* PCB_ptr;
-  new_pcb.process_id = p_id;
-  new_pcb.kern_esp = start_addr;
-  new_pcb.kern_ebp = start_addr;
+
+  PCB_ptr = (PCB_t*)((uint32_t)start_addr & 0xFFFFE000);
+
+  PCB_ptr->process_id = p_id;
+  PCB_ptr->kern_esp = start_addr;
+  PCB_ptr->kern_ebp = start_addr;
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL
      otherwise, point to proper offset in kernel stack. */
   if(p_id == 0) {
-    new_pcb.parent_process = NULL;
-    *((PCB_t*)((uint32_t)start_addr & 0xFFFFE000)) = new_pcb;
+    PCB_ptr->parent_process = NULL;
   }
   else {
     /* FIX - need to store extra reference to child process (stack pointer of parent)*/
-    new_pcb.parent_process = parent_PCB;
-    *((PCB_t*)((uint32_t)start_addr & 0xFFFFE000)) = new_pcb;
+    PCB_ptr->parent_process = parent_PCB;
   }
 
 
-  PCB_ptr = (PCB_t*)((uint32_t)start_addr & 0xFFFFE000);
 
   return PCB_ptr;
 }

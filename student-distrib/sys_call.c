@@ -268,7 +268,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 			:
 			: "memory"
 			);
-  	kern_stack_ptr = exec_pcb->kern_esp;
+  	//kern_stack_ptr = exec_pcb->kern_esp;
 	/* Set TSS values (more for safety than necessity) */
 	tss.esp0 = (uint32_t)kern_stack_ptr;
 	tss.ss0 = KERNEL_DS;
