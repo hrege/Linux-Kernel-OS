@@ -766,7 +766,7 @@ void launch_tests(){
 	//TEST_OUTPUT("div_zero_test", div_zero_test());
 	//TEST_OUTPUT("execute_input_test", execute_input_test());
 	//TEST_OUTPUT("pcb_test", pcb_test());
-	//TEST_OUTPUT("shell_test", shell_test());
-	TEST_OUTPUT("testprint_test", testprint_test());
+	TEST_OUTPUT("shell_test", shell_test());
+	//TEST_OUTPUT("testprint_test", testprint_test());
 	return;
 }

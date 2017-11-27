@@ -175,6 +175,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	}
 
 	int args = 0; //indicator of whether we are reading arguments or not
+	int leading_space = 1;
 	/*  PARSE THE COMMAND FOR EXECULTABLE AND ARGS */
 	for(i=0; command[i] != '\0'; i++){
 		//if this is the executabke
@@ -196,8 +197,12 @@ extern uint32_t sys_execute(const uint8_t* command){
 		}
 		//if it is not the executable copy into args buf
 		else{
-			temp_arg_buf[i-exe_len] = command[i];
-			arg_len_count++;
+			//check if leading space
+			if(!(leading_space && command[i]==' ')){
+				leading_space = 0;
+				temp_arg_buf[arg_len_count] = command[i];
+				arg_len_count++;
+			}
 		}
 	}
 	//account for a null terminated executable name (no space)
@@ -451,30 +456,29 @@ extern uint32_t sys_vidmap(uint8_t** screen_start){
 	if(screen_start == NULL){
 		return -1;
 	}
-	//figure out where user page is by process number
 
-//Checking valid location not right yet
+	//Checking valid location not right yet
+	if(((uint32_t)screen_start < _128_MB) || ((uint32_t)screen_start >= _132_MB)){
+		return -1;
+	}
 
-	// PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
-	// uint32_t id = curr_pcb->process_id;
-	// //make sure in that user page
-	// if((uint32_t)screen_start < (_8_MB + (_4_MB * id)) || (uint32_t)screen_start > (_8_MB + (_4_MB * (id+1)))){
-	// 	return -1;
-	// }
 
-	/*Set screen start pointer to the virtual location
-		we are using the 4mb starting at 132 MB because that is,
-		at the time this is written, the first 4mb available in memory */
-	*screen_start = (uint8_t *)_132_MB;
+	/*Set screen start pointer to the virtual location of video mem inside the mapped page.
+		We are using the 4MB starting at 132 MB because that is,
+		at the time this is written, the first 4MB available in memory */
+	uint8_t* ptr;
+	ptr = (uint8_t*)(_132_MB + VIDEO_LOC);
+	*screen_start = ptr;
 
 	/*map based on video number (this depends on whether we have implemented multiple terminals?)
 	*Call our paging mapping function ... input 1 is virtual location; 2 is physical location
 	*Virtual Location is:  132 MB
-	*Physical Location is:   Video Mem at 0xB8000
+	*Physical Location is:   0 MB (Video Mem at 0xB8000)
 	*/
-	paging_switch((uint32_t)_132_MB,(uint32_t)VIDEO_LOC);
 
-	//return the virtual location
+	paging_table_switch((uint32_t)VID_MEM_VIRT_MB,(uint32_t)VID_MEM_PHYS_MB);
+
+	//return the virtual location of page containing video memory
 	return _132_MB;
 
 }
