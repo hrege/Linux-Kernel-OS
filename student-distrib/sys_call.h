@@ -21,12 +21,15 @@
 #define MAX_FILES              8
 #define MAX_PROCESS			       6  //current support limit
 #define MAX_PID     		       10
-#define _132_MB				         0x8400000
-#define _8_MB				           0x800000
-#define _4_MB				           0x400000
+#define _128_MB					0x8000000
+#define _132_MB				    0x8400000
+#define _8_MB				    0x800000
+#define _4_MB				    0x400000
 #define REGULAR_FILE_TYPE      2
 #define DIRECTORY_FILE_TYPE    1
 #define RTC_FILE_TYPE          0
+#define VID_MEM_VIRT_MB			132
+#define	VID_MEM_PHYS_MB			0
 
 extern uint32_t pid_bitmap[MAX_PID];
 

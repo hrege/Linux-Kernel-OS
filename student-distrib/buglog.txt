@@ -13,20 +13,24 @@ Checkpoint 1:
 
 Bug:
 Always getting a general protection fault and if while(1) if removed from handler we get it over and over again.
+Person: Jonathan
 Solution:
 PIT was enabled. Disabled all interrupts until their specific set up to prevent this.
 
 Checkpoint 2:
 
 Bug: RTC_WRITE seemed to break RTC Interrupts
+Person: Jonathan
 Solution:
 had sti() and cli() in the wrong order lol
 
 Bug: RTC changed speeds incorrectly
+Person: Jonathan
 Solution:
 Higher Rate = lower Frequency apparently
 
 Bug: Caps and shift never turn off
+Person: Sam
 Solution:
 Needed to put release shift scancode handler and caps lock bug was cause because I(Sam) remapped my caps lock key to give my windows keyboard a CMD button for my Mac because my onboard keyboard and trackpad broke for no reason. 
 
@@ -34,21 +38,40 @@ Needed to put release shift scancode handler and caps lock bug was cause because
 Checkpoint 3:
 
 Bug:  Target Remote does not work
+Person: Hershel
 Solution:
 Hershel needs to open test_debug
 
 Bug: IRET Appeared to Segfault
+Person: Sam
 Solution: 
 Error was actually in sys_calls (not initializing fd_array).
 
 Bug: paging had issues initializing
+Person: Austin
 Solution:
 Changed the "i" to a "j" (the for loop specified i, but j was used in the loop variables...).
 
 Bug: Constant Variables were not working properly in sys_calls_link.S
+Person: Sam
 Solution:
 Declare equivalent local versions of the variables and call those instead.
 
+Bug: Persistant Page Fault in Halt
+Person: Sam, Hershel, Jonathan
+Solution: 
+Logic for restoring the esp and ebp for the parent was wrong. Were restoring from the parent
+pcb but that info is stored in the current pcb. Changing that allowed us to halt successfully
+Time Spent: 3.75 weeks
+
 Checkpoint 4:
+
+Bug: Page Fault in vidmap
+Person: Jonathan and Austin
+Solution:
+Turns out that the paging table set up funtion only takes in incrememnts of full MB but the video 
+memory (0xB8000) is not aligned to a full MB. The solution we decided on was to map the new page to 
+0 instead of xB8000 but set the screen start pointed to B8000 + new page location.
+This works since video memory is not close to 4MB in size. 
 
 Checkpoint 5:
