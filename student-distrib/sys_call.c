@@ -136,7 +136,7 @@ extern uint32_t sys_halt(uint8_t status){
 	  "jmp execute_comeback;"
   	  :
 	  : "m"(curr_pcb->parent_process->kern_esp), "m"(curr_pcb->parent_process->kern_ebp)
-	  : "memory");
+	  : );
   	
 	return 0;
 }
@@ -272,7 +272,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 			"movl %%ebp, %1;"
 			: "=m"(exec_pcb->kern_esp), "=m"(exec_pcb->kern_ebp)
 			:
-			: "memory"
+			: 
 			);
   	//kern_stack_ptr = exec_pcb->kern_esp;
 	/* Set TSS values (more for safety than necessity) */
