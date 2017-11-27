@@ -159,6 +159,8 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
     //Map 128-132MB VM to 12-16MB PM
     //page_directory[32] = 0x00C00083;
 
+
+
 /* Author: Austin
  * void paging_table_switch(uint32_t mb_va, uin32_t mb_pa)
  *      Inputs: mb_va - MB location of virtual address
