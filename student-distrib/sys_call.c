@@ -166,6 +166,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 	clear(); //WHY??
 	int args = 0; //indicator of whether we are reading arguments or not
+	int leading_space = 1;
 	/*  PARSE THE COMMAND FOR EXECULTABLE AND ARGS */
 	for(i=0; command[i] != '\0'; i++){
 		//if this is the executabke
@@ -187,8 +188,12 @@ extern uint32_t sys_execute(const uint8_t* command){
 		}
 		//if it is not the executable copy into args buf
 		else{
-			temp_arg_buf[i-exe_len] = command[i];
-			arg_len_count++;
+			//check if leading space
+			if(!(leading_space && command[i]==' ')){
+				leading_space = 0;
+				temp_arg_buf[arg_len_count] = command[i];
+				arg_len_count++;
+			}
 		}
 	}
 	//account for a null terminated executable name (no space)
