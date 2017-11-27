@@ -113,6 +113,7 @@ extern uint32_t sys_halt(uint8_t status){
 	pid_bitmap[curr_pcb->process_id] = 0;
 
 	if(curr_pcb->process_id == 0){
+		clear();
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
 	}
@@ -131,13 +132,16 @@ extern uint32_t sys_halt(uint8_t status){
 	/* Restore ESP from calling Execute function. This works
 		 and sends program to sys_execute
 	 */
-  asm("movl %0, %%esp;"
-	  "movl %1, %%ebp;"
-	  "jmp execute_comeback;"
-  	  :
-	  : "m"(curr_pcb->parent_process->kern_esp), "m"(curr_pcb->parent_process->kern_ebp)
-	  : "memory");
-  	
+  asm volatile("movl %0, %%eax;"
+		"movl %1, %%esp;"
+	  "movl %2, %%ebp;"
+	  "leave;"
+		"ret;"
+  	:
+	  : "r"((uint32_t)status), "m"(curr_pcb->kern_esp), "m"(curr_pcb->kern_ebp)
+	  : "eax"
+		);
+
 	return 0;
 }
 
@@ -170,7 +174,6 @@ extern uint32_t sys_execute(const uint8_t* command){
 		return -1;
 	}
 
-	clear(); //WHY??
 	int args = 0; //indicator of whether we are reading arguments or not
 	/*  PARSE THE COMMAND FOR EXECULTABLE AND ARGS */
 	for(i=0; command[i] != '\0'; i++){
@@ -205,7 +208,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	temp_arg_buf[i-exe_len] = '\0';
 	arg_len_count++;
 
-
+	/* Check if file exists in directory and if file type is regular. */
 	if(-1 == read_dentry_by_name(exe_name, &exec)){
 		return -1;
 	}
@@ -213,33 +216,36 @@ extern uint32_t sys_execute(const uint8_t* command){
 		return -1;
 	}
 
+	/* Calculate length of file being read. */
 	inode_t* this_inode;
 	this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (exec.inode_number * BLOCK_SIZE));
 	this_inode->length = *((uint32_t*)this_inode);
 
-	/*Read executable into the file_buffer*/
-	if(-1 == read_data(exec.inode_number, 0, file_buffer, 30)){ //filesystem.inode_start[exec.inode_number].length
+	/* Read executable information into the file_buffer. */
+	if(-1 == read_data(exec.inode_number, 0, file_buffer, 30)) {
 		return -1;
 	}
 
+	/* Determine if file is executable by comparing it to pre-determined executable hex value. */
 	mag_num = (((uint32_t)(file_buffer[0]) << 24) | ((uint32_t)(file_buffer[1]) << 16) | ((uint32_t)(file_buffer[2]) << 8) | (uint32_t)(file_buffer[3]));
 	if(mag_num != EXEC_IDENTITY){
 		return -1;
 	}
 
-
-	/*Hershel sets up PCB using TSS stuff*/
-	/*kernel stack pointer for process about to be executed*/
+	/* Set up kernel stack pointer that corresponds to process about to be executed. */
 	kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
+
+	/* Initialize current process Process Control Block at proper location in kernel page. */
 	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (PCB_t *)(tss.esp0 & 0xFFFFE000));
 	if(NULL == exec_pcb){
 		return -1;
 	}
+
 	/* Put args into PCB */
 	exec_pcb->arg_len = arg_len_count;
 	strcpy((int8_t*)exec_pcb->arguments,(const int8_t*)temp_arg_buf);
 
-	/* Set up standard IN/OUT (should we just call open maybe...)*/
+	/* Set up standard IN/OUT file operations and mark files as in use by modifying 'flags'. */
 	exec_pcb->file_array[0].file_operations.device_open = terminal_open;
 	exec_pcb->file_array[0].file_operations.device_close = terminal_close;
 	exec_pcb->file_array[0].file_operations.device_read = terminal_read;
@@ -253,39 +259,42 @@ extern uint32_t sys_execute(const uint8_t* command){
 	exec_pcb->file_array[0].flags = 1;
 	exec_pcb->file_array[1].flags = 1;
 
-	/*Austin's paging thing including flush TLB entry associated with 128 + offset MB virtual memory*/
+	/* Set up virtual page to hold program information and flush TLB. */
 	paging_switch(USER_PROG_VM, STACK_ROW_SIZE * (exec_pcb->process_id + PID_OFF));
 
-
-	/*Load Program */
+	/* Load Program into newly-assigned virtual memory. */
 	if(-1 == read_data(exec.inode_number, 0, (uint8_t*)PROG_LOAD_LOC, this_inode->length)){
 		return -1;
 	}
+
 	// for(i = 0; i < this_inode->length; i++){
 	// 	*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
 	// }
 
-	/*Load first instruction location into eip (reverse order since it's little-endian)*/
+	/* Load first instruction location into EIP (reverse order since it's little-endian). */
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
-  asm ("movl %%esp, %0;"
-			"movl %%ebp, %1;"
-			: "=m"(exec_pcb->kern_esp), "=m"(exec_pcb->kern_ebp)
-			:
-			: "memory"
-			);
-  	//kern_stack_ptr = exec_pcb->kern_esp;
 	/* Set TSS values (more for safety than necessity) */
 	tss.esp0 = (uint32_t)kern_stack_ptr;
 	tss.ss0 = KERNEL_DS;
 
-	/* Set up stacks before IRET */
+	/* Save current process ESP/EBP into PCB in order to return to the correct parent process kernel stack. */
+  asm volatile("movl %%esp, %0;"
+			"movl %%ebp, %1;"
+			: "=m"(exec_pcb->kern_esp), "=m"(exec_pcb->kern_ebp)
+			:
+			: "eax"
+			);
+
+	/* Set up stacks before IRET call to run user program. */
 	user_prep(eip, USER_STACK_POINTER);
-	asm ("execute_comeback:"
-			"LEAVE;"
-			"RET;"
-	);
+
 	return 0;
+	// asm volatile("execute_comeback:;"
+	// 		"RET;"
+	// );
+
+
 }
 
 /* sys_read
@@ -343,28 +352,40 @@ extern uint32_t sys_open(const uint8_t* filename){
 		return -1;
 	}
 
-
-	fd = get_first_fd(); //should get the first available fd and returns its index... -1 if full
+	/* Return first available file descriptor, if available; else return failure if no file descriptor available. */
+	fd = get_first_fd();
 	if(fd == -1){
 		return -1;
 	}
+
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
-		case REGULAR_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = regular_ops;
+		case REGULAR_FILE_TYPE:
+			curr_pcb->file_array[fd].file_operations.device_open = file_open;
+			curr_pcb->file_array[fd].file_operations.device_close = file_close;
+			curr_pcb->file_array[fd].file_operations.device_read = file_read;
+			curr_pcb->file_array[fd].file_operations.device_write = file_write;
+			break;
 
-		case DIRECTORY_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = directory_ops;
+		case DIRECTORY_FILE_TYPE:
+			curr_pcb->file_array[fd].file_operations.device_open = directory_open;
+			curr_pcb->file_array[fd].file_operations.device_close = directory_close;
+			curr_pcb->file_array[fd].file_operations.device_read = directory_read;
+			curr_pcb->file_array[fd].file_operations.device_write = directory_write;
+			break;
 
-		case RTC_FILE_TYPE :
-		curr_pcb->file_array[fd].file_operations = rtc_ops;
+		case RTC_FILE_TYPE:
+			curr_pcb->file_array[fd].file_operations.device_open = rtc_open;
+			curr_pcb->file_array[fd].file_operations.device_close = rtc_close;
+			curr_pcb->file_array[fd].file_operations.device_read = rtc_read;
+			curr_pcb->file_array[fd].file_operations.device_write = rtc_write;
+			break;
 
 		default:
-		return -1;
-
+			return -1;
 	}
 
-	/* Open the file*/
+	/* Open the file. */
 	curr_pcb->file_array[fd].file_operations.device_open(filename);
 
 	return 0;
@@ -420,7 +441,7 @@ extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
 /*
 *	sys_vidmap
 *		Author: Jomathan
-*		Description: Maps the text mode video mem into user space at preset virtual addr. 
+*		Description: Maps the text mode video mem into user space at preset virtual addr.
 *		Inputs: Pointer to where to put the pointer
 *		Return: -1 for fail ... virtual address (const 132MB) upon success
 *		Side_effects: Video Mem mapped to 132MB in virtual mem
@@ -452,7 +473,7 @@ extern uint32_t sys_vidmap(uint8_t** screen_start){
 	*Physical Location is:   Video Mem at 0xB8000
 	*/
 	paging_switch((uint32_t)_132_MB,(uint32_t)VIDEO_LOC);
-	
+
 	//return the virtual location
 	return _132_MB;
 
