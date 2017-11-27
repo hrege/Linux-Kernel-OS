@@ -262,6 +262,8 @@ int32_t file_load(uint8_t* fname, void* addr){
   Return Value: returns 0 on success and -1 on failure
  */
 int32_t directory_open(const uint8_t* filename) {
+  uint8_t buf[32];
+
   if(filename == NULL) {
     printf("Null filename\n");
     return -1;
@@ -279,6 +281,12 @@ int32_t directory_open(const uint8_t* filename) {
     printf("Not a directory file\n");
     return -1;
   }
+
+  while(directory_read(0, &buf, 32) != 0) {
+    printf("%s\n", buf);
+    memset(&buf, '\0', FILE_NAME_SIZE);
+  }
+
   return 0;
 }
 
