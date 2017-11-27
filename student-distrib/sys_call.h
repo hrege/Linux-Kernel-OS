@@ -16,11 +16,14 @@
 #define EIGHT_KB			8192
 #define EIGHT_MB			8388608
 #define STACK_ROW_SIZE      4
+#define VID_MEM_PHYS_MB     0
+#define VID_MEM_VIRT_MB     132
 #define USER_PROG_VM        128
 #define PID_OFF             2
 #define MAX_FILES           8
 #define MAX_PROCESS			6  //current support limit
 #define MAX_PID     		10
+#define _128_MB             0x8000000
 #define _132_MB				0x8400000
 #define _8_MB				0x800000
 #define _4_MB				0x400000

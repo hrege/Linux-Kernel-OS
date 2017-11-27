@@ -158,3 +158,25 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
 
     //Map 128-132MB VM to 12-16MB PM
     //page_directory[32] = 0x00C00083;
+
+/* Author: Austin
+ * void paging_table_switch(uint32_t mb_va, uin32_t mb_pa)
+ *      Inputs: mb_va - MB location of virtual address
+ *              mb_pa - MB location of physical address
+ *      Return Value: void
+ *      Function: Sets 4MB-page PDE at the virtual address to
+ *                the proper physical address
+ *      Side effects: Flushes the entire TLB
+ */
+void paging_table_switch(uint32_t mb_va, uint32_t mb_pa){
+    uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
+    uint32_t vir_addr = mb_va/PAGE_MB_NUM;
+    page_directory[vir_addr] = (0x00000007 | (phys_addr << PDE_OFFSET));
+        asm volatile ("movl %%cr3, %%eax  \n\
+                   movl %%eax, %%cr3      \n\
+                   "
+                   :
+                   :
+                   : "eax", "memory", "cc"
+    );
+}
