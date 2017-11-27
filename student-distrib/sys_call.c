@@ -13,6 +13,7 @@
 #include "sys_call_link.H"
 #include "lib.h"
 
+
 uint32_t pid_bitmap[MAX_PID];
 file_operations_t stdin_ops;
 // stdin_ops.device_open = terminal_open;
@@ -125,13 +126,18 @@ extern uint32_t sys_halt(uint8_t status){
 		}
 	}
 	/*Need to restore stack frame stored in pcb*/
-	tss.esp0 = (uint32_t)curr_pcb->parent_process->kern_esp;
-
+	tss.esp0 = (uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->parent_process->process_id));
+	tss.ss0 = KERNEL_DS;
 	/* Restore ESP from calling Execute function. This works
 		 and sends program to sys_execute
 	 */
-  asm volatile ("jmp execute_comeback;"
-			);
+  asm("movl %0, %%esp;"
+	  "movl %1, %%ebp;"
+	  "jmp execute_comeback;"
+  	  :
+	  : "m"(curr_pcb->parent_process->kern_esp), "m"(curr_pcb->parent_process->kern_ebp)
+	  : "memory");
+  	
 	return 0;
 }
 
@@ -267,7 +273,7 @@ extern uint32_t sys_execute(const uint8_t* command){
 	/*Load first instruction location into eip (reverse order since it's little-endian)*/
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
 
-  asm volatile("movl %%esp, %0;"
+  asm ("movl %%esp, %0;"
 			"movl %%ebp, %1;"
 			: "=m"(exec_pcb->kern_esp), "=m"(exec_pcb->kern_ebp)
 			:
@@ -280,14 +286,9 @@ extern uint32_t sys_execute(const uint8_t* command){
 
 	/* Set up stacks before IRET */
 	user_prep(eip, USER_STACK_POINTER);
-	asm volatile("execute_comeback:;"
-			"movl %0, %%esp;"
-			"movl %1, %%ebp;"
+	asm ("execute_comeback:"
 			"LEAVE;"
 			"RET;"
-			:
-			: "m"(exec_pcb->kern_esp), "m"(exec_pcb->kern_ebp)
-			: "memory"
 	);
 	return 0;
 }
