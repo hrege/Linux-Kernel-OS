@@ -12,6 +12,7 @@
 #define PAGE_MB_NUM     4
 #define PTE_OFFSET      12
 #define PDE_OFFSET      22
+#define VIDEO_LOC       0x000B8000
 #define PTE_MOVE        0x1000
 #define READ_WRITE      2
 #define PTE_ENTRY_VAL   7
