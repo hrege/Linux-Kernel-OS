@@ -153,24 +153,18 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes) {
  */
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
   PCB_t* curr_pcb;
-  uint8_t* fname;
+
   if(buf == NULL) {
     printf("Null buffer pointer\n");
     return -1;
   }
 
-  int retval;
-  dentry_t file_dentry;
   int bytes_read;
 
   curr_pcb = (PCB_t*)(tss.esp0 & 0xFFFFE000);
-  fname = (uint8_t*)curr_pcb->file_array[fd].fname;
-
-  /* Call read_by_name to pass in correct dentry */
-  retval = read_dentry_by_name((uint8_t*)fname, &(file_dentry));
 
   /* Call read data to read from file inode*/
-  bytes_read = read_data(file_dentry.inode_number, curr_pcb->file_array[fd].file_position, buf, nbytes);
+  bytes_read = read_data(curr_pcb->file_array[fd].inode_number, curr_pcb->file_array[fd].file_position, buf, nbytes);
 
   curr_pcb->file_array[fd].file_position += bytes_read;
 
