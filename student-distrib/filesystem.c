@@ -164,13 +164,10 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
   int bytes_read;
 
   curr_pcb = (PCB_t*)(tss.esp0 & 0xFFFFE000);
-  fname = (uint8_t*)(curr_pcb->file_array[fd].fname);
+  fname = (uint8_t*)curr_pcb->file_array[fd].fname;
 
   /* Call read_by_name to pass in correct dentry */
-  retval = read_dentry_by_name(fname, &(file_dentry));
-  if(retval == -1) {
-    return retval;
-  }
+  retval = read_dentry_by_name((uint8_t*)fname, &(file_dentry));
 
   /* Call read data to read from file inode*/
   bytes_read = read_data(file_dentry.inode_number, curr_pcb->file_array[fd].file_position, buf, nbytes);

@@ -80,7 +80,7 @@ typedef struct fd_array_t {
   uint32_t inode_number;
   uint32_t file_position;
   uint32_t flags;
-  uint8_t* fname;
+  uint8_t fname[FILE_NAME_SIZE];
 } fd_array_t;
 
 typedef struct PCB_t {
