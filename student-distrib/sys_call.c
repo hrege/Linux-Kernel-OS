@@ -342,7 +342,12 @@ extern uint32_t sys_open(const uint8_t* filename){
 			curr_pcb->file_array[fd].file_operations.device_open = file_open;
 			curr_pcb->file_array[fd].file_operations.device_close = file_close;
 			curr_pcb->file_array[fd].file_operations.device_read = file_read;
-			curr_pcb->file_array[fd].file_operations.device_write = file_write;
+			curr_pcb->file_array[fd].file_operations.device_write = file_write;	
+			
+			curr_pcb->file_array[fd].file_operations.device_open(filename);
+			curr_pcb->file_array[fd].fname = (uint8_t*)filename;
+			curr_pcb->file_array[fd].inode_number = this_file.inode_number;
+			curr_pcb->file_array[fd].file_position = 0;
 			break;
 
 		case DIRECTORY_FILE_TYPE:
@@ -350,6 +355,8 @@ extern uint32_t sys_open(const uint8_t* filename){
 			curr_pcb->file_array[fd].file_operations.device_close = directory_close;
 			curr_pcb->file_array[fd].file_operations.device_read = directory_read;
 			curr_pcb->file_array[fd].file_operations.device_write = directory_write;
+
+			curr_pcb->file_array[fd].fname = (uint8_t*)filename;
 			break;
 
 		case RTC_FILE_TYPE:
@@ -363,17 +370,7 @@ extern uint32_t sys_open(const uint8_t* filename){
 			return -1;
 	}
 
-	/* Open the file */
-	curr_pcb->file_array[fd].file_operations.device_open(filename);
 
-	/* Set fname */
-	curr_pcb->file_array[fd].fname = (uint8_t*)filename;
-
-	/* Set inode number */
-	curr_pcb->file_array[fd].inode_number = this_file.inode_number;
-
-	/* Set file position */
-	curr_pcb->file_array[fd].file_position = 0;
 
 	return fd;
 }
