@@ -180,6 +180,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Run tests */
     //launch_tests();
 #endif
+    clear();
     /* Execute the first program ("shell") ... */
      //uint8_t* ptr = (uint8_t*)("shell");
     uint8_t* ptr = (uint8_t*)("shell");

@@ -20,7 +20,7 @@ file_operations_t stdout_ops = {terminal_open, blank_read, terminal_write, termi
 file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
 file_operations_t directory_ops = {directory_open, directory_read, directory_write, directory_close};
 file_operations_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close};
-
+int call_from_kern = 0;
 
 /*	get_first_fd
 *		Description:  Local function to find first fd available in fd_array of pcb
@@ -97,6 +97,7 @@ extern uint32_t sys_halt(uint8_t status){
 	/*Close any files associated with this process*/
 	for(i = 0; i < MAX_ACTIVE_FILES; i++){
 		if(curr_pcb->file_array[i].flags == 1) {
+			call_from_kern = 1;
 			curr_pcb->file_array[i].file_operations.device_close(i);
 		}
 	}
@@ -284,11 +285,17 @@ extern uint32_t sys_execute(const uint8_t* command){
 *		Side effect: calls the read handler based on file type
 */
 extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
-	if(fd > MAX_FILES || fd < 0) {
+	//first make sure fd in range
+	if(fd > MAX_FILES || fd < 0 ) {
+		return -1;
+	}
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	//check if the file is actually open
+	if(!(curr_pcb->file_array[fd].flags == 1)){
 		return -1;
 	}
 
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+
 
 	return curr_pcb->file_array[fd].file_operations.device_read(fd, buf, nbytes);
 }
@@ -302,11 +309,15 @@ extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 *		Side effect: calls the write handler based on file type
 */
 extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
-	if(fd > MAX_FILES || fd < 0) {
+	//first make sure fd in range
+	if(fd > MAX_FILES || fd < 0 ) {
 		return -1;
 	}
-
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	//check if the file is actually open
+	if(!(curr_pcb->file_array[fd].flags == 1)){
+		return -1;
+	}
 
 	return curr_pcb->file_array[fd].file_operations.device_write(fd, buf, nbytes);
 }
@@ -321,7 +332,12 @@ extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
 */
 extern uint32_t sys_open(const uint8_t* filename){
 	int fd;
-	/*Place holder*/
+	//check for actual input (no null or empty string)
+	if(filename == NULL || filename[0] == '\0'){
+		return -1;
+	}
+
+	/*Create the PCB*/
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
 	/*Read file by name*/
@@ -380,20 +396,31 @@ extern uint32_t sys_open(const uint8_t* filename){
 *		Author: Sam
 *		Input: fd number
 *		Ouputs: none
-*		Returns: 0 for pass
-*		Side effect: File ic closed and entry in fd freed
+*		Returns: 0 for pass; -1 for fail
+*		Side effect: File is closed and entry in fd freed
 */
 extern uint32_t sys_close(uint32_t fd){
-	if(fd > MAX_FILES || fd < 0) {
+	/*dont allow users to close stdin/out
+	*Call from kern is a flag set to indicate that the call is
+	*coming from the kernel (specifically halt here) since halt
+	*needs to close stdin/out but we cannot let the users do so
+	*/
+	if(fd > MAX_FILES || fd < 0 || (!call_from_kern && fd < 2)) {
 		return -1;
 	}
 
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	//check if it is open
+	if(!(curr_pcb->file_array[fd].flags == 1)){
+		return -1;
+	}
 
 	curr_pcb->file_array[fd].flags = 0;
 	curr_pcb->file_array[fd].file_operations.device_close(fd);
+
 	return 0;
 }
+
 
 
 /*    BELOW NEW FOR CP4  */
@@ -478,10 +505,11 @@ extern uint32_t sys_sigreturn(void){
 }
 
 
-/* Below are place holders for calls table */
+/* Below are place holders for calls table 
+	Return fail to indicate you aren't allowed to do that */
 extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
-	return 0;
+	return -1;
 }
 extern int32_t blank_read(int32_t fd, void* buf, int32_t nbytes) {
-	return 0;
+	return -1;
 }
