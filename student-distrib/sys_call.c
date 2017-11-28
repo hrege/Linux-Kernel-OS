@@ -76,7 +76,7 @@ int get_first_pid(){
 *		Returns: status (returned to execute)
 *		Side effects: closes associated files
 */
-extern uint32_t sys_halt(uint8_t status){
+int32_t sys_halt(uint8_t status){
 	int i; // loop variable
 
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
@@ -132,7 +132,7 @@ extern uint32_t sys_halt(uint8_t status){
 *		Returns: 0 if successful, -1 if fails
 *		Side effect: New process starts
 */
-extern uint32_t sys_execute(const uint8_t* command){
+int32_t sys_execute(const uint8_t* command){
 	uint32_t mag_num;
 	dentry_t exec;
 	uint8_t file_buffer[30];
@@ -285,11 +285,11 @@ extern uint32_t sys_execute(const uint8_t* command){
 *		Returns: the return value from the file specific read handler
 *		Side effect: calls the read handler based on file type
 */
-extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
+int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 	//first make sure fd in range
-	if(fd > MAX_FILES || fd < 0 ) {
-		return -1;
-	}
+	// if(fd > MAX_FILES || fd < 0 ) {
+	// 	return -1;
+	// }
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 	//check if the file is actually open
 	if(!(curr_pcb->file_array[fd].flags == 1)){
@@ -309,7 +309,7 @@ extern uint32_t sys_read(uint32_t fd, void* buf, uint32_t nbytes){
 *		Returns: the return value from the file specific write handler
 *		Side effect: calls the write handler based on file type
 */
-extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
+int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
 	//first make sure fd in range
 	if(fd > MAX_FILES || fd < 0 ) {
 		return -1;
@@ -331,7 +331,7 @@ extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
 *		Returns: -1 for fail; otherwise return fd
 *		Side effect: File is opened and has fd in the fd array
 */
-extern uint32_t sys_open(const uint8_t* filename){
+int32_t sys_open(const uint8_t* filename){
 	int fd;
 	//check for actual input (no null or empty string)
 	if(filename == NULL || filename[0] == '\0'){
@@ -397,7 +397,7 @@ extern uint32_t sys_open(const uint8_t* filename){
 *		Returns: 0 for pass; -1 for fail
 *		Side effect: File is closed and entry in fd freed
 */
-extern uint32_t sys_close(uint32_t fd){
+int32_t sys_close(int32_t fd){
 	/*dont allow users to close stdin/out
 	*Call from kern is a flag set to indicate that the call is
 	*coming from the kernel (specifically halt here) since halt
@@ -432,7 +432,7 @@ extern uint32_t sys_close(uint32_t fd){
 *		Returns: -1 for fail or 0 for pass
 *		Side-effect: If succeeds then the buffer has the null terminated args in it
 */
-extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
+int32_t sys_getargs(uint8_t* buf, int32_t nbytes){
 	//Input check
 	if(buf == NULL || nbytes == 0){
 		return -1;
@@ -456,7 +456,7 @@ extern uint32_t sys_getargs(uint8_t* buf, uint32_t nbytes){
 *		Return: -1 for fail ... virtual address (const 132MB) upon success
 *		Side_effects: Video Mem mapped to 132MB in virtual mem
 */
-extern uint32_t sys_vidmap(uint8_t** screen_start){
+int32_t sys_vidmap(uint8_t** screen_start){
 	//check for non-NULL
 	if(screen_start == NULL){
 		return -1;
@@ -492,23 +492,23 @@ extern uint32_t sys_vidmap(uint8_t** screen_start){
 *	sys_set_handler
 *		Not supported. Returns Fail
 */
-extern uint32_t sys_set_handler(uint32_t signum, void* handler_address){
+int32_t sys_set_handler(int32_t signum, void* handler_address){
 	return -1;
 }
 /*
 *	sys_set_handler
 *		Not supported. Returns Fail
 */
-extern uint32_t sys_sigreturn(void){
+int32_t sys_sigreturn(void){
 	return -1;
 }
 
 
 /* Below are place holders for calls table 
 	Return fail to indicate you aren't allowed to do that */
-extern int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
+int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
-extern int32_t blank_read(int32_t fd, void* buf, int32_t nbytes) {
+int32_t blank_read(int32_t fd, void* buf, int32_t nbytes) {
 	return -1;
 }
