@@ -79,5 +79,9 @@ Person: Sam
 Solution:
 Sys_open always returned 0 instead of the fd 
 
+Bug: Passing SYSERR test #8 (executing bad syscall numbers) but page fualting
+Person: Jonathan
+Solution:
+The handling for bad sys calls used ret instead of IRET meaning when we tried to do IRET later it was messed up. Changed to IRET
 
 Checkpoint 5:

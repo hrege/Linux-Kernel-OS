@@ -101,6 +101,7 @@ extern uint32_t sys_halt(uint8_t status){
 			curr_pcb->file_array[i].file_operations.device_close(i);
 		}
 	}
+	call_from_kern = 0;
 	/*Need to restore stack frame stored in pcb*/
 	tss.esp0 = (uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->parent_process->process_id));
 	tss.ss0 = KERNEL_DS;
@@ -406,9 +407,10 @@ extern uint32_t sys_close(uint32_t fd){
 	*needs to close stdin/out but we cannot let the users do so
 	*/
 	if(fd > MAX_FILES || fd < 0 || (!call_from_kern && fd < 2)) {
+		call_from_kern = 0;
 		return -1;
 	}
-
+	call_from_kern = 0;
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 	//check if it is open
 	if(!(curr_pcb->file_array[fd].flags == 1)){
