@@ -464,9 +464,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 
   /* Set buff_ptr to start of buffer to begin */
   data_block_t* block_data;
-  int position;
+  int position, bytes_read;
   position = 0;
-  int random_variable;  //debugging
+  bytes_read = 0;
 
   /* Offset prep */
   int offset_block;
@@ -484,11 +484,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
     else
       jval = 0;
     for(j = jval; j < BLOCK_SIZE; j++) {
-      if((position - offset) >= 1020){
-        random_variable = 666;
-      }
       position = i*BLOCK_SIZE + j;
       buf[position - offset] = block_data->data[j];
+      bytes_read++;
       if((position == this_inode->length - 1) || (position >= offset + length - 1))
         break;
     }
@@ -496,5 +494,5 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
       break;
   }
 
-  return position - offset;
+  return bytes_read;
 }

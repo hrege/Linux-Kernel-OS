@@ -287,16 +287,14 @@ int32_t sys_execute(const uint8_t* command){
 */
 int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 	//first make sure fd in range
-	// if(fd > MAX_FILES || fd < 0 ) {
-	// 	return -1;
-	// }
+	if(fd > MAX_FILES || fd < 0 ) {
+		return -1;
+	}
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 	//check if the file is actually open
 	if(!(curr_pcb->file_array[fd].flags == 1)){
 		return -1;
 	}
-
-
 
 	return curr_pcb->file_array[fd].file_operations.device_read(fd, buf, nbytes);
 }
