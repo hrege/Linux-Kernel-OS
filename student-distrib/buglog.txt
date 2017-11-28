@@ -74,4 +74,10 @@ memory (0xB8000) is not aligned to a full MB. The solution we decided on was to 
 0 instead of xB8000 but set the screen start pointed to B8000 + new page location.
 This works since video memory is not close to 4MB in size. 
 
+Bug: All reads going to terminal read
+Person: Sam
+Solution:
+Sys_open always returned 0 instead of the fd 
+
+
 Checkpoint 5:
