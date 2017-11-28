@@ -309,17 +309,11 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
   if((cur_read_idx <= number_of_files) && (read_dentry_by_index(cur_read_idx, &(this_entry)) == 0)) {
     strncpy((int8_t *)buf, (int8_t *)&(this_entry.file_name), nbytes);
     cur_read_idx++;
-<<<<<<< HEAD
-    if(((int32_t)strlen((int8_t *)this_entry.file_name)) > FILE_NAME_SIZE) {
-      return FILE_NAME_SIZE; 
-    }
-    return ((int32_t)strlen((int8_t *)this_entry.file_name));
-=======
+
     if(((int32_t)strlen((int8_t*)this_entry.file_name)) > FILE_NAME_SIZE) {
       return FILE_NAME_SIZE;
     }
     return ((int32_t)strlen((int8_t*)this_entry.file_name));
->>>>>>> 010dcbbace288a1d552c5e8815b126ae0520c025
   }
   else {
     cur_read_idx = 0;
