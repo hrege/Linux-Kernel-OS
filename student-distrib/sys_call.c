@@ -61,7 +61,6 @@ int get_first_pid(){
 	/* start at 0 and check until you find one */
 	for(i = 0; i < MAX_PID; i++){
 		if(pid_bitmap[i] == 0){
-			pid_bitmap[i] = 1;
 			return i;
 		}
 	}
@@ -147,7 +146,8 @@ extern uint32_t sys_execute(const uint8_t* command){
 	//check valid PID and command buffer
 	next_pid = get_first_pid();
 	if(next_pid == -1 || command == NULL){
-		return -1;
+		printf("Maximum number of processes running!\n");
+		return 0;
 	}
 
 	int args = 0; //indicator of whether we are reading arguments or not
@@ -248,6 +248,8 @@ extern uint32_t sys_execute(const uint8_t* command){
 		return -1;
 	}
 
+	pid_bitmap[exec_pcb->process_id] = 1;
+
 	// for(i = 0; i < this_inode->length; i++){
 	// 	*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
 	// }
@@ -314,7 +316,7 @@ extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
 *		Author: Sam
 *		Input: filename
 *		Ouputs: none
-*		Returns: -1 for fail; 0 for pass
+*		Returns: -1 for fail; otherwise return fd
 *		Side effect: File is opened and has fd in the fd array
 */
 extern uint32_t sys_open(const uint8_t* filename){
