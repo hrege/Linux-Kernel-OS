@@ -16,7 +16,7 @@ USER_CS_A:    .long 0x23
 USER_DS_A:    .long 0x2B
 ZERO:         .long 0x0
 
-.global sys_call_asm, user_prep #, execute_comeback
+.global sys_call_asm, user_prep
 sys_call_asm:
 pushl %ebp
 movl %esp, %ebp
@@ -65,9 +65,6 @@ sys_jump:
 
 user_prep:
 cli
-
-                        #save esp/ebp here
-
 movl USER_DS_A, %edx    #user data segment -> DS Register
 movl %edx, %ds
 movl %edx, %es
@@ -82,5 +79,3 @@ pushl %edx
 pushl USER_CS_A       #user CS
 pushl 20(%esp)      #user EIP
 IRET
-#execute_comeback:
-#ret
