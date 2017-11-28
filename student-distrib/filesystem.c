@@ -117,6 +117,7 @@ int32_t file_close(int32_t fd) {
   PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
   curr_pcb->file_array[fd].flags = 0;
+  curr_pcb->file_array[fd].file_position = 0;
 
   return 0;
 }
@@ -160,19 +161,22 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
 
   int retval;
   dentry_t file_dentry;
+  int bytes_read;
 
   curr_pcb = (PCB_t*)(tss.esp0 & 0xFFFFE000);
   fname = (uint8_t*)(curr_pcb->file_array[fd].fname);
+
   /* Call read_by_name to pass in correct dentry */
   retval = read_dentry_by_name(fname, &(file_dentry));
   if(retval == -1) {
     return retval;
   }
-  int bytes_read = 0;
+
   /* Call read data to read from file inode*/
-  while(bytes_read < nbytes) {
-   bytes_read += read_data(file_dentry.inode_number, bytes_read, buf, nbytes);
-  }
+  bytes_read = read_data(file_dentry.inode_number, curr_pcb->file_array[fd].file_position, buf, nbytes);
+
+  curr_pcb->file_array[fd].file_position += bytes_read;
+
   return bytes_read;
 }
 
@@ -431,16 +435,13 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   /* Initialize loop variables */
   int i;
   int j;
-  uint32_t size_left;
-
-  size_left = length - offset;
 
   /* Check if inode parameter is within valid range of inodes */
   if(inode < 0 || inode > (filesystem.boot_block_start->num_inodes - 1)) {
     printf("Inode out of bounds!\n");
     return -1;
   }
-  if(offset < 0 || offset > length) {
+  if(offset < 0) {
     return -1;
   }
 
@@ -448,6 +449,10 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
   inode_t* this_inode;
   this_inode = (inode_t*)((uint8_t*)filesystem.inode_start + (inode * BLOCK_SIZE));
   this_inode->length = *((uint32_t*)this_inode);
+
+  if(offset >= this_inode->length){
+    return 0;
+  }
 
   /* Determine the total number of data blocks based on length of file */
   uint32_t num_inode_dblocks;
@@ -468,22 +473,33 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 
   /* Set buff_ptr to start of buffer to begin */
   data_block_t* block_data;
+  int position;
+  position = 0;
+
+  /* Offset prep */
+  int offset_block;
+  int offset_block_offset;
+  int jval;
+  offset_block = offset/BLOCK_SIZE;
+  offset_block_offset = offset % BLOCK_SIZE;
 
   /*Loop through data blocks in sequence in inode */
-  for(i = 0; i < num_inode_dblocks; i++) {
+  for(i = offset_block; i < num_inode_dblocks; i++) {
     curr_block =  *((uint32_t*)((uint8_t*)this_inode + (i + 1)*DATA_LENGTH_SIZE)); //which number data we're looking at
     block_data = (data_block_t *)(filesystem.data_block_start + ((curr_block + 1) * BLOCK_SIZE));
-    for(j = 0; j < BLOCK_SIZE; j++) {
-      *(buf + i*BLOCK_SIZE + j + offset) = block_data->data[j];
-      if(size_left == 0){
+    if(i == offset_block)
+      jval = offset_block_offset;
+    else
+      jval = 0;
+    for(j = jval; j < BLOCK_SIZE; j++) {
+      position = i*BLOCK_SIZE + j;
+      *(buf + position - offset) = block_data->data[j];
+      if((position == this_inode->length - 1) || (position >= offset + length))
         break;
-      }
-      size_left--;
     }
-    if(size_left == 0){
+    if((position == this_inode->length - 1) || (position >= offset + length))
       break;
-    }
   }
 
-  return length - offset;
+  return position - offset;
 }

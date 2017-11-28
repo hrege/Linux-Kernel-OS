@@ -359,8 +359,7 @@ extern uint32_t sys_open(const uint8_t* filename){
 			curr_pcb->file_array[fd].file_operations.device_open = file_open;
 			curr_pcb->file_array[fd].file_operations.device_close = file_close;
 			curr_pcb->file_array[fd].file_operations.device_read = file_read;
-			curr_pcb->file_array[fd].file_operations.device_write = file_write;	
-			
+			curr_pcb->file_array[fd].file_operations.device_write = file_write;
 			curr_pcb->file_array[fd].file_operations.device_open(filename);
 			curr_pcb->file_array[fd].fname = (uint8_t*)filename;
 			curr_pcb->file_array[fd].inode_number = this_file.inode_number;
@@ -372,7 +371,6 @@ extern uint32_t sys_open(const uint8_t* filename){
 			curr_pcb->file_array[fd].file_operations.device_close = directory_close;
 			curr_pcb->file_array[fd].file_operations.device_read = directory_read;
 			curr_pcb->file_array[fd].file_operations.device_write = directory_write;
-
 			curr_pcb->file_array[fd].fname = (uint8_t*)filename;
 			break;
 
@@ -386,8 +384,6 @@ extern uint32_t sys_open(const uint8_t* filename){
 		default:
 			return -1;
 	}
-
-
 
 	return fd;
 }
