@@ -287,9 +287,9 @@ int32_t sys_execute(const uint8_t* command){
 */
 int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 	//first make sure fd in range
-	// if(fd > MAX_FILES || fd < 0 ) {
-	// 	return -1;
-	// }
+	if(fd > MAX_FILES || fd < 0 ) {
+		return -1;
+	}
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 	//check if the file is actually open
 	if(!(curr_pcb->file_array[fd].flags == 1)){
@@ -356,10 +356,7 @@ int32_t sys_open(const uint8_t* filename){
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
 		case REGULAR_FILE_TYPE:
-			curr_pcb->file_array[fd].file_operations.device_open = file_open;
-			curr_pcb->file_array[fd].file_operations.device_close = file_close;
-			curr_pcb->file_array[fd].file_operations.device_read = file_read;
-			curr_pcb->file_array[fd].file_operations.device_write = file_write;
+			curr_pcb->file_array[fd].file_operations = regular_ops;
 			curr_pcb->file_array[fd].file_operations.device_open(filename);
 			strcpy((int8_t*)curr_pcb->file_array[fd].fname, (int8_t*)filename);
 			curr_pcb->file_array[fd].inode_number = this_file.inode_number;
@@ -367,19 +364,13 @@ int32_t sys_open(const uint8_t* filename){
 			break;
 
 		case DIRECTORY_FILE_TYPE:
-			curr_pcb->file_array[fd].file_operations.device_open = directory_open;
-			curr_pcb->file_array[fd].file_operations.device_close = directory_close;
-			curr_pcb->file_array[fd].file_operations.device_read = directory_read;
-			curr_pcb->file_array[fd].file_operations.device_write = directory_write;
+			curr_pcb->file_array[fd].file_operations = directory_ops;
 			curr_pcb->file_array[fd].file_operations.device_open(filename);
 			strcpy((int8_t*)curr_pcb->file_array[fd].fname, (int8_t*)filename);
 			break;
 
 		case RTC_FILE_TYPE:
-			curr_pcb->file_array[fd].file_operations.device_open = rtc_open;
-			curr_pcb->file_array[fd].file_operations.device_close = rtc_close;
-			curr_pcb->file_array[fd].file_operations.device_read = rtc_read;
-			curr_pcb->file_array[fd].file_operations.device_write = rtc_write;
+			curr_pcb->file_array[fd].file_operations = rtc_ops;
 			break;
 
 		default:
@@ -467,14 +458,6 @@ int32_t sys_vidmap(uint8_t** screen_start){
 		return -1;
 	}
 
-
-	/*Set screen start pointer to the virtual location of video mem inside the mapped page.
-		We are using the 4MB starting at 132 MB because that is,
-		at the time this is written, the first 4MB available in memory */
-	uint8_t* ptr;
-	ptr = (uint8_t*)(_132_MB + VIDEO_LOC);
-	*screen_start = ptr;
-
 	/*map based on video number (this depends on whether we have implemented multiple terminals?)
 	*Call our paging mapping function ... input 1 is virtual location; 2 is physical location
 	*Virtual Location is:  132 MB
@@ -482,6 +465,13 @@ int32_t sys_vidmap(uint8_t** screen_start){
 	*/
 
 	paging_table_switch((uint32_t)VID_MEM_VIRT_MB,(uint32_t)VID_MEM_PHYS_MB);
+
+	/*Set screen start pointer to the virtual location of video mem inside the mapped page.
+		We are using the 4MB starting at 132 MB because that is,
+		at the time this is written, the first 4MB available in memory */
+	uint8_t* ptr;
+	ptr = (uint8_t*)(_132_MB + VIDEO_LOC);
+	*screen_start = ptr;
 
 	//return the virtual location of page containing video memory
 	return _132_MB;
@@ -504,7 +494,7 @@ int32_t sys_sigreturn(void){
 }
 
 
-/* Below are place holders for calls table 
+/* Below are place holders for calls table
 	Return fail to indicate you aren't allowed to do that */
 int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
