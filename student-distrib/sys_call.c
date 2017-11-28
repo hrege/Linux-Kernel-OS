@@ -15,20 +15,8 @@
 
 
 uint32_t pid_bitmap[MAX_PID];
-file_operations_t stdin_ops;
-// stdin_ops.device_open = terminal_open;
-// stdin_ops.device_close = terminal_close;
-// stdin_ops.device_read = terminal_read;
-// stdin_ops.device_write = blank_write;
-
-
-file_operations_t stdout_ops;
-// stdout_ops.device_open = terminal_open;
-// stdout_ops.device_read = blank_read;
-// stdout_ops.device_write = terminal_write;
-// stdout_ops.device_close = terminal_close;
-
-
+file_operations_t stdin_ops = {terminal_open, terminal_read, blank_write, terminal_close};
+file_operations_t stdout_ops = {terminal_open, blank_read, terminal_write, terminal_close};
 file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
 file_operations_t directory_ops = {directory_open, directory_read, directory_write, directory_close};
 file_operations_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close};
@@ -73,7 +61,6 @@ int get_first_pid(){
 	/* start at 0 and check until you find one */
 	for(i = 0; i < MAX_PID; i++){
 		if(pid_bitmap[i] == 0){
-			pid_bitmap[i] = 1;
 			return i;
 		}
 	}
@@ -91,18 +78,6 @@ int get_first_pid(){
 */
 extern uint32_t sys_halt(uint8_t status){
 	int i; // loop variable
-	/* Halt outline compilation from Office Hrs. and ULK
-		-Account for returning from the only running process? Depends on how we relaunch shell ... loop in kernel? or relaunch here?
-		-Make process # available
-		-Set current process back to parent
-		-If our pcb has a child counter decrement that (we don't and its a design choice - not required)
-		-Load the parent page directory (going to need assembly here - can access pcb struct elements by by casting their pointers to uint32 for use in assembly)
-		-Set kerel stack bottom and tss.esp0 back to parent (should be from PCB?)
-		-reset stack pointers (esp and ebp)
-		-depending on how you set up stack you may need to pop off one or two things here to remove useless stuff
-		-leave
-		-return
-	*/
 
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
@@ -117,7 +92,6 @@ extern uint32_t sys_halt(uint8_t status){
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
 	}
-
 
 	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
 	/*Close any files associated with this process*/
@@ -172,7 +146,8 @@ extern uint32_t sys_execute(const uint8_t* command){
 	//check valid PID and command buffer
 	next_pid = get_first_pid();
 	if(next_pid == -1 || command == NULL){
-		return -1;
+		printf("Maximum number of processes running!\n");
+		return 0;
 	}
 
 	int args = 0; //indicator of whether we are reading arguments or not
@@ -273,6 +248,8 @@ extern uint32_t sys_execute(const uint8_t* command){
 		return -1;
 	}
 
+	pid_bitmap[exec_pcb->process_id] = 1;
+
 	// for(i = 0; i < this_inode->length; i++){
 	// 	*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
 	// }
@@ -296,11 +273,6 @@ extern uint32_t sys_execute(const uint8_t* command){
 	user_prep(eip, USER_STACK_POINTER);
 
 	return 0;
-	// asm volatile("execute_comeback:;"
-	// 		"RET;"
-	// );
-
-
 }
 
 /* sys_read
@@ -344,7 +316,7 @@ extern uint32_t sys_write(uint32_t fd, void* buf, uint32_t nbytes){
 *		Author: Sam
 *		Input: filename
 *		Ouputs: none
-*		Returns: -1 for fail; 0 for pass
+*		Returns: -1 for fail; otherwise return fd
 *		Side effect: File is opened and has fd in the fd array
 */
 extern uint32_t sys_open(const uint8_t* filename){
@@ -370,7 +342,12 @@ extern uint32_t sys_open(const uint8_t* filename){
 			curr_pcb->file_array[fd].file_operations.device_open = file_open;
 			curr_pcb->file_array[fd].file_operations.device_close = file_close;
 			curr_pcb->file_array[fd].file_operations.device_read = file_read;
-			curr_pcb->file_array[fd].file_operations.device_write = file_write;
+			curr_pcb->file_array[fd].file_operations.device_write = file_write;	
+			
+			curr_pcb->file_array[fd].file_operations.device_open(filename);
+			curr_pcb->file_array[fd].fname = (uint8_t*)filename;
+			curr_pcb->file_array[fd].inode_number = this_file.inode_number;
+			curr_pcb->file_array[fd].file_position = 0;
 			break;
 
 		case DIRECTORY_FILE_TYPE:
@@ -378,6 +355,8 @@ extern uint32_t sys_open(const uint8_t* filename){
 			curr_pcb->file_array[fd].file_operations.device_close = directory_close;
 			curr_pcb->file_array[fd].file_operations.device_read = directory_read;
 			curr_pcb->file_array[fd].file_operations.device_write = directory_write;
+
+			curr_pcb->file_array[fd].fname = (uint8_t*)filename;
 			break;
 
 		case RTC_FILE_TYPE:
@@ -391,10 +370,9 @@ extern uint32_t sys_open(const uint8_t* filename){
 			return -1;
 	}
 
-	/* Open the file. */
-	curr_pcb->file_array[fd].file_operations.device_open(filename);
 
-	return 0;
+
+	return fd;
 }
 
 /* sys_close
@@ -489,7 +467,7 @@ extern uint32_t sys_vidmap(uint8_t** screen_start){
 *		Not supported. Returns Fail
 */
 extern uint32_t sys_set_handler(uint32_t signum, void* handler_address){
-	return 1;
+	return -1;
 }
 /*
 *	sys_set_handler

@@ -114,6 +114,10 @@ int32_t file_open(const uint8_t* filename) {
   Return Value: Returns 0 on success.
  */
 int32_t file_close(int32_t fd) {
+  PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+
+  curr_pcb->file_array[fd].flags = 0;
+
   return 0;
 }
 
@@ -172,44 +176,6 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
   return bytes_read;
 }
 
-// Not necessary for execute, but kept as insurance
-// /* file_check(uint8_t* fname)
-//   Description: Verifies that the file given by fname is an
-//                executable file (by checking the first 4 bytes
-//                to verify that file contains "ELF")
-//   Arthur: Austin
-//   Inputs: fname - file name to be checked
-//   Outputs: none
-//   Side Effects: None
-//   Return Value: Returns 0 if successful, -1 if failed
-//  */
-// int32_t file_check(uint8_t* fname){
-// 	/* Check for invalid inputs */
-// 	if( fname == NULL ){
-//     printf("invalid file\n");
-// 		return -1;
-//   }
-
-//   /* Initialize local variables */
-//   dentry_t file_dentry;
-//   uint8_t buf[DATA_ELF_SIZE];
-
-//   /* Extract dentry information using the filename passed in. */
-// 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
-// 		return -1;
-//   }
-
-//   /* Put first 4 bytes in buffer (if executable, this should be ELF) */
-//   read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, DATA_ELF_SIZE);
-
-//   /* Check that buf == ELF */
-//   if((buf[0] == MAGIC_NUMBER) && (buf[1] == 'E') && (buf[2] == 'L') && (buf[3] == 'F')){
-//     return 0;
-//   }
-//   else
-//     return -1;
-// }
-
 /* file_load(uint8_t * fname, uint32_t* addr)
   Description: Loads program image from blocks into contiguous memory
   Author: Austin
@@ -262,8 +228,6 @@ int32_t file_load(uint8_t* fname, void* addr){
   Return Value: returns 0 on success and -1 on failure
  */
 int32_t directory_open(const uint8_t* filename) {
-  uint8_t buf[32];
-
   if(filename == NULL) {
     printf("Null filename\n");
     return -1;
@@ -282,10 +246,6 @@ int32_t directory_open(const uint8_t* filename) {
     return -1;
   }
 
-  while(directory_read(0, &buf, 32) != 0) {
-    printf("%s\n", buf);
-    memset(&buf, '\0', FILE_NAME_SIZE);
-  }
 
   return 0;
 }
@@ -299,6 +259,10 @@ int32_t directory_open(const uint8_t* filename) {
   Return Value: Returns 0 since always successful
  */
 int32_t directory_close(int32_t fd) {
+  PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+
+  curr_pcb->file_array[fd].flags = 0;
+  cur_read_idx = 0;
   return 0;
 }
 
@@ -338,10 +302,6 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
     printf("Null buffer pointer\n");
     return -1;
   }
-  /* Check that the current entry to read exists. */
-  if(cur_read_idx > (filesystem.boot_block_start->num_dir_entries)) {
-    return 0;
-  }
 
   dentry_t this_entry;
 
@@ -349,8 +309,13 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
   if(read_dentry_by_index(cur_read_idx, &(this_entry)) == 0) {
     strncpy((int8_t *)buf, (int8_t *)&(this_entry.file_name), nbytes);
     cur_read_idx++;
-    return nbytes;
+
+    if(((int32_t)strlen((int8_t*)this_entry.file_name)) > FILE_NAME_SIZE) {
+      return FILE_NAME_SIZE;
+    }
+    return ((int32_t)strlen((int8_t*)this_entry.file_name));
   }
+
   return 0;
 }
 
@@ -426,7 +391,6 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   /* If non-existent file or invalid index, return error */
   if((index > number_of_files || index < 0)) {
-    printf("invalid file\n");
     return -1;
   }
   if(dentry == NULL) {
