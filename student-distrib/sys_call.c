@@ -450,7 +450,7 @@ int32_t sys_getargs(uint8_t* buf, int32_t nbytes){
 
 /*
 *	sys_vidmap
-*		Author: Jomathan
+*		Author: Jonathan
 *		Description: Maps the text mode video mem into user space at preset virtual addr.
 *		Inputs: Pointer to where to put the pointer
 *		Return: -1 for fail ... virtual address (const 132MB) upon success
@@ -480,8 +480,6 @@ int32_t sys_vidmap(uint8_t** screen_start){
 	*Virtual Location is:  132 MB
 	*Physical Location is:   0 MB (Video Mem at 0xB8000)
 	*/
-
-	paging_table_switch((uint32_t)VID_MEM_VIRT_MB,(uint32_t)VID_MEM_PHYS_MB);
 
 	//return the virtual location of page containing video memory
 	return _132_MB;

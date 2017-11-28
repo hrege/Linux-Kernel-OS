@@ -19,6 +19,7 @@
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
 static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table
+static uint32_t fish_page_table[TABLE_SIZE] __attribute__((aligned (4096)));    //Construct a user-accessible page table
 /* Author: Austin
         PDE and PTE bits based on ISA Vol.3, pg. 3-32
             PDE for 4MB-Page
@@ -99,6 +100,11 @@ void paging_init(){
     page_directory[2] = 0x00000000 | READ_WRITE;
     page_directory[3] = 0x00000000 | READ_WRITE;
 
+    page_directory[33] = ((uint32_t)fish_page_table) | PTE_ENTRY_VAL;
+
+    //Set PDE for 0MB-4MB in Physical Memory (mapped to 132MB Virtual)
+    fish_page_table[VIDEO_IDX] = VIDEO_LOC | PTE_ENTRY_VAL;
+
 
     // Set control registers to enable paging.
     paging_enable(page_directory);
@@ -159,26 +165,3 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
     //Map 128-132MB VM to 12-16MB PM
     //page_directory[32] = 0x00C00083;
 
-
-
-/* Author: Austin
- * void paging_table_switch(uint32_t mb_va, uin32_t mb_pa)
- *      Inputs: mb_va - MB location of virtual address
- *              mb_pa - MB location of physical address
- *      Return Value: void
- *      Function: Sets 4MB-page PDE at the virtual address to
- *                the proper physical address
- *      Side effects: Flushes the entire TLB
- */
-void paging_table_switch(uint32_t mb_va, uint32_t mb_pa){
-    uint32_t phys_addr = mb_pa/PAGE_MB_NUM;
-    uint32_t vir_addr = mb_va/PAGE_MB_NUM;
-    page_directory[vir_addr] = (0x00000007 | (phys_addr << PDE_OFFSET));
-        asm volatile ("movl %%cr3, %%eax  \n\
-                   movl %%eax, %%cr3      \n\
-                   "
-                   :
-                   :
-                   : "eax", "memory", "cc"
-    );
-}
