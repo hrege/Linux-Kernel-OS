@@ -354,10 +354,7 @@ int32_t sys_open(const uint8_t* filename){
 	/* Initialize correct FOP associations */
 	switch(this_file.file_type) {
 		case REGULAR_FILE_TYPE:
-			curr_pcb->file_array[fd].file_operations.device_open = file_open;
-			curr_pcb->file_array[fd].file_operations.device_close = file_close;
-			curr_pcb->file_array[fd].file_operations.device_read = file_read;
-			curr_pcb->file_array[fd].file_operations.device_write = file_write;
+			curr_pcb->file_array[fd].file_operations = regular_ops;
 			curr_pcb->file_array[fd].file_operations.device_open(filename);
 			strcpy((int8_t*)curr_pcb->file_array[fd].fname, (int8_t*)filename);
 			curr_pcb->file_array[fd].inode_number = this_file.inode_number;
@@ -365,19 +362,13 @@ int32_t sys_open(const uint8_t* filename){
 			break;
 
 		case DIRECTORY_FILE_TYPE:
-			curr_pcb->file_array[fd].file_operations.device_open = directory_open;
-			curr_pcb->file_array[fd].file_operations.device_close = directory_close;
-			curr_pcb->file_array[fd].file_operations.device_read = directory_read;
-			curr_pcb->file_array[fd].file_operations.device_write = directory_write;
+			curr_pcb->file_array[fd].file_operations = directory_ops;
 			curr_pcb->file_array[fd].file_operations.device_open(filename);
 			strcpy((int8_t*)curr_pcb->file_array[fd].fname, (int8_t*)filename);
 			break;
 
 		case RTC_FILE_TYPE:
-			curr_pcb->file_array[fd].file_operations.device_open = rtc_open;
-			curr_pcb->file_array[fd].file_operations.device_close = rtc_close;
-			curr_pcb->file_array[fd].file_operations.device_read = rtc_read;
-			curr_pcb->file_array[fd].file_operations.device_write = rtc_write;
+			curr_pcb->file_array[fd].file_operations = rtc_ops;
 			break;
 
 		default:
@@ -468,16 +459,11 @@ int32_t sys_vidmap(uint8_t** screen_start){
 
 	/*Set screen start pointer to the virtual location of video mem inside the mapped page.
 		We are using the 4MB starting at 132 MB because that is,
-		at the time this is written, the first 4MB available in memory */
+		at the time this is written, the first 4MB available in memory.
+		Paging initialized in paging_init(). */
 	uint8_t* ptr;
 	ptr = (uint8_t*)(_132_MB + VIDEO_LOC);
 	*screen_start = ptr;
-
-	/*map based on video number (this depends on whether we have implemented multiple terminals?)
-	*Call our paging mapping function ... input 1 is virtual location; 2 is physical location
-	*Virtual Location is:  132 MB
-	*Physical Location is:   0 MB (Video Mem at 0xB8000)
-	*/
 
 	//return the virtual location of page containing video memory
 	return _132_MB;
