@@ -172,44 +172,6 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes) {
   return bytes_read;
 }
 
-// Not necessary for execute, but kept as insurance
-// /* file_check(uint8_t* fname)
-//   Description: Verifies that the file given by fname is an
-//                executable file (by checking the first 4 bytes
-//                to verify that file contains "ELF")
-//   Arthur: Austin
-//   Inputs: fname - file name to be checked
-//   Outputs: none
-//   Side Effects: None
-//   Return Value: Returns 0 if successful, -1 if failed
-//  */
-// int32_t file_check(uint8_t* fname){
-// 	/* Check for invalid inputs */
-// 	if( fname == NULL ){
-//     printf("invalid file\n");
-// 		return -1;
-//   }
-
-//   /* Initialize local variables */
-//   dentry_t file_dentry;
-//   uint8_t buf[DATA_ELF_SIZE];
-
-//   /* Extract dentry information using the filename passed in. */
-// 	if(read_dentry_by_name(fname, &(file_dentry)) == -1){
-// 		return -1;
-//   }
-
-//   /* Put first 4 bytes in buffer (if executable, this should be ELF) */
-//   read_data(file_dentry.inode_number, 0, (uint8_t *)&buf, DATA_ELF_SIZE);
-
-//   /* Check that buf == ELF */
-//   if((buf[0] == MAGIC_NUMBER) && (buf[1] == 'E') && (buf[2] == 'L') && (buf[3] == 'F')){
-//     return 0;
-//   }
-//   else
-//     return -1;
-// }
-
 /* file_load(uint8_t * fname, uint32_t* addr)
   Description: Loads program image from blocks into contiguous memory
   Author: Austin
@@ -343,10 +305,10 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
   if(read_dentry_by_index(cur_read_idx, &(this_entry)) == 0) {
     strncpy((int8_t *)buf, (int8_t *)&(this_entry.file_name), nbytes);
     cur_read_idx++;
-    if(((int32_t)strlen(this_entry.file_name)) > FILE_NAME_SIZE) {
+    if(((int32_t)strlen((int8_t *)this_entry.file_name)) > FILE_NAME_SIZE) {
       return FILE_NAME_SIZE; 
     }
-    return ((int32_t)strlen(this_entry.file_name));
+    return ((int32_t)strlen((int8_t *)this_entry.file_name));
   }
   return 0;
 }

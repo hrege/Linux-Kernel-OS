@@ -361,8 +361,17 @@ extern uint32_t sys_open(const uint8_t* filename){
 			return -1;
 	}
 
-	/* Open the file. */
+	/* Open the file */
 	curr_pcb->file_array[fd].file_operations.device_open(filename);
+
+	/* Set fname */
+	curr_pcb->file_array[fd].fname = (uint8_t*)filename;
+
+	/* Set inode number */
+	curr_pcb->file_array[fd].inode_number = this_file.inode_number;
+
+	/* Set file position */
+	curr_pcb->file_array[fd].file_position = 0;
 
 	return fd;
 }
