@@ -114,6 +114,10 @@ int32_t file_open(const uint8_t* filename) {
   Return Value: Returns 0 on success.
  */
 int32_t file_close(int32_t fd) {
+  PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+
+  curr_pcb->file_array[fd].flags = 0;
+
   return 0;
 }
 
@@ -293,6 +297,10 @@ int32_t directory_open(const uint8_t* filename) {
   Return Value: Returns 0 since always successful
  */
 int32_t directory_close(int32_t fd) {
+  PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+
+  curr_pcb->file_array[fd].flags = 0;
+
   return 0;
 }
 
@@ -332,22 +340,27 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
     printf("Null buffer pointer\n");
     return -1;
   }
-  /* Check that the current entry to read exists. */
-  if(cur_read_idx > (filesystem.boot_block_start->num_dir_entries)) {
-    return 0;
-  }
 
   dentry_t this_entry;
 
   /* Check if current directory index exists, then copy file name into buffer. */
-  if(read_dentry_by_index(cur_read_idx, &(this_entry)) == 0) {
+  if((cur_read_idx <= number_of_files) && (read_dentry_by_index(cur_read_idx, &(this_entry)) == 0)) {
     strncpy((int8_t *)buf, (int8_t *)&(this_entry.file_name), nbytes);
     cur_read_idx++;
-    if(((int32_t)strlen(this_entry.file_name)) > FILE_NAME_SIZE) {
-      return FILE_NAME_SIZE; 
+    if(((int32_t)strlen((int8_t*)this_entry.file_name)) > FILE_NAME_SIZE) {
+      return FILE_NAME_SIZE;
     }
-    return ((int32_t)strlen(this_entry.file_name));
+    return ((int32_t)strlen((int8_t*)this_entry.file_name));
   }
+  else {
+    cur_read_idx = 0;
+  }
+
+  // /* Check that the current entry to read exists. */
+  // if(cur_read_idx >= (filesystem.boot_block_start->num_dir_entries)) {
+  //   cur_read_idx = 0;
+  // }
+
   return 0;
 }
 
@@ -423,7 +436,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry) {
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry) {
   /* If non-existent file or invalid index, return error */
   if((index > number_of_files || index < 0)) {
-    printf("invalid file\n");
+    cur_read_idx = 0;
     return -1;
   }
   if(dentry == NULL) {
