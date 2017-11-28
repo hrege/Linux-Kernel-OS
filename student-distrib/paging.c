@@ -17,6 +17,7 @@
 #define READ_WRITE      2
 #define PTE_ENTRY_VAL   7
 #define PDE_ENTRY_VAL   3
+#define VID_MEM_MB_LOC  132/4
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
 static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table
@@ -101,7 +102,7 @@ void paging_init(){
     page_directory[2] = 0x00000000 | READ_WRITE;
     page_directory[3] = 0x00000000 | READ_WRITE;
 
-    page_directory[33] = ((uint32_t)fish_page_table) | PTE_ENTRY_VAL;
+    page_directory[VID_MEM_MB_LOC] = ((uint32_t)fish_page_table) | PTE_ENTRY_VAL;
 
     //Set PDE for 0MB-4MB in Physical Memory (mapped to 132MB Virtual)
     fish_page_table[VIDEO_IDX] = VIDEO_LOC | PTE_ENTRY_VAL;

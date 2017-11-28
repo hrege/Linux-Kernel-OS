@@ -16,6 +16,7 @@
 #define DATA_READ_SIZE            1024
 #define BLOCK_SIZE                4096
 #define NUM_DIRECTORY_ENTRIES     63
+#define MAX_TERMINAL_SIZE         128
 
 #define STD_IN_FILE_TYPE          0
 #define STD_OUT_FILE_TYPE         1
@@ -89,7 +90,7 @@ typedef struct PCB_t {
   struct PCB_t* parent_process;
   uint32_t* kern_esp;
   uint32_t* kern_ebp;
-  uint8_t arguments[128]; //128 is max size to type on terminal so can safely be large enough
+  uint8_t arguments[MAX_TERMINAL_SIZE]; //128 is max size to type on terminal so can safely be large enough
   uint8_t arg_len;
 } PCB_t;
 
