@@ -262,8 +262,6 @@ int32_t file_load(uint8_t* fname, void* addr){
   Return Value: returns 0 on success and -1 on failure
  */
 int32_t directory_open(const uint8_t* filename) {
-  uint8_t buf[32];
-
   if(filename == NULL) {
     printf("Null filename\n");
     return -1;
@@ -282,10 +280,6 @@ int32_t directory_open(const uint8_t* filename) {
     return -1;
   }
 
-  while(directory_read(0, &buf, 32) != 0) {
-    printf("%s\n", buf);
-    memset(&buf, '\0', FILE_NAME_SIZE);
-  }
 
   return 0;
 }
@@ -349,7 +343,10 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes) {
   if(read_dentry_by_index(cur_read_idx, &(this_entry)) == 0) {
     strncpy((int8_t *)buf, (int8_t *)&(this_entry.file_name), nbytes);
     cur_read_idx++;
-    return nbytes;
+    if(((int32_t)strlen(this_entry.file_name)) > FILE_NAME_SIZE) {
+      return FILE_NAME_SIZE; 
+    }
+    return ((int32_t)strlen(this_entry.file_name));
   }
   return 0;
 }
