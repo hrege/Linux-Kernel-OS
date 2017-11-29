@@ -23,7 +23,7 @@ static char* video_mem = (char *)VIDEO;
 *       Returns: pointer to video memory
 */
 char* get_video_mem(){
-    return (char *)0xB8000;
+    return (char *)VIDEO;
 
 }
 
@@ -118,8 +118,8 @@ void clear_line(void) {
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(0xB8000 + (i << 1)) = ' ';
-        *(uint8_t *)(0xB8000 + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(VIDEO + (i << 1)) = ' ';
+        *(uint8_t *)(VIDEO + (i << 1) + 1) = ATTRIB;
     }
     set_screen_x(0);    //reset to top left
     set_screen_y(0);
@@ -283,8 +283,8 @@ void putc(uint8_t c) {
         screen_y++;
         screen_x = 0;
     } else {
-        *(uint8_t *)(0xB8000 + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(0xB8000 + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(VIDEO + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(VIDEO + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_y = (screen_y + (screen_x / NUM_COLS));
         screen_x %= NUM_COLS;
