@@ -79,8 +79,9 @@ int get_first_pid(){
 int32_t sys_halt(uint8_t status){
 	int i; // loop variable
 
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 
+	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	curr_pcb->arg_len = 0;
 	if(pid_bitmap[curr_pcb->process_id] == 0){
 		return -1;
 	}
@@ -188,8 +189,10 @@ int32_t sys_execute(const uint8_t* command){
 		exe_name[i]='\0';
 	}
 	//null terminate the arg buf
-	temp_arg_buf[i-exe_len] = '\0';
-	arg_len_count++;
+	if(arg_len_count != 0){
+		temp_arg_buf[i-exe_len] = '\0';
+		arg_len_count++;
+	}
 
 	/* Check if file exists in directory and if file type is regular. */
 	if(-1 == read_dentry_by_name(exe_name, &exec)){
@@ -429,7 +432,7 @@ int32_t sys_getargs(uint8_t* buf, int32_t nbytes){
 	//get the pcb
 	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
 	//check length
-	if(curr_pcb->arg_len > nbytes){
+	if(curr_pcb->arg_len > nbytes || curr_pcb->arg_len == 0){
 		return -1;
 	}
 	//make copy
