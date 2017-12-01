@@ -6,7 +6,9 @@
 #include "lib.h"
 #include "rtc.h"
 #include "i8259.h"
-
+#include "filesystem.h"
+#include "paging.h"
+#include "x86_desc.h"
 
 //filescope variables:
 int occurred = 0;  //indicator that the interrupt occurred for read
@@ -155,7 +157,13 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 *		Returns: 0 always
 *		Side effects: none
 */
-int32_t rtc_close(int32_t trash){
+int32_t rtc_close(int32_t fd){
+	
+  PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+
+  curr_pcb->file_array[fd].flags = 0;
+  curr_pcb->file_array[fd].file_position = 0;
+
 	return 0;
 }
 
