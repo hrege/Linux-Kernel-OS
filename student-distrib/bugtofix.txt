@@ -1,4 +1,4 @@
-###################################
+﻿###################################
 
 		   Bugs To Fix
 		VictoriOS Secret
@@ -12,4 +12,10 @@ Hershel Dave-Rege		Austin Born
 
 What: exec.file_name in execute is cmd arg + a bunch of junk values. But we don’t use it after that for now…
 
-What: read_data in filesystem when given length = 0 reads the 0th byte of the file
+TO DO: 
+Multiple terminals:
+-store currently running process information in its base shell's pcb (OR DEDICATED PAGE).
+-change attribute byte of text based on which terminal the process is running in
+-store base shell pcb pointer in all of its child processes
+-context switches to different terminal (may be in user mode or kernel mode)
+-video memory manipulation when terminal switches
