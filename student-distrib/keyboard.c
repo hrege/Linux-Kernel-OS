@@ -381,14 +381,14 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 
     /* read from buf */
     for(i = 0; i < nbytes; i++){
-      if(((char*)buf)[i] == '\0'){
-        return 0;		//return 0 if end of string
-      }
+      // if(((char*)buf)[i] == '\0'){
+      //   return 0;		//return 0 if end of string
+      // }
       if(((char *)buf)[i] == ENTER){
          putc('\n');	//enter is newline
          line_start = 0;
       }
-      else if(((char *)buf)[i] != 0) {
+      else{ //if(((char *)buf)[i] != 0)
         putc(((char *)buf)[i]);	//otherwise print the char and put it in line buffer
         line_buffer[buffer_length] = ((char *)buf)[i];
         line_start++;
@@ -425,6 +425,8 @@ int32_t terminal_open(const uint8_t* filename){
   rshift_flag = 0;
   caps_flag = 0;
   ctrl_flag = 0;
+  flag = 0;
+  line_start = 0;
   return 0;
 }
 
