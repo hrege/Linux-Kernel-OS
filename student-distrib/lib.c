@@ -4,16 +4,61 @@
 #include "lib.h"
 #include "x86_desc.h"
 
-#define VIDEO       0xB8000
+#define VIDEO         0xB8000
+#define VIDEO_0       0xB9000
+#define VIDEO_1       0xBA000
+#define VIDEO_2       0xBB000
 #define NUM_COLS    80
 #define NUM_ROWS    25
-#define ATTRIB      0x7
+#define ATTRIB      0xE
+#define RED         0x4
+#define GREEN       0xA
+#define BLUE        0x1
+#define YELLOW      0xE
 
-static int screen_x;
-static int screen_y;
-static char* video_mem = (char *)VIDEO;
-// const static char* new_vmem = (char *)VIDEO;
 
+
+//0x9, 0x1 blue text ; 0x2 green 0xA bright green; 0x4 red; 0xE Yellow
+
+int screen_x[NUM_TERMS];
+int screen_y[NUM_TERMS];
+
+
+char* video_mem = (char *)VIDEO;
+int active_term;
+
+PCB_t* get_pcb(){
+    return (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+}
+
+/*
+*   get_attrib
+*       Author: Sam
+*       Description: returns the correct color byte based on terminal
+*       Input: none
+*       Output: none
+*       Returns: one color byte
+*/
+uint8_t get_attrib(){
+    switch(get_pcb()->term_num){
+    case 0:
+        return (uint8_t)GREEN;
+        break;
+
+    case 1:
+        return (uint8_t)BLUE;
+        break;
+
+    case 2:
+        return (uint8_t)YELLOW;
+        break;
+    
+    default:
+        return (uint8_t)GREEN;
+        break;
+    }
+
+}
 /*
 *   get_video_mem
 *       Author: Sam
@@ -23,7 +68,23 @@ static char* video_mem = (char *)VIDEO;
 *       Returns: pointer to video memory
 */
 char* get_video_mem(){
-    return (char *)VIDEO;
+    switch(get_pcb()->term_num){
+    case 0:
+        return (char*)VIDEO_0;
+        break;
+
+    case 1: 
+        return (char*)VIDEO_1;
+        break;
+
+    case 2:
+        return (char*)VIDEO_2;
+        break;
+    
+    default:
+        return (char*)VIDEO;
+        break;
+    }
 
 }
 
@@ -37,8 +98,7 @@ char* get_video_mem(){
 *       Side effect: screen x location changed
 */
 void set_screen_x(int new_x){
-    screen_x = new_x;
-
+    screen_x[get_pcb()->term_num] = new_x;
 }
 
 /*
@@ -51,7 +111,7 @@ void set_screen_x(int new_x){
 *       Side effect: screen y location changed
 */
 void set_screen_y(int new_y){
-    screen_y = new_y;
+    screen_y[get_pcb()->term_num] = new_y;
 
 }
 
@@ -64,8 +124,7 @@ void set_screen_y(int new_y){
 *       Return: screen_x - integer screen location in x
 */
 int get_screen_x(){
-    return screen_x;
-
+    return screen_x[get_pcb()->term_num];
 }
 
 /*
@@ -77,7 +136,7 @@ int get_screen_x(){
 *       Return: screen_y - integer screen location in y
 */
 int get_screen_y(){
-    return screen_y;
+    return screen_y[get_pcb()->term_num];
 }
 
 /*
@@ -123,7 +182,7 @@ void clear(void) {
     }
     set_screen_x(0);    //reset to top left
     set_screen_y(0);
-    update_cursor(screen_x, screen_y);
+    update_cursor(screen_x[get_pcb()->term_num], screen_y[get_pcb()->term_num]);
 }
 
 /* Standard printf().
@@ -257,7 +316,7 @@ format_char_switch:
         buf++;
     }
 
-    update_cursor(screen_x, screen_y);
+    update_cursor(screen_x[get_pcb()->term_num], screen_y[get_pcb()->term_num]);
     return (buf - format);
 }
 
@@ -279,15 +338,18 @@ int32_t puts(int8_t* s) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
+    int terminal;
+    terminal = get_pcb()->term_num;
+
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x = 0;
+        screen_y[terminal]++;
+        screen_x[terminal] = 0;
     } else {
-        *(uint8_t *)(VIDEO + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(VIDEO + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_y = (screen_y + (screen_x / NUM_COLS));
-        screen_x %= NUM_COLS;
+        *(uint8_t *)(get_video_mem() + ((NUM_COLS * screen_y[terminal] + screen_x[terminal]) << 1)) = c;
+        *(uint8_t *)(get_video_mem() + ((NUM_COLS * screen_y[terminal] + screen_x[terminal]) << 1) + 1) = get_attrib();
+        screen_x[terminal]++;
+        screen_y[terminal] = (screen_y[terminal] + (screen_x[terminal] / NUM_COLS));
+        screen_x[terminal] %= NUM_COLS;
     }
 }
 

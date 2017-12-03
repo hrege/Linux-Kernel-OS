@@ -5,17 +5,19 @@
 
 #include "i8259.h"
 #include "lib.h"
+#include "paging.h"
 #include "keyboard.h"
 
 
-static volatile uint8_t line_buffer[max_buffer_size];
-static volatile int buffer_length;
-static volatile int flag; //0 to sleep termianl_read() positive number for bytes to copy 
-static int line_start;
-static int rshift_flag;
-static int lshift_flag;
-static int caps_flag;
-static int ctrl_flag;
+static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
+static volatile int buffer_length[NUM_TERMS];
+static volatile int flag[NUM_TERMS]; //0 to sleep termianl_read() positive number for bytes to copy 
+static int line_start[NUM_TERMS];
+static int rshift_flag[NUM_TERMS];
+static int lshift_flag[NUM_TERMS];
+static int caps_flag[NUM_TERMS];
+static int ctrl_flag[NUM_TERMS];
+static int alt_flag[NUM_TERMS];
 
 
 /*
@@ -197,48 +199,61 @@ void keyboard_init() {
     Side Effects: Sends EOI signal to Master PIC.
  */
 void keyboard_handler() {
+  int terminal;
   uint8_t keyboard_input = 0;
   char char_out = 0;
   /* Read keypress from keyboard data port. */
   keyboard_input = inb(KEYBOARD_DATA_PORT);
   char_out = getScancode(keyboard_input);
+  terminal = get_pcb()->term_num;
 
  if(keyboard_input == LSHIFT_ON_SCAN){
-        lshift_flag = 1;
+        lshift_flag[terminal] = 1;
   }
  else if(keyboard_input == RSHIFT_ON_SCAN){
-        rshift_flag = 1;
+        rshift_flag[terminal] = 1;
   }
   else if(keyboard_input == LSHIFT_OFF_SCAN){
-        lshift_flag = 0;
+        lshift_flag[terminal] = 0;
   }
   else if(keyboard_input == RSHIFT_OFF_SCAN){
-        rshift_flag = 0;
+        rshift_flag[terminal] = 0;
   }
   else if(keyboard_input == CAPS_LOCK){
-        caps_flag = (!caps_flag) & 0x1;
+        caps_flag[terminal] = (!caps_flag[terminal]) & 0x1;
   }
   else if(keyboard_input == CTRL_SCAN){
     //Clear screen and start printing from top
-      ctrl_flag++;
+      ctrl_flag[terminal]++;
 
   }
   else if(keyboard_input == CTRL_RELEASE_SCAN){
     //Clear screen and start printing from top
-      ctrl_flag--;
+      ctrl_flag[terminal]--;
+
+  }
+
+  else if(keyboard_input == ALT_SCAN){
+    //Clear screen and start printing from top
+      alt_flag[terminal]++;
+
+  }
+  else if(keyboard_input == ALT_RELEASE_SCAN){
+    //Clear screen and start printing from top
+      alt_flag[terminal]--;
 
   }
   else if(keyboard_input == BACKSPACE_SCAN){
-      if(buffer_length > 0 && (get_screen_x() > line_start || (buffer_length + line_start) >= 80)){
-        buffer_length--;
+      if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= 80)){
+        buffer_length[terminal]--;
       }
       else{
-        set_screen_x(line_start);
+        set_screen_x(line_start[terminal]);
         send_eoi(KEYBOARD_IRQ);
         return;
       }
       /*Go back to previous video memory*/
-      if(get_screen_x() == 0 && buffer_length > 0){
+      if(get_screen_x() == 0 && buffer_length[terminal] > 0){
             set_screen_y(get_screen_y() - 1);
             set_screen_x(NUM_COLS - 1);
       }
@@ -248,7 +263,7 @@ void keyboard_handler() {
       /*Previous character erased*/
       putc(' ');
       /*Reset screen position to write next character over space*/
-      if(get_screen_x() == 0 && buffer_length > 0){
+      if(get_screen_x() == 0 && buffer_length[terminal] > 0){
         set_screen_y(get_screen_y() - 1);
         set_screen_x(NUM_COLS - 1);
         update_cursor(get_screen_x(), get_screen_y());
@@ -257,34 +272,49 @@ void keyboard_handler() {
           set_screen_x(get_screen_x() - 1);
           update_cursor(get_screen_x(), get_screen_y());
       }
+  }
+
+  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0){
+      terminal_deactivate(active_term);
+      terminal_activate(0);
+    //context switch etc 
 
 
-      //backspace
+  }
+  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0){
+      terminal_deactivate(active_term);
+      terminal_activate(1);
+
+    
+  }
+  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0){
+      terminal_deactivate(active_term);
+      terminal_activate(2);
+
+    
   }
   /*Clear screen*/
-  else if(char_out == 'l' && ctrl_flag > 0){
+  else if(char_out == 'l' && ctrl_flag[terminal] > 0){
       clear();
-      buffer_length = 0;
+      buffer_length[terminal] = 0;
   }
 
   else if(char_out == ENTER){
-    line_buffer[buffer_length] = '\n';
+    line_buffer[terminal][buffer_length[terminal]] = '\n';
     putc('\n');
-    flag = buffer_length;
+    flag[terminal] = buffer_length[terminal];
     update_cursor(get_screen_x(), get_screen_y());
-    buffer_length = 0;
-    line_start = 0;
+    buffer_length[terminal] = 0;
+    line_start[terminal] = 0;
     sti();
 
   }
 
-
-
   /* Print scancode-converted character to terminal. */
-  else if(keyboard_input < MAX_SCANCODE && buffer_length < max_buffer_size && char_out != 0) {
+  else if(keyboard_input < MAX_SCANCODE && buffer_length[terminal] < max_buffer_size && char_out != 0) {
     putc(char_out);
-    line_buffer[buffer_length] = char_out;
-    buffer_length++;
+    line_buffer[terminal][buffer_length[terminal]] = char_out;
+    buffer_length[terminal]++;
     update_cursor(get_screen_x(), get_screen_y());
   }
 
@@ -313,9 +343,10 @@ void keyboard_handler() {
     Side Effects: Accesses scancode array to determine which character is being printed.
  */
 char getScancode(char input) {
+  int terminal;
+  terminal = get_pcb()->term_num;
 
-
-  return scancode_map[(int)input][(lshift_flag | rshift_flag | (caps_flag << 1))];
+  return scancode_map[(int)input][(lshift_flag[terminal] | rshift_flag[terminal] | (caps_flag[terminal] << 1))];
 }
 
 /*
@@ -329,7 +360,9 @@ char getScancode(char input) {
 
 
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
+
   int i;//loop variable
+  int terminal;
 
   //Check input validity
   if(nbytes < 1){
@@ -338,24 +371,27 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
   if(buf == NULL){
     return -1;
   }
+
+  terminal = get_pcb()->term_num;
+
   if(nbytes > max_buffer_size){
     nbytes = max_buffer_size;
   }
 
   //wait for flag
-  while(flag == 0);
+  while(flag[terminal] == 0);
   /*Check size of buffer*/
-  if(nbytes < flag){
-    flag = nbytes;
+  if(nbytes < flag[terminal]){
+    flag[terminal] = nbytes;
   }
   /* read */
-  for(i = 0; i < flag; i++){
-      ((char *)buf)[i] = line_buffer[i];
+  for(i = 0; i < flag[terminal]; i++){
+      ((char *)buf)[i] = line_buffer[terminal][i];
   }
-  ((char *)buf)[flag] = '\0';
-  nbytes = flag;	//set return value
+  ((char *)buf)[flag[terminal]] = '\0';
+  nbytes = flag[terminal];	//set return value
   /* reset flag */
-  flag = 0;
+  flag[terminal] = 0;
 
   return nbytes;
 }
@@ -369,6 +405,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
 *		Returns: 0 = Pass; -1 = Fail
 */
 int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
+    int terminal;
     int i;//loop vairable
     /* Validate input */
     if(nbytes < 0){
@@ -378,7 +415,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         return -1;
     }
 
-
+    terminal = get_pcb()->term_num;
     /* read from buf */
     for(i = 0; i < nbytes; i++){
       // if(((char*)buf)[i] == '\0'){
@@ -386,12 +423,12 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
       // }
       if(((char *)buf)[i] == ENTER){
          putc('\n');	//enter is newline
-         line_start = 0;
+         line_start[terminal] = 0;
       }
       else{ //if(((char *)buf)[i] != 0)
         putc(((char *)buf)[i]);	//otherwise print the char and put it in line buffer
-        line_buffer[buffer_length] = ((char *)buf)[i];
-        line_start++;
+        line_buffer[terminal][buffer_length[terminal]] = ((char *)buf)[i];
+        line_start[terminal]++;
       }  
 
       /*Take care of scrolling when screen_y reaches maximum*/
@@ -399,7 +436,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
          memcpy(get_video_mem(), get_video_mem() + (NUM_COLS << 1), (((NUM_ROWS-1)*NUM_COLS) << 1));
          set_screen_y(NUM_ROWS - 1);
          clear_line();
-         buffer_length = 0;
+         buffer_length[terminal] = 0;
         }
      
     }
@@ -418,15 +455,17 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 *		Returns: 0 always atm
 */
 int32_t terminal_open(const uint8_t* filename){
-  buffer_length = 0;
+  int terminal;
+  terminal = get_pcb()->term_num;
+  buffer_length[terminal] = 0;
   clear();
   /*Initialize all flags*/
-  lshift_flag = 0;
-  rshift_flag = 0;
-  caps_flag = 0;
-  ctrl_flag = 0;
-  flag = 0;
-  line_start = 0;
+  lshift_flag[terminal] = 0;
+  rshift_flag[terminal] = 0;
+  caps_flag[terminal] = 0;
+  ctrl_flag[terminal] = 0;
+  flag[terminal] = 0;
+  line_start[terminal] = 0;
   return 0;
 }
 

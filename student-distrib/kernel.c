@@ -156,6 +156,7 @@ void entry(unsigned long magic, unsigned long addr) {
     for(i = 0; i < MAX_PID; i++){
         pid_bitmap[i] = 0;
     }
+    active_term = 0;
 
     file_system_init(file_system_addr);
 

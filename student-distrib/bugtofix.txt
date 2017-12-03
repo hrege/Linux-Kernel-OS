@@ -19,3 +19,4 @@ Multiple terminals:
 -store base shell pcb pointer in all of its child processes
 -context switches to different terminal (may be in user mode or kernel mode)
 -video memory manipulation when terminal switches
+	- decide what strategy to use

@@ -14,16 +14,23 @@
 #define BACKSPACE_SCAN     	0xE		
 #define ENTER         		0x0A
 #define CTRL_SCAN    		0x1D
+#define ALT_SCAN 			0x38
 #define LSHIFT_ON_SCAN		0x2A
 #define RSHIFT_ON_SCAN		0x36
 #define LSHIFT_OFF_SCAN		0xAA
 #define RSHIFT_OFF_SCAN		0xB6
 #define CAPS_LOCK			0x3A
 #define CTRL_RELEASE_SCAN	0x9D
+#define ALT_RELEASE_SCAN	0xB8
+#define F1_PRESS			0x3B
+#define F2_PRESS			0x3C
+#define F3_PRESS			0x3D
 
 //define screen size
 #define NUM_COLS    		80
 #define NUM_ROWS    		25
+
+#define NUM_TERMS			3
 
 /* //// external drivers functions \\\\\ */
 /* Read for terminal driver */

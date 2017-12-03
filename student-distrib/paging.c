@@ -7,17 +7,6 @@
 #include "i8259.h"
 #include "paging.h"
 
-#define VIDEO_IDX       0xB8                       //VIDEO from lib.c without 3 least significant bits
-#define TABLE_SIZE      1024                     //1024 entries in Page directory and Page table
-#define PAGE_MB_NUM     4
-#define PTE_OFFSET      12
-#define PDE_OFFSET      22
-#define VIDEO_LOC       0x000B8000
-#define PTE_MOVE        0x1000
-#define READ_WRITE      2
-#define PTE_ENTRY_VAL   7
-#define PDE_ENTRY_VAL   3
-#define VID_MEM_MB_LOC  132/4
 
 static uint32_t page_directory[TABLE_SIZE] __attribute__((aligned (4096)));   // Construct a page directory
 static uint32_t page_table[TABLE_SIZE] __attribute__((aligned (4096)));       // Construct a page table
@@ -96,6 +85,9 @@ void paging_init(){
     //Set PTE for the video memory
 
     page_table[VIDEO_IDX] = VIDEO_LOC | PTE_ENTRY_VAL;
+    page_table[VIDEO_TERM_0] = VIDEO_LOC | PTE_ENTRY_VAL;
+    page_table[VIDEO_TERM_1] = VIDEO_LOC_1 | PTE_ENTRY_VAL;
+    page_table[VIDEO_TERM_2] = VIDEO_LOC_2 | PTE_ENTRY_VAL;
 
     page_directory[0] = ((uint32_t)page_table) | PDE_ENTRY_VAL;
 
@@ -166,4 +158,40 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
 
     //Map 128-132MB VM to 12-16MB PM
     //page_directory[32] = 0x00C00083;
+void terminal_activate(int term_num){
+    switch(term_num){
+        case 0:
+        memcpy((char*)VIDEO_LOC, (char*)VIDEO_LOC_0, SCREEN_SIZE); 
+        page_table[VIDEO_TERM_0] = VIDEO_LOC | PTE_ENTRY_VAL;
+        break;
 
+        case 1:
+        memcpy((char*)VIDEO_LOC, (char*)VIDEO_LOC_1, SCREEN_SIZE);
+        page_table[VIDEO_TERM_1] = VIDEO_LOC | PTE_ENTRY_VAL;
+        break;
+
+        case 2:
+        memcpy((char*)VIDEO_LOC, (char*)VIDEO_LOC_2, SCREEN_SIZE);
+        page_table[VIDEO_TERM_2] = VIDEO_LOC | PTE_ENTRY_VAL;
+        break;
+    }
+
+}
+void terminal_deactivate(int term_num){
+    switch(term_num){
+        case 0:
+        page_table[VIDEO_TERM_0] = VIDEO_LOC_0 | PTE_ENTRY_VAL;
+        memcpy((char*)VIDEO_LOC_0, (char*)VIDEO_LOC, SCREEN_SIZE);
+        break;
+
+        case 1:
+        page_table[VIDEO_TERM_1] = VIDEO_LOC_1 | PTE_ENTRY_VAL;
+        memcpy((char*)VIDEO_LOC_1, (char*)VIDEO_LOC, SCREEN_SIZE);
+        break;
+
+        case 2:
+        page_table[VIDEO_TERM_2] = VIDEO_LOC_2 | PTE_ENTRY_VAL;
+        memcpy((char*)VIDEO_LOC_2, (char*)VIDEO_LOC, SCREEN_SIZE);
+        break;
+    }
+}

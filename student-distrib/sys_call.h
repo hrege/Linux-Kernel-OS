@@ -20,7 +20,7 @@
 #define PID_OFF                2
 #define MAX_FILES              8
 #define MAX_PROCESS			       6  //current support limit
-#define MAX_PID     		       10
+#define MAX_PID     		       6
 
 #define _128_MB                0x8000000
 #define _132_MB				         0x8400000

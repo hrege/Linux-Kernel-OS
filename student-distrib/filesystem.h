@@ -87,6 +87,7 @@ typedef struct fd_array_t {
 typedef struct PCB_t {
   fd_array_t file_array[MAX_ACTIVE_FILES];
   uint32_t process_id;
+  uint32_t term_num;
   struct PCB_t* parent_process;
   uint32_t* kern_esp;
   uint32_t* kern_ebp;
