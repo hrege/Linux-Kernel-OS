@@ -9,7 +9,10 @@ Jonathan Mullen			 Sam Morris
 Hershel Dave-Rege		Austin Born
 
 
+Why is the keyboard handler set to user level access in idt_init?
+
 
 What: exec.file_name in execute is cmd arg + a bunch of junk values. But we don’t use it after that for now…
 
 What: read_data in filesystem when given length = 0 reads the 0th byte of the file
+
