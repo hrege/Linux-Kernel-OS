@@ -10,7 +10,7 @@
 #define VIDEO_2       0xBB000
 #define NUM_COLS    80
 #define NUM_ROWS    25
-#define ATTRIB      0xE
+#define ATTRIB      0x7
 #define RED         0x4
 #define GREEN       0xA
 #define BLUE        0x1
@@ -54,7 +54,7 @@ uint8_t get_attrib(){
         break;
     
     default:
-        return (uint8_t)GREEN;
+        return (uint8_t)ATTRIB;
         break;
     }
 
@@ -177,8 +177,8 @@ void clear_line(void) {
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(VIDEO + (i << 1)) = ' ';
-        *(uint8_t *)(VIDEO + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(get_video_mem() + (i << 1)) = ' ';
+        *(uint8_t *)(get_video_mem() + (i << 1) + 1) = get_attrib();
     }
     set_screen_x(0);    //reset to top left
     set_screen_y(0);

@@ -65,11 +65,11 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB) 
     PCB_ptr->parent_process = NULL;
     PCB_ptr->term_num = 0;
   }
-  if(p_id == 1) {
+  else if(p_id == 1) {
     PCB_ptr->parent_process = NULL;
     PCB_ptr->term_num = 1;
   }
-  if(p_id == 2) {
+  else if(p_id == 2) {
     PCB_ptr->parent_process = NULL;
     PCB_ptr->term_num = 2;
   }

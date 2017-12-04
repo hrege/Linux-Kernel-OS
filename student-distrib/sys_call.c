@@ -67,7 +67,7 @@ int get_first_pid(){
 	/* start at 0 and check until you find one */
 	for(i = 0; i < MAX_PID; i++){
 		if(pid_bitmap[i] == 0){
-			if((shell_2 == 1 || i != 1) && (shell_3 == 1 || i !=2)){
+			if((shell_2 == 1 || i != 1) && (shell_3 == 1 || i != 2)){
 				return i;
 			}
 		}
@@ -93,7 +93,7 @@ int32_t sys_halt(uint8_t status){
 	if(pid_bitmap[curr_pcb->process_id] == 0){
 		return -1;
 	}
-
+	
 	pid_bitmap[curr_pcb->process_id] = 0;
 
 	if(curr_pcb->process_id < NUM_TERMS){
@@ -236,7 +236,10 @@ int32_t sys_execute(const uint8_t* command){
 	if(NULL == exec_pcb){
 		return -1;
 	}
+	
+	if(exec_pcb->process_id > 2){
 	parent_pcb->child_process = exec_pcb;
+	}
 	/* Put args into PCB */
 	exec_pcb->arg_len = arg_len_count;
 	strcpy((int8_t*)exec_pcb->arguments,(const int8_t*)temp_arg_buf);
@@ -475,7 +478,7 @@ int32_t sys_vidmap(uint8_t** screen_start){
 		at the time this is written, the first 4MB available in memory.
 		Paging initialized in paging_init(). */
 	uint8_t* ptr;
-	ptr = (uint8_t*)(_132_MB + VIDEO_LOC);
+	ptr = (uint8_t*)(_132_MB + get_video_mem());
 	*screen_start = ptr;
 
 	//return the virtual location of page containing video memory

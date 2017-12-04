@@ -8,6 +8,7 @@
 #include "paging.h"
 #include "keyboard.h"
 #include "sys_call.h"
+#include "x86_desc.h"
 
 
 static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
@@ -281,6 +282,11 @@ void keyboard_handler() {
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
+
+      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE));
+      tss.ss0 = KERNEL_DS;
+      active_term = 0;
+
     //context switch etc 
       terminal_switch(0);
 
@@ -292,9 +298,14 @@ void keyboard_handler() {
 
       terminal_deactivate(active_term);
       terminal_activate(1);
+      
+      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
+      tss.ss0 = KERNEL_DS;
+      active_term = 1;
 
       if(shell_2 == 1){
         send_eoi(KEYBOARD_IRQ);
+        clear();
         sys_execute(ptr);
       }
 
@@ -309,8 +320,13 @@ void keyboard_handler() {
       terminal_deactivate(active_term);
       terminal_activate(2);
 
+      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
+      tss.ss0 = KERNEL_DS;
+      active_term = 2;
+
       if(shell_3 == 1){
         send_eoi(KEYBOARD_IRQ);
+        clear();
         sys_execute(ptr);
       }
       terminal_switch(2);
@@ -487,6 +503,7 @@ int32_t terminal_open(const uint8_t* filename){
   rshift_flag[terminal] = 0;
   caps_flag[terminal] = 0;
   ctrl_flag[terminal] = 0;
+  alt_flag[terminal] = 0;
   flag[terminal] = 0;
   line_start[terminal] = 0;
   return 0;
@@ -514,8 +531,7 @@ void terminal_switch(int term_number){
       :
       : "eax"
       );
-      active_term = 1;
-
+      
       curr_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * term_number)) & (uint32_t)(0xFFFFE000));
       while(curr_pcb->child_process != NULL){
           curr_pcb = curr_pcb->child_process;
