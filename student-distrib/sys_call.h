@@ -33,6 +33,8 @@
 #define VID_MEM_PHYS_MB        0
 
 extern uint32_t pid_bitmap[MAX_PID];
+extern int shell_2;
+extern int shell_3;
 
 int get_first_pid();
 

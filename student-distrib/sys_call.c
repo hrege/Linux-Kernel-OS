@@ -15,6 +15,8 @@
 
 
 uint32_t pid_bitmap[MAX_PID];
+int shell_2;
+int shell_3;
 file_operations_t stdin_ops = {terminal_open, terminal_read, blank_write, terminal_close};
 file_operations_t stdout_ops = {terminal_open, blank_read, terminal_write, terminal_close};
 file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
@@ -58,10 +60,16 @@ int get_first_fd(){
 int get_first_pid(){
 	int i; // loop variable
 
+	if(pid_bitmap[0] == 0){
+		shell_2 = 0;
+		shell_3 = 0;
+	}
 	/* start at 0 and check until you find one */
 	for(i = 0; i < MAX_PID; i++){
 		if(pid_bitmap[i] == 0){
-			return i;
+			if((shell_2 == 1 || i != 1) && (shell_3 == 1 || i !=2)){
+				return i;
+			}
 		}
 	}
 	return -1;
@@ -88,7 +96,7 @@ int32_t sys_halt(uint8_t status){
 
 	pid_bitmap[curr_pcb->process_id] = 0;
 
-	if(curr_pcb->process_id == 0){
+	if(curr_pcb->process_id < NUM_TERMS){
 		clear();
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
@@ -115,7 +123,7 @@ int32_t sys_halt(uint8_t status){
 	  "movl %2, %%ebp;"
 	  "leave;"
 		"ret;"
-  	:
+  	  :
 	  : "r"((uint32_t)status), "m"(curr_pcb->kern_esp), "m"(curr_pcb->kern_ebp)
 	  : "eax"
 		);
@@ -145,9 +153,11 @@ int32_t sys_execute(const uint8_t* command){
 	uint32_t eip;
 	uint32_t next_pid;
 	int i;
+	PCB_t* parent_pcb;
 
 	//check valid PID and command buffer
 	next_pid = get_first_pid();
+	parent_pcb = get_pcb();
 	if(next_pid == -1 || command == NULL){
 		printf("Maximum number of processes running!\n");
 		return 0;
@@ -222,11 +232,11 @@ int32_t sys_execute(const uint8_t* command){
 	kern_stack_ptr = (uint32_t*)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * next_pid));
 
 	/* Initialize current process Process Control Block at proper location in kernel page. */
-	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, (PCB_t *)(tss.esp0 & 0xFFFFE000));
+	PCB_t * exec_pcb = pcb_init(kern_stack_ptr, next_pid, parent_pcb);
 	if(NULL == exec_pcb){
 		return -1;
 	}
-
+	parent_pcb->child_process = exec_pcb;
 	/* Put args into PCB */
 	exec_pcb->arg_len = arg_len_count;
 	strcpy((int8_t*)exec_pcb->arguments,(const int8_t*)temp_arg_buf);

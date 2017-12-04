@@ -7,6 +7,7 @@
 #include "lib.h"
 #include "paging.h"
 #include "keyboard.h"
+#include "sys_call.h"
 
 
 static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
@@ -273,24 +274,46 @@ void keyboard_handler() {
           update_cursor(get_screen_x(), get_screen_y());
       }
   }
+  /*****************************************************/
+  /*                 SWITCHING TERMINALS               */
+  /*****************************************************/
 
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
     //context switch etc 
-
+      terminal_switch(0);
 
   }
   else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0){
+      uint8_t* ptr = (uint8_t*)("shell");
+
+      shell_2++;
+
       terminal_deactivate(active_term);
       terminal_activate(1);
 
+      if(shell_2 == 1){
+        send_eoi(KEYBOARD_IRQ);
+        sys_execute(ptr);
+      }
+
+      terminal_switch(1);
     
   }
   else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0){
+      uint8_t* ptr = (uint8_t*)("shell");
+
+      shell_3++;
+
       terminal_deactivate(active_term);
       terminal_activate(2);
 
+      if(shell_3 == 1){
+        send_eoi(KEYBOARD_IRQ);
+        sys_execute(ptr);
+      }
+      terminal_switch(2);
     
   }
   /*Clear screen*/
@@ -482,7 +505,34 @@ int32_t terminal_close(int32_t fd){
   return 0;
 }
 
+void terminal_switch(int term_number){
+      PCB_t* curr_pcb;
+      curr_pcb = get_pcb();
+      asm volatile("movl %%esp, %0;"
+      "movl %%ebp, %1;"
+      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
+      :
+      : "eax"
+      );
+      active_term = 1;
 
+      curr_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * term_number)) & (uint32_t)(0xFFFFE000));
+      while(curr_pcb->child_process != NULL){
+          curr_pcb = curr_pcb->child_process;
+      }
+      cli();
+      send_eoi(KEYBOARD_IRQ);
+      asm volatile("movl %0, %%esp;"
+      "movl %1, %%ebp;"
+      "leave;"
+      "sti;"
+      "ret;"
+      :
+      : "m"(curr_pcb->kern_esp), "m"(curr_pcb->kern_ebp)
+      : "eax"
+      );
+
+}
 
 
 

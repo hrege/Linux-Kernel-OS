@@ -153,7 +153,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 
     /*Set up pid_bitmap with all free pids*/
-    for(i = 0; i < MAX_PID; i++){
+    for(i = 1; i < MAX_PID; i++){
         pid_bitmap[i] = 0;
     }
     active_term = 0;
