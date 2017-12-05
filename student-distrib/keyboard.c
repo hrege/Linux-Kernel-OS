@@ -242,7 +242,9 @@ void keyboard_handler() {
   }
   else if(keyboard_input == ALT_RELEASE_SCAN){
     //Clear screen and start printing from top
+    if(alt_flag[terminal] > 0){
       alt_flag[terminal]--;
+    }
 
   }
   else if(keyboard_input == BACKSPACE_SCAN){
@@ -283,8 +285,6 @@ void keyboard_handler() {
       terminal_deactivate(active_term);
       terminal_activate(0);
 
-      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE));
-      tss.ss0 = KERNEL_DS;
       active_term = 0;
 
     //context switch etc 
@@ -300,8 +300,7 @@ void keyboard_handler() {
       terminal_deactivate(active_term);
       terminal_activate(1);
       
-      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
-      tss.ss0 = KERNEL_DS;
+
       active_term = 1;
 
       if(shell_2 == 1){
@@ -321,8 +320,7 @@ void keyboard_handler() {
       terminal_deactivate(active_term);
       terminal_activate(2);
 
-      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
-      tss.ss0 = KERNEL_DS;
+
       active_term = 2;
 
       if(shell_3 == 1){
@@ -533,11 +531,13 @@ void terminal_switch(int term_number){
       :
       : "eax"
       );
-      
+
       curr_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * term_number)) & (uint32_t)(0xFFFFE000));
-      while(curr_pcb->child_process != NULL){
+      while(curr_pcb->child_process){
           curr_pcb = curr_pcb->child_process;
       }
+      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
+      tss.ss0 = KERNEL_DS;
       cli();
       send_eoi(KEYBOARD_IRQ);
       asm volatile("movl %0, %%esp;"
