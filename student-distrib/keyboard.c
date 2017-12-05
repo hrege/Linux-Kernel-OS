@@ -288,6 +288,7 @@ void keyboard_handler() {
       active_term = 0;
 
     //context switch etc 
+      send_eoi(KEYBOARD_IRQ);
       terminal_switch(0);
 
   }
@@ -308,7 +309,7 @@ void keyboard_handler() {
         clear();
         sys_execute(ptr);
       }
-
+      send_eoi(KEYBOARD_IRQ);
       terminal_switch(1);
     
   }
@@ -329,6 +330,7 @@ void keyboard_handler() {
         clear();
         sys_execute(ptr);
       }
+      send_eoi(KEYBOARD_IRQ);
       terminal_switch(2);
     
   }

@@ -24,6 +24,9 @@
 #define     MB_8        0x800000
 
 static uint32_t * file_system_addr;
+static PCB_t* term_2_pcb;
+static PCB_t* term_3_pcb;
+
 int i;//loop variable
 
 /* Check if MAGIC is valid and print the Multiboot information structure
@@ -157,6 +160,12 @@ void entry(unsigned long magic, unsigned long addr) {
         pid_bitmap[i] = 0;
     }
     active_term = 0;
+    term_2_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB))) & 0xFFFE000);
+    term_3_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2))) & 0xFFFE000);
+    pcb_init(term_2_pcb, 1, (PCB_t*)NULL);
+    pcb_init(term_3_pcb, 2, (PCB_t*)NULL);
+
+
 
     file_system_init(file_system_addr);
 
