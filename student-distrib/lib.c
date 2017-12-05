@@ -12,7 +12,7 @@
 #define NUM_ROWS    25
 #define ATTRIB      0x7
 #define RED         0x4
-#define GREEN       0xA
+#define GREEN       0x2
 #define BLUE        0x1
 #define YELLOW      0xE
 
@@ -29,6 +29,7 @@ int active_term;
 
 PCB_t* get_pcb(){
     return (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+
 }
 
 /*
