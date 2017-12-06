@@ -284,9 +284,10 @@ void keyboard_handler() {
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
-
+      
       active_term = 0;
-
+       alt_flag[terminal]--;
+      alt_flag[active_term]++;
     //context switch etc 
       send_eoi(KEYBOARD_IRQ);
       terminal_switch(0);
@@ -299,9 +300,11 @@ void keyboard_handler() {
 
       terminal_deactivate(active_term);
       terminal_activate(1);
-      
 
       active_term = 1;
+
+ 	  alt_flag[terminal]--;
+      alt_flag[active_term]++;
 
       if(shell_2 == 1){
         send_eoi(KEYBOARD_IRQ);
@@ -320,8 +323,10 @@ void keyboard_handler() {
       terminal_deactivate(active_term);
       terminal_activate(2);
 
-
       active_term = 2;
+
+      alt_flag[terminal]--;
+      alt_flag[active_term]++;
 
       if(shell_3 == 1){
         send_eoi(KEYBOARD_IRQ);
@@ -542,14 +547,12 @@ void terminal_switch(int term_number){
       send_eoi(KEYBOARD_IRQ);
       asm volatile("movl %0, %%esp;"
       "movl %1, %%ebp;"
-      "leave;"
-      "sti;"
-      "ret;"
       :
       : "m"(curr_pcb->kern_esp), "m"(curr_pcb->kern_ebp)
       : "eax"
       );
-
+      sti();
+      return;
 }
 
 
