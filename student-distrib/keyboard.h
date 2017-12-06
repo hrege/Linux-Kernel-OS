@@ -49,6 +49,6 @@ void keyboard_handler();
 /* gets a scancode from the table */
 char getScancode(char input);
 
-void terminal_switch(int term_number);
+void terminal_switch(int term_number, uint32_t esp_zero);
 
 #endif

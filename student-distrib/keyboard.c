@@ -204,6 +204,9 @@ void keyboard_handler() {
   int terminal;
   uint8_t keyboard_input = 0;
   char char_out = 0;
+  uint32_t esp_zero;
+  PCB_t* curr_pcb;
+  PCB_t* top_pcb;
   /* Read keypress from keyboard data port. */
   keyboard_input = inb(KEYBOARD_DATA_PORT);
   char_out = getScancode(keyboard_input);
@@ -284,14 +287,14 @@ void keyboard_handler() {
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
-      
+      esp_zero = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)));
+
       active_term = 0;
        alt_flag[terminal]--;
       alt_flag[active_term]++;
     //context switch etc 
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(0);
-
+      terminal_switch(0, esp_zero);
   }
   else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0){
       uint8_t* ptr = (uint8_t*)("shell");
@@ -301,18 +304,36 @@ void keyboard_handler() {
       terminal_deactivate(active_term);
       terminal_activate(1);
 
+      esp_zero = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)));
+
       active_term = 1;
 
  	  alt_flag[terminal]--;
       alt_flag[active_term]++;
 
       if(shell_2 == 1){
-        send_eoi(KEYBOARD_IRQ);
-        clear();
-        sys_execute(ptr);
-      }
+      top_pcb = get_pcb();  
+      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
+      tss.ss0 = KERNEL_DS;
+
+      cli();
+
+      asm volatile("movl %%esp, %0;"
+      "movl %%ebp, %1;"
+      : "=m"(top_pcb->kern_esp), "=m"(top_pcb->kern_ebp)
+      :
+      : "eax"
+      );
+
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(1);
+      clear();
+      sti();
+      sys_execute(ptr);
+      return;
+      }
+
+      send_eoi(KEYBOARD_IRQ);
+      terminal_switch(1, esp_zero);
     
   }
   else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0){
@@ -323,18 +344,38 @@ void keyboard_handler() {
       terminal_deactivate(active_term);
       terminal_activate(2);
 
-      active_term = 2;
+      esp_zero = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)));
 
+      active_term = 2;
       alt_flag[terminal]--;
       alt_flag[active_term]++;
 
-      if(shell_3 == 1){
-        send_eoi(KEYBOARD_IRQ);
-        clear();
-        sys_execute(ptr);
-      }
+
+      if(shell_3 == 1){     
+      top_pcb = get_pcb();  
+      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
+      tss.ss0 = KERNEL_DS; 
+
+      cli();
+
+      asm volatile("movl %%esp, %0;"
+      "movl %%ebp, %1;"
+      : "=m"(top_pcb->kern_esp), "=m"(top_pcb->kern_ebp)
+      :
+      : "eax"
+      );
+
+
+
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(2);
+      clear();
+      sti();
+      sys_execute(ptr);
+      return;
+    }
+
+    send_eoi(KEYBOARD_IRQ);
+    terminal_switch(2, esp_zero);
     
   }
   /*Clear screen*/
@@ -527,15 +568,10 @@ int32_t terminal_close(int32_t fd){
   return 0;
 }
 
-void terminal_switch(int term_number){
+void terminal_switch(int term_number, uint32_t esp_zero){
       PCB_t* curr_pcb;
-      curr_pcb = get_pcb();
-      asm volatile("movl %%esp, %0;"
-      "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
-      :
-      : "eax"
-      );
+      PCB_t* top_pcb;
+      top_pcb = get_pcb();
 
       curr_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * term_number)) & (uint32_t)(0xFFFFE000));
       while(curr_pcb->child_process){
@@ -544,15 +580,25 @@ void terminal_switch(int term_number){
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;
       cli();
-      send_eoi(KEYBOARD_IRQ);
+
+      asm volatile("movl %%esp, %0;"
+      "movl %%ebp, %1;"
+      : "=m"(top_pcb->kern_esp), "=m"(top_pcb->kern_ebp)
+      :
+      : "eax"
+      );
+
       asm volatile("movl %0, %%esp;"
       "movl %1, %%ebp;"
       :
       : "m"(curr_pcb->kern_esp), "m"(curr_pcb->kern_ebp)
       : "eax"
       );
+
+      tss.esp0 = esp_zero;
       sti();
       return;
+
 }
 
 
