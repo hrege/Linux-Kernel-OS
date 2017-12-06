@@ -284,7 +284,7 @@ void keyboard_handler() {
   /*                 SWITCHING TERMINALS               */
   /*****************************************************/
 
-  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0){
+  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && active_term != 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
       esp_zero = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)));
@@ -296,7 +296,7 @@ void keyboard_handler() {
       send_eoi(KEYBOARD_IRQ);
       terminal_switch(0, esp_zero);
   }
-  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0){
+  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && active_term != 1){
       uint8_t* ptr = (uint8_t*)("shell");
 
       shell_2++;
@@ -336,7 +336,7 @@ void keyboard_handler() {
       terminal_switch(1, esp_zero);
     
   }
-  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0){
+  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && active_term != 2){
       uint8_t* ptr = (uint8_t*)("shell");
 
       shell_3++;
