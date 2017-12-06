@@ -11,6 +11,7 @@
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
+#define PINK        0x5
 #define RED         0x4
 #define GREEN       0x2
 #define BLUE        0x1
@@ -47,7 +48,7 @@ uint8_t get_attrib(){
         break;
 
     case 1:
-        return (uint8_t)BLUE;
+        return (uint8_t)PINK;
         break;
 
     case 2:
