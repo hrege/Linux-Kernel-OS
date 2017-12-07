@@ -284,9 +284,10 @@ void keyboard_handler() {
   /*                 SWITCHING TERMINALS               */
   /*****************************************************/
 
-  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0){
+  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && active_term != 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
+
       curr_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term))) & 0xFFFFE000);
       while(curr_pcb->child_process){
         curr_pcb = curr_pcb->child_process;
@@ -305,11 +306,16 @@ void keyboard_handler() {
 
       active_term = 0;
 
+
+      active_term = 0;
+       alt_flag[terminal]--;
+      alt_flag[active_term]++;
     //context switch etc 
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(0, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);
-    }
-  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0){
+
+      terminal_switch(0, esp_zero);
+  }
+  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && active_term != 1){
       uint8_t* ptr = (uint8_t*)("shell");
 
       shell_2++;
@@ -355,9 +361,11 @@ void keyboard_handler() {
       }
 
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(1, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);    
-    }
-  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0){
+      terminal_switch(1, esp_zero);
+    
+  }
+  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && active_term != 2){
+
       uint8_t* ptr = (uint8_t*)("shell");
 
       shell_3++;
@@ -380,8 +388,9 @@ void keyboard_handler() {
       : "eax"
       );
 
-
       active_term = 2;
+      alt_flag[terminal]--;
+      alt_flag[active_term]++;
 
       if(shell_3 == 1){      
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
