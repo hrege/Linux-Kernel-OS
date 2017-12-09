@@ -66,10 +66,10 @@ int get_first_pid(){
 			if((shell_2 == 1 || i != 1) && (shell_3 == 1 || i != 2)){
 				return i;
 			}
-			else if(shell_2 > 0 && i == 1) {
+			else if(shell_2 > 1 && i == 1) {
 				return 1;
 			}
-			else if(shell_3 > 0 && i == 2) {
+			else if(shell_3 > 1 && i == 2) {
 				return 2;
 			}
 		}
