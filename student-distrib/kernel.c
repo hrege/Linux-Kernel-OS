@@ -160,7 +160,7 @@ void entry(unsigned long magic, unsigned long addr) {
     file_system_init(file_system_addr);
 
     /* Initialize Everything and turn on interrupts */
-    /* Initialize PIC */
+    /* Initialize PIC this must be before any irq inits as it diables all of them */
     i8259_init();
 
     /* Initialize Paging */
@@ -169,6 +169,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
     keyboard_init();
+    pit_init();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your
