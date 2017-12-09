@@ -90,8 +90,10 @@ typedef struct PCB_t {
   uint32_t term_num;
   struct PCB_t* child_process;
   struct PCB_t* parent_process;
-  uint32_t* kern_esp;
-  uint32_t* kern_ebp;
+  uint32_t* kern_esp_exe;
+  uint32_t* kern_ebp_exe;
+  uint32_t* kern_esp_context;
+  uint32_t* kern_ebp_context;
   uint8_t arguments[MAX_TERMINAL_SIZE]; //128 is max size to type on terminal so can safely be large enough
   uint8_t arg_len;
 } PCB_t;

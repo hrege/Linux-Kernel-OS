@@ -162,6 +162,8 @@ void entry(unsigned long magic, unsigned long addr) {
     active_term = 0;
     term_2_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB))) & 0xFFFE000);
     term_3_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2))) & 0xFFFE000);
+    shell_2 = 0;
+    shell_3 = 0;
     pcb_init((uint32_t*)term_2_pcb, 1, (PCB_t*)NULL);
     pcb_init((uint32_t*)term_3_pcb, 2, (PCB_t*)NULL);
 

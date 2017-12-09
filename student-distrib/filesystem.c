@@ -55,8 +55,10 @@ struct PCB_t * pcb_init(uint32_t* start_addr, uint32_t p_id, PCB_t* parent_PCB) 
   PCB_ptr = (PCB_t*)((uint32_t)start_addr & 0xFFFFE000);
 
   PCB_ptr->process_id = p_id;
-  PCB_ptr->kern_esp = start_addr;
-  PCB_ptr->kern_ebp = start_addr;
+  PCB_ptr->kern_esp_exe = start_addr;
+  PCB_ptr->kern_ebp_exe = start_addr;
+  PCB_ptr->kern_esp_context = NULL;
+  PCB_ptr->kern_ebp_context = NULL;
   PCB_ptr->child_process = NULL;
 
   /* Decide what to set as Parent PCB pointer - if running SHELL, then set to NULL

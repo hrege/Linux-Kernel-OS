@@ -60,10 +60,6 @@ int get_first_fd(){
 int get_first_pid(){
 	int i; // loop variable
 
-	if(pid_bitmap[0] == 0){
-		shell_2 = 0;
-		shell_3 = 0;
-	}
 	/* start at 0 and check until you find one */
 	for(i = 0; i < MAX_PID; i++){
 		if(pid_bitmap[i] == 0){
@@ -100,9 +96,10 @@ int32_t sys_halt(uint8_t status){
 		clear();
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
+		return 0;
 	}
 
-	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
+
 	/*Close any files associated with this process*/
 	for(i = 0; i < MAX_ACTIVE_FILES; i++){
 		if(curr_pcb->file_array[i].flags == 1) {
@@ -120,14 +117,14 @@ int32_t sys_halt(uint8_t status){
 	/* Restore ESP from calling Execute function. This works
 		 and sends program to sys_execute
 	 */
-
+	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
   asm volatile("movl %0, %%eax;"
 		"movl %1, %%esp;"
 	  "movl %2, %%ebp;"
 	  "leave;"
 		"ret;"
   	  :
-	  : "r"((uint32_t)status), "m"(curr_pcb->kern_esp), "m"(curr_pcb->kern_ebp)
+	  : "r"((uint32_t)status), "m"(curr_pcb->kern_esp_exe), "m"(curr_pcb->kern_ebp_exe)
 	  : "eax"
 		);
 
@@ -285,7 +282,7 @@ int32_t sys_execute(const uint8_t* command){
 	/* Save current process ESP/EBP into PCB in order to return to the correct parent process kernel stack. */
   asm volatile("movl %%esp, %0;"
 			"movl %%ebp, %1;"
-			: "=m"(exec_pcb->kern_esp), "=m"(exec_pcb->kern_ebp)
+			: "=m"(exec_pcb->kern_esp_exe), "=m"(exec_pcb->kern_ebp_exe)
 			:
 			: "eax"
 			);

@@ -297,7 +297,7 @@ void keyboard_handler() {
       }
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
+      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
       :
       : "eax"
       );
@@ -308,7 +308,7 @@ void keyboard_handler() {
       alt_flag[active_term]++;
       send_eoi(KEYBOARD_IRQ);
 
-      terminal_switch(0, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);
+      terminal_switch(0, esp_zero, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
   }
   else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && active_term != 1){
       uint8_t* ptr = (uint8_t*)("shell");
@@ -325,7 +325,7 @@ void keyboard_handler() {
       }
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
+      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
       :
       : "eax"
       );
@@ -340,7 +340,7 @@ void keyboard_handler() {
 
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
+      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
       :
       : "eax"
       );
@@ -353,7 +353,7 @@ void keyboard_handler() {
       }
 
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(1, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);
+      terminal_switch(1, esp_zero, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
     
   }
   else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && active_term != 2){
@@ -372,7 +372,7 @@ void keyboard_handler() {
       }
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
+      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
       :
       : "eax"
       );
@@ -388,7 +388,7 @@ void keyboard_handler() {
 
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
+      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
       :
       : "eax"
       );
@@ -403,7 +403,7 @@ void keyboard_handler() {
     }
 
     send_eoi(KEYBOARD_IRQ);
-    terminal_switch(2, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);
+    terminal_switch(2, esp_zero, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
     
   }
   /*Clear screen*/
