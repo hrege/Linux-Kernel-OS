@@ -109,5 +109,9 @@ dkms.conf
 
 # 391 specific
 *.qcow
+
+# Austin's addition
+*.dep
+
 source/
 

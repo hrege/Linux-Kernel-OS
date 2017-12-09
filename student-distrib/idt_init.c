@@ -8,6 +8,7 @@
 #include "rtc.h"
 #include "exception_link.H"
 #include "sys_call_link.H"
+#include "pit.h"
 
 int i; // loop variable
 /*
@@ -102,6 +103,18 @@ void idt_init() {
 		idt[SYSTEM_CALL_IDT_ENTRY].present = 1;
 		SET_IDT_ENTRY(idt[SYSTEM_CALL_IDT_ENTRY], sys_call_asm);
 
+
+		/* Initialize PIT interrupt IDT entry */
+		idt[PIT_IDT_ENTRY].seg_selector = KERNEL_CS;
+		idt[PIT_IDT_ENTRY].reserved0 = 0;
+		idt[PIT_IDT_ENTRY].reserved1 = 1;
+		idt[PIT_IDT_ENTRY].reserved2 = 1;
+		idt[PIT_IDT_ENTRY].reserved3 = 0;
+		idt[PIT_IDT_ENTRY].reserved4 = 0;
+		idt[PIT_IDT_ENTRY].size = 1;
+		idt[PIT_IDT_ENTRY].dpl = 0;
+		idt[PIT_IDT_ENTRY].present = 1;
+		SET_IDT_ENTRY(idt[PIT_IDT_ENTRY], &pic_hlp)
 		/*Initialize keyboard interrupt IDT entry*/
 		idt[KEYBOARD_IDT_ENTRY].seg_selector = KERNEL_CS;
 		//set reserved bits
@@ -116,6 +129,7 @@ void idt_init() {
 
 		idt[KEYBOARD_IDT_ENTRY].dpl = 0;
 
+		//WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY??
 		idt[0x21].dpl = 3;
 
 		//Ignore initialization for 15
@@ -144,13 +158,20 @@ void idt_init() {
 }
 
 /* assembly linkage */
-// not yet implemented ... to be done for CP3
 void sys_call(){
 	__asm__("pusha\n\t"
 			"call sys_call_hlp\n\t"
 			"popa\n\t"
 			"leave\n\t"
 			"IRET\n\t");
+}
+
+void pic_hlp(){
+	__asm__("pusha\n\t"
+		"call pic_handler\n\t"
+		"popa\n\t"
+		"leave\n\t"
+		"IRET\n\t");
 }
 
 void get_char(){
@@ -173,18 +194,8 @@ void rtc_int(){
 			"IRET\n\t");
 }
 
-
 void sys_call_hlp(){
 	printf("This is a system call\n");
 	while(1);
 }
 
-void rtc_int_hlp(){
-
-	//printf("This is an RTC interrupt\n");
-	outb(RTC_C_REG, RTC_PORT);
-	inb(RTC_PORT_CMOS);
-	send_eoi(RTC_PIC_IRQ);
-	send_eoi(SLAVE_IRQ);
-
-}
