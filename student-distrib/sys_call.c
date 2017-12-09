@@ -66,6 +66,12 @@ int get_first_pid(){
 			if((shell_2 == 1 || i != 1) && (shell_3 == 1 || i != 2)){
 				return i;
 			}
+			else if(shell_2 > 1 && i == 1) {
+				return 1;
+			}
+			else if(shell_3 > 1 && i == 2) {
+				return 2;
+			}
 		}
 	}
 	return -1;
@@ -83,13 +89,12 @@ int get_first_pid(){
 int32_t sys_halt(uint8_t status){
 	int i; // loop variable
 
-
 	PCB_t* curr_pcb = get_pcb();
-	curr_pcb->arg_len = 0;
 	if(pid_bitmap[curr_pcb->process_id] == 0){
 		return -1;
 	}
-	
+
+	curr_pcb->arg_len = 0;
 	pid_bitmap[curr_pcb->process_id] = 0;
 
 	if(curr_pcb->process_id < NUM_TERMS){
@@ -243,7 +248,7 @@ int32_t sys_execute(const uint8_t* command){
 	if(NULL == exec_pcb){
 		return -1;
 	}
-	
+
 	if(exec_pcb->process_id > 2){
 	parent_pcb->child_process = exec_pcb;
 	}
@@ -252,15 +257,8 @@ int32_t sys_execute(const uint8_t* command){
 	strcpy((int8_t*)exec_pcb->arguments,(const int8_t*)temp_arg_buf);
 
 	/* Set up standard IN/OUT file operations and mark files as in use by modifying 'flags'. */
-	exec_pcb->file_array[0].file_operations.device_open = terminal_open;
-	exec_pcb->file_array[0].file_operations.device_close = terminal_close;
-	exec_pcb->file_array[0].file_operations.device_read = terminal_read;
-	exec_pcb->file_array[0].file_operations.device_write = blank_write;
-
-	exec_pcb->file_array[1].file_operations.device_open = terminal_open;
-	exec_pcb->file_array[1].file_operations.device_close = terminal_close;
-	exec_pcb->file_array[1].file_operations.device_read = blank_read;
-	exec_pcb->file_array[1].file_operations.device_write = terminal_write;
+	exec_pcb->file_array[0].file_operations = stdin_ops;
+	exec_pcb->file_array[1].file_operations = stdout_ops;
 
 	exec_pcb->file_array[0].flags = 1;
 	exec_pcb->file_array[1].flags = 1;
@@ -274,10 +272,6 @@ int32_t sys_execute(const uint8_t* command){
 	}
 
 	pid_bitmap[exec_pcb->process_id] = 1;
-
-	// for(i = 0; i < this_inode->length; i++){
-	// 	*((uint8_t*)(PROG_LOAD_LOC + i)) = file_buffer[i];
-	// }
 
 	/* Load first instruction location into EIP (reverse order since it's little-endian). */
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
@@ -432,10 +426,6 @@ int32_t sys_close(int32_t fd){
 	return 0;
 }
 
-
-
-/*    BELOW NEW FOR CP4  */
-
 /*
 *	sys_getargs
 *		Author: Jonathan
@@ -462,11 +452,11 @@ int32_t sys_getargs(uint8_t* buf, int32_t nbytes){
 
 /*
 *	sys_vidmap
-*		Author: Jonathan
+*		Author: Jonathan, Sam
 *		Description: Maps the text mode video mem into user space at preset virtual addr.
 *		Inputs: Pointer to where to put the pointer
-*		Return: -1 for fail ... virtual address (const 132MB) upon success
-*		Side_effects: Video Mem mapped to 132MB in virtual mem
+*		Return: -1 for fail ... virtual address upon success
+*		Side_effects: Virtual address mapping for terminal 
 */
 int32_t sys_vidmap(uint8_t** screen_start){
 	//check for non-NULL
@@ -509,7 +499,7 @@ int32_t sys_sigreturn(void){
 }
 
 
-/* Below are place holders for calls table 
+/* Below are place holders for calls table
 	Return fail to indicate you aren't allowed to do that */
 int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
