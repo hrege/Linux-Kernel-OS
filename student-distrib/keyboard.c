@@ -332,6 +332,9 @@ void keyboard_handler() {
 
       active_term = 1;
 
+      alt_flag[terminal]--;
+      alt_flag[active_term]++;
+
       if(shell_2 == 1){ 
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
       tss.ss0 = KERNEL_DS;
