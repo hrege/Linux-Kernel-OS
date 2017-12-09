@@ -85,11 +85,10 @@ int32_t sys_halt(uint8_t status){
 
 
 	PCB_t* curr_pcb = get_pcb();
-	curr_pcb->arg_len = 0;
 	if(pid_bitmap[curr_pcb->process_id] == 0){
 		return -1;
 	}
-	
+	curr_pcb->arg_len = 0;
 	pid_bitmap[curr_pcb->process_id] = 0;
 
 	if(curr_pcb->process_id < NUM_TERMS){
@@ -455,11 +454,11 @@ int32_t sys_getargs(uint8_t* buf, int32_t nbytes){
 
 /*
 *	sys_vidmap
-*		Author: Jonathan
+*		Author: Jonathan, Sam
 *		Description: Maps the text mode video mem into user space at preset virtual addr.
 *		Inputs: Pointer to where to put the pointer
-*		Return: -1 for fail ... virtual address (const 132MB) upon success
-*		Side_effects: Video Mem mapped to 132MB in virtual mem
+*		Return: -1 for fail ... virtual address upon success
+*		Side_effects: Virtual address mapping for terminal 
 */
 int32_t sys_vidmap(uint8_t** screen_start){
 	//check for non-NULL

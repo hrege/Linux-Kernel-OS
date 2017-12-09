@@ -45,7 +45,7 @@ PCB_t* get_pcb(){
 *       Description: returns the correct color byte based on terminal
 *       Input: none
 *       Output: none
-*       Returns: one color byte
+*       Returns: one color byte based on active terminal
 */
 uint8_t get_attrib(){
     switch(active_term){
