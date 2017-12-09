@@ -3,6 +3,7 @@
 
 #include "lib.h"
 #include "x86_desc.h"
+#include "sys_call.h"
 
 #define VIDEO         0xB8000
 #define VIDEO_0       0xB9000
@@ -29,8 +30,13 @@ char* video_mem = (char *)VIDEO;
 int active_term;
 
 PCB_t* get_pcb(){
-    return (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+    PCB_t* ret;
+    ret = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)) & 0xFFFFE000);
+    while(ret->child_process){
+        ret = ret->child_process;
+    }
 
+    return ret;
 }
 
 /*
@@ -42,7 +48,7 @@ PCB_t* get_pcb(){
 *       Returns: one color byte
 */
 uint8_t get_attrib(){
-    switch(get_pcb()->term_num){
+    switch(active_term){
     case 0:
         return (uint8_t)GREEN;
         break;
@@ -70,7 +76,7 @@ uint8_t get_attrib(){
 *       Returns: pointer to video memory
 */
 char* get_video_mem(){
-    switch(get_pcb()->term_num){
+    switch(active_term){
     case 0:
         return (char*)VIDEO_0;
         break;
@@ -100,7 +106,7 @@ char* get_video_mem(){
 *       Side effect: screen x location changed
 */
 void set_screen_x(int new_x){
-    screen_x[get_pcb()->term_num] = new_x;
+    screen_x[active_term] = new_x;
 }
 
 /*
@@ -113,7 +119,7 @@ void set_screen_x(int new_x){
 *       Side effect: screen y location changed
 */
 void set_screen_y(int new_y){
-    screen_y[get_pcb()->term_num] = new_y;
+    screen_y[active_term] = new_y;
 
 }
 
@@ -126,7 +132,7 @@ void set_screen_y(int new_y){
 *       Return: screen_x - integer screen location in x
 */
 int get_screen_x(){
-    return screen_x[get_pcb()->term_num];
+    return screen_x[active_term];
 }
 
 /*
@@ -138,7 +144,7 @@ int get_screen_x(){
 *       Return: screen_y - integer screen location in y
 */
 int get_screen_y(){
-    return screen_y[get_pcb()->term_num];
+    return screen_y[active_term];
 }
 
 /*
@@ -343,7 +349,7 @@ void putc(uint8_t c) {
     int terminal;
     terminal = get_pcb()->term_num;
 
-    if(c == '\n' || c == '\r') {
+    if(c == '\n') {
         screen_y[terminal]++;
         screen_x[terminal] = 0;
     } else {

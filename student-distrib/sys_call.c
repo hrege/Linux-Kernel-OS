@@ -88,7 +88,7 @@ int32_t sys_halt(uint8_t status){
 	int i; // loop variable
 
 
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	PCB_t* curr_pcb = get_pcb();
 	curr_pcb->arg_len = 0;
 	if(pid_bitmap[curr_pcb->process_id] == 0){
 		return -1;
@@ -111,6 +111,9 @@ int32_t sys_halt(uint8_t status){
 		}
 	}
 	call_from_kern = 0;
+
+	curr_pcb->parent_process->child_process = NULL;
+
 	/*Need to restore stack frame stored in pcb*/
 	tss.esp0 = (uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->parent_process->process_id));
 	tss.ss0 = KERNEL_DS;

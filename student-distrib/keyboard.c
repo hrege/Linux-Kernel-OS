@@ -212,7 +212,9 @@ void keyboard_handler() {
   char_out = getScancode(keyboard_input);
   terminal = get_pcb()->term_num;
 
- if(keyboard_input == LSHIFT_ON_SCAN){
+  if(keyboard_input == 0xB3 || keyboard_input == 0xBA || keyboard_input == 0xBC || keyboard_input == 0xA1){
+  }
+ else if(keyboard_input == LSHIFT_ON_SCAN){
         lshift_flag[terminal] = 1;
   }
  else if(keyboard_input == RSHIFT_ON_SCAN){
@@ -287,10 +289,7 @@ void keyboard_handler() {
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && active_term != 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
-      curr_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term))) & 0xFFFFE000);
-      while(curr_pcb->child_process){
-        curr_pcb = curr_pcb->child_process;
-      }
+      curr_pcb = get_pcb();
       esp_zero = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE) & 0xFFFFE000);
       while(dest_pcb->child_process){
@@ -307,7 +306,6 @@ void keyboard_handler() {
 
        alt_flag[terminal]--;
       alt_flag[active_term]++;
-    //context switch etc 
       send_eoi(KEYBOARD_IRQ);
 
       terminal_switch(0, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);
@@ -319,10 +317,7 @@ void keyboard_handler() {
 
       terminal_deactivate(active_term);
       terminal_activate(1);
-      curr_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term))) & 0xFFFFE000);
-      while(curr_pcb->child_process){
-        curr_pcb = curr_pcb->child_process;
-      }
+      curr_pcb = get_pcb();
       esp_zero = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)) & 0xFFFFE000);
       while(dest_pcb->child_process){
@@ -352,7 +347,7 @@ void keyboard_handler() {
 
       send_eoi(KEYBOARD_IRQ);
       clear();
-      sti();
+      //sti();
       sys_execute(ptr);
       return;
       }
@@ -369,10 +364,7 @@ void keyboard_handler() {
 
       terminal_deactivate(active_term);
       terminal_activate(2);
-      curr_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term))) & 0xFFFFE000);
-      while(curr_pcb->child_process){
-        curr_pcb = curr_pcb->child_process;
-      }
+      curr_pcb = get_pcb();
       esp_zero = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)) & 0xFFFFE000);
       while(dest_pcb->child_process){
@@ -394,18 +386,18 @@ void keyboard_handler() {
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
       tss.ss0 = KERNEL_DS; 
 
-      // asm volatile("movl %%esp, %0;"
-      // "movl %%ebp, %1;"
-      // : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
-      // :
-      // : "eax"
-      // );
+      asm volatile("movl %%esp, %0;"
+      "movl %%ebp, %1;"
+      : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
+      :
+      : "eax"
+      );
 
 
 
       send_eoi(KEYBOARD_IRQ);
       clear();
-      sti();
+      //sti();
       sys_execute(ptr);
       return;
     }
@@ -424,7 +416,6 @@ void keyboard_handler() {
     line_buffer[terminal][buffer_length[terminal]] = '\n';
     putc('\n');
     flag[terminal] = buffer_length[terminal];
-    //update_cursor(get_screen_x(), get_screen_y());
     buffer_length[terminal] = 0;
     line_start[terminal] = 0;
 
@@ -606,10 +597,7 @@ int32_t terminal_close(int32_t fd){
 void terminal_switch(int term_number, uint32_t esp_zero, uint32_t* stored_esp, uint32_t* stored_ebp){
       PCB_t* curr_pcb;
 
-      curr_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * term_number)) & (uint32_t)(0xFFFFE000));
-      while(curr_pcb->child_process){
-          curr_pcb = curr_pcb->child_process;
-      }
+      curr_pcb = get_pcb();
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;
       cli();
