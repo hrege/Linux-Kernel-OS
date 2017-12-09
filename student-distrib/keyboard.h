@@ -6,12 +6,12 @@
 #define NUM_SCANCODES       128		//for size of scan code array
 #define NUM_CASES           4		//cases to handle caps/shift
 #define KEYBOARD_IRQ        1		//Keyboard is on IRQ1
-#define KEYBOARD_DATA_PORT  0x60	//Port to read keyboard data 
-#define max_buffer_size     128		//Maximum size of terminal buffer 
-#define MAX_SCANCODE		0x3A	//Maximum scancode 
+#define KEYBOARD_DATA_PORT  0x60	//Port to read keyboard data
+#define max_buffer_size     128		//Maximum size of terminal buffer
+#define MAX_SCANCODE		0x3A	//Maximum scancode
 
 //specially handled scancodes
-#define BACKSPACE_SCAN     	0xE		
+#define BACKSPACE_SCAN     	0xE
 #define ENTER         		0x0A
 #define CTRL_SCAN    		0x1D
 #define ALT_SCAN 			0x38
@@ -49,6 +49,6 @@ void keyboard_handler();
 /* gets a scancode from the table */
 char getScancode(char input);
 
-void terminal_switch(int term_number, uint32_t esp_zero, uint32_t* stored_esp, uint32_t* stored_ebp);
+void terminal_switch(int term_number, uint32_t* stored_esp, uint32_t* stored_ebp);
 
 #endif
