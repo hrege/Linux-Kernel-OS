@@ -341,7 +341,7 @@ void keyboard_handler() {
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
       tss.ss0 = KERNEL_DS;
 
-      cli();
+
 
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
@@ -394,8 +394,6 @@ void keyboard_handler() {
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
       tss.ss0 = KERNEL_DS; 
 
-      cli();
-
       // asm volatile("movl %%esp, %0;"
       // "movl %%ebp, %1;"
       // : "=m"(curr_pcb->kern_esp), "=m"(curr_pcb->kern_ebp)
@@ -429,7 +427,6 @@ void keyboard_handler() {
     //update_cursor(get_screen_x(), get_screen_y());
     buffer_length[terminal] = 0;
     line_start[terminal] = 0;
-    sti();
 
   }
 
@@ -625,7 +622,6 @@ void terminal_switch(int term_number, uint32_t esp_zero, uint32_t* stored_esp, u
       );
 
       // tss.esp0 = esp_zero;
-      sti();
       return;
 
 }

@@ -155,7 +155,9 @@ void sys_call(){
 
 void get_char(){
 	__asm__("pusha\n\t"
+			"cli\n\t"
 			"call keyboard_handler\n\t"
+			"sti\n\t"
 			"popa\n\t"
 			"leave\n\t"
 			"IRET\n\t");
@@ -163,7 +165,9 @@ void get_char(){
 
 void rtc_int(){
 	__asm__("pusha\n\t"
+			"cli\n\t"
 			"call rtc_handler\n\t"
+			"sti\n\t"
 			"popa\n\t"
 			"leave\n\t"
 			"IRET\n\t");
