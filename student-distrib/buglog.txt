@@ -85,3 +85,7 @@ Solution:
 The handling for bad sys calls used ret instead of IRET meaning when we tried to do IRET later it was messed up. Changed to IRET
 
 Checkpoint 5:
+
+Bug: Switching with user processes active caused page faults and all terminals had the same counter running when that process was executed.
+Person: Sam
+Solution: Added paging_switch to for the active process when switching terminals
