@@ -16,6 +16,7 @@
 
 /* Get a pointer to the video memory */
 extern char* get_video_mem();
+extern char* get_fish_mem();
 
 
 extern int screen_x[NUM_TERMS];

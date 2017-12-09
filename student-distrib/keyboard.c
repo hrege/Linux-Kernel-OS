@@ -295,6 +295,9 @@ void keyboard_handler() {
       while(dest_pcb->child_process){
         dest_pcb = dest_pcb->child_process;
       }
+
+      paging_switch(128, 4 * (dest_pcb->process_id + 2));
+
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
       : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
@@ -323,6 +326,9 @@ void keyboard_handler() {
       while(dest_pcb->child_process){
         dest_pcb = dest_pcb->child_process;
       }
+
+      paging_switch(128, 4 * (dest_pcb->process_id + 2));
+
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
       : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
@@ -332,22 +338,19 @@ void keyboard_handler() {
 
       active_term = 1;
 
-      if(shell_2 == 1){ 
+      if(shell_2 == 1){
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
       tss.ss0 = KERNEL_DS;
-
-
-
-      asm volatile("movl %%esp, %0;"
-      "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-      :
-      : "eax"
-      );
 
       send_eoi(KEYBOARD_IRQ);
       clear();
       //sti();
+      // asm volatile("movl %%esp, %0;"
+      // "movl %%ebp, %1;"
+      // : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
+      // :
+      // : "eax"
+      // );
       sys_execute(ptr);
       return;
       }
@@ -370,6 +373,9 @@ void keyboard_handler() {
       while(dest_pcb->child_process){
         dest_pcb = dest_pcb->child_process;
       }
+
+      paging_switch(128, 4 * (dest_pcb->process_id + 2));
+      
       asm volatile("movl %%esp, %0;"
       "movl %%ebp, %1;"
       : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
@@ -386,18 +392,15 @@ void keyboard_handler() {
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
       tss.ss0 = KERNEL_DS; 
 
-      asm volatile("movl %%esp, %0;"
-      "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-      :
-      : "eax"
-      );
-
-
-
       send_eoi(KEYBOARD_IRQ);
       clear();
-      //sti();
+      //sti();     
+      // asm volatile("movl %%esp, %0;"
+      // "movl %%ebp, %1;"
+      // : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
+      // :
+      // : "eax"
+      // );
       sys_execute(ptr);
       return;
     }

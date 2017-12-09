@@ -96,12 +96,21 @@ void paging_init(){
 
     page_directory[VID_MEM_MB_LOC] = ((uint32_t)fish_page_table) | PTE_ENTRY_VAL;
 
+
     //Set PDE for 0MB-4MB in Physical Memory (mapped to 132MB Virtual)
     fish_page_table[VIDEO_IDX] = VIDEO_LOC | PTE_ENTRY_VAL;
     fish_page_table[VIDEO_TERM_0] = VIDEO_LOC | PTE_ENTRY_VAL;
     fish_page_table[VIDEO_TERM_1] = VIDEO_LOC_1 | PTE_ENTRY_VAL;
     fish_page_table[VIDEO_TERM_2] = VIDEO_LOC_2 | PTE_ENTRY_VAL;
 
+
+    asm volatile ("movl %%cr3, %%eax  \n\
+                   movl %%eax, %%cr3      \n\
+                   "
+                   :
+                   :
+                   : "eax", "memory", "cc"
+    );
 
     // Set control registers to enable paging.
     paging_enable(page_directory);

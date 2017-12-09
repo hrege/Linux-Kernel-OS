@@ -4,11 +4,16 @@
 #include "lib.h"
 #include "x86_desc.h"
 #include "sys_call.h"
+#include "paging.h"
 
 #define VIDEO         0xB8000
 #define VIDEO_0       0xB9000
 #define VIDEO_1       0xBA000
 #define VIDEO_2       0xBB000
+#define FISH_VIDEO         0xB8000
+#define FISH_VIDEO_0       0xB9000
+#define FISH_VIDEO_1       0xBA000
+#define FISH_VIDEO_2       0xBB000
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
@@ -91,6 +96,35 @@ char* get_video_mem(){
     
     default:
         return (char*)VIDEO;
+        break;
+    }
+
+}
+
+/*
+*   get_fish_mem
+*       Author: Sam
+*       Description: returns the video memory with user privledge as a char*
+*       Input: none
+*       Output: none
+*       Returns: pointer to video memory
+*/
+char* get_fish_mem(){
+    switch(active_term){
+    case 0:
+        return (char*)(VIDEO_0 + _132_MB);
+        break;
+
+    case 1: 
+        return (char*)(VIDEO_1 + _132_MB);
+        break;
+
+    case 2:
+        return (char*)(VIDEO_2 + _132_MB);
+        break;
+    
+    default:
+        return (char*)(VIDEO + _132_MB);
         break;
     }
 

@@ -36,7 +36,7 @@ int call_from_kern = 0;
 int get_first_fd(){
 	int i; // loop variable
 
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	PCB_t* curr_pcb = get_pcb();
 
 	/* start at 0 and check until you find one */
 	for(i = 0; i < MAX_ACTIVE_FILES; i++){
@@ -93,6 +93,13 @@ int32_t sys_halt(uint8_t status){
 	pid_bitmap[curr_pcb->process_id] = 0;
 
 	if(curr_pcb->process_id < NUM_TERMS){
+		for(i = 0; i < MAX_ACTIVE_FILES; i++){
+			if(curr_pcb->file_array[i].flags == 1) {
+				call_from_kern = 1;
+				curr_pcb->file_array[i].file_operations.device_close(i);
+			}
+		}
+	call_from_kern = 0;
 		clear();
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
@@ -306,7 +313,7 @@ int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 	if(fd > MAX_FILES || fd < 0 ) {
 		return -1;
 	}
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	PCB_t* curr_pcb = get_pcb();
 	//check if the file is actually open
 	if(!(curr_pcb->file_array[fd].flags == 1)){
 		return -1;
@@ -328,7 +335,7 @@ int32_t sys_write(int32_t fd, void* buf, int32_t nbytes){
 	if(fd > MAX_FILES || fd < 0 ) {
 		return -1;
 	}
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	PCB_t* curr_pcb = get_pcb();
 	//check if the file is actually open
 	if(!(curr_pcb->file_array[fd].flags == 1)){
 		return -1;
@@ -353,7 +360,7 @@ int32_t sys_open(const uint8_t* filename){
 	}
 
 	/*Create the PCB*/
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	PCB_t* curr_pcb = get_pcb();
 
 	/*Read file by name*/
 	dentry_t this_file;
@@ -413,7 +420,7 @@ int32_t sys_close(int32_t fd){
 		return -1;
 	}
 	call_from_kern = 0;
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	PCB_t* curr_pcb = get_pcb();
 	//check if it is open
 	if(!(curr_pcb->file_array[fd].flags == 1)){
 		return -1;
@@ -443,7 +450,7 @@ int32_t sys_getargs(uint8_t* buf, int32_t nbytes){
 		return -1;
 	}
 	//get the pcb
-	PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+	PCB_t* curr_pcb = get_pcb();
 	//check length
 	if(curr_pcb->arg_len > nbytes || curr_pcb->arg_len == 0){
 		return -1;
@@ -478,7 +485,7 @@ int32_t sys_vidmap(uint8_t** screen_start){
 		at the time this is written, the first 4MB available in memory.
 		Paging initialized in paging_init(). */
 	uint8_t* ptr;
-	ptr = (uint8_t*)(_132_MB + get_video_mem());
+	ptr = (uint8_t*)(get_fish_mem());
 	*screen_start = ptr;
 
 	//return the virtual location of page containing video memory

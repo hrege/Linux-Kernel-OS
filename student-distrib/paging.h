@@ -19,7 +19,7 @@
 #define READ_WRITE      2
 #define PTE_ENTRY_VAL   7
 #define PDE_ENTRY_VAL   3
-#define VID_MEM_MB_LOC  132/4
+#define VID_MEM_MB_LOC  0x21
 #define SCREEN_SIZE     4000  
 
 // Paging Initialization functions
