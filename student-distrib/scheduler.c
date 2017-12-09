@@ -1,6 +1,6 @@
 #include "lib.h"
 #include "scheduler.h"
-#include "pic.h"
+#include "pit.h"
 
 
 /* The schedule works as a round robin scheduler meaning if you had three 
@@ -13,7 +13,7 @@ Third switch tasks */
 
 void scheduler(){
 	//get current process number
-	int8_t process = ;
+	int8_t process = 5;
 	//if not valid (i.e. if gets called while first process not yet started) return
 	if(process < 0 || process > 2){
 		return;
@@ -36,13 +36,13 @@ void scheduler(){
 *				of -1 if no other processes to run
 */
 uint8_t next_process(int8_t current){
-	int8_t next = (current + 1) % 3 
+	int8_t next = (current + 1) % 3;
 	do{
 		if(next - is active){
 			return next;
 		}
 		next = (next + 1) % 3;
-	}while(next != current)
+	}while(next != current);
 	return -1;
 }
 
@@ -52,7 +52,7 @@ void process_switch(){
 
 
 	//update tss as approriate for where we are moving to
-s
+
 	//could just call context switch?
 
 

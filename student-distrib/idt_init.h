@@ -28,8 +28,8 @@ void get_char();
 /* RTC Handler */
 void rtc_int();
 
-/*PIC Handling*/
-void pic_hlp()
+/*PIT Handling*/
+void pit_hlp();
 
 #endif
 #endif /* IDT_INIT */

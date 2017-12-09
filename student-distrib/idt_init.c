@@ -114,7 +114,7 @@ void idt_init() {
 		idt[PIT_IDT_ENTRY].size = 1;
 		idt[PIT_IDT_ENTRY].dpl = 0;
 		idt[PIT_IDT_ENTRY].present = 1;
-		SET_IDT_ENTRY(idt[PIT_IDT_ENTRY], &pic_hlp)
+		SET_IDT_ENTRY(idt[PIT_IDT_ENTRY], &pit_hlp);
 		/*Initialize keyboard interrupt IDT entry*/
 		idt[KEYBOARD_IDT_ENTRY].seg_selector = KERNEL_CS;
 		//set reserved bits
@@ -166,9 +166,9 @@ void sys_call(){
 			"IRET\n\t");
 }
 
-void pic_hlp(){
+void pit_hlp(){
 	__asm__("pusha\n\t"
-		"call pic_handler\n\t"
+		"call pit_handler\n\t"
 		"popa\n\t"
 		"leave\n\t"
 		"IRET\n\t");

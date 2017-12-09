@@ -13,6 +13,7 @@
 #include "paging.h"
 #include "filesystem.h"
 #include "sys_call.h"
+#include "pit.h"
 
 #define RUN_TESTS
 

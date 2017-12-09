@@ -383,7 +383,7 @@ void putc(uint8_t c) {
     int terminal;
     terminal = get_pcb()->term_num;
 
-    if(c == '\n') {
+    if(c == '\n' || c == '\r') {
         screen_y[terminal]++;
         screen_x[terminal] = 0;
     } else {
