@@ -189,32 +189,49 @@ void terminal_activate(int term_num){
            : "eax", "memory", "cc"
     );
 
+    update_cursor(screen_x[term_num], screen_y[term_num]);
+
 }
 void terminal_deactivate(int term_num){
     switch(term_num){
         case 0:
         page_table[VIDEO_TERM_0] = VIDEO_LOC_0 | PTE_ENTRY_VAL;
         fish_page_table[VIDEO_TERM_0] = VIDEO_LOC_0 | PTE_ENTRY_VAL;
+        asm volatile ("movl %%cr3, %%eax  \n\
+               movl %%eax, %%cr3      \n\
+               "
+               :
+               :
+               : "eax", "memory", "cc"
+        );
         memcpy((char*)VIDEO_LOC_0, (char*)VIDEO_LOC, SCREEN_SIZE);
         break;
 
         case 1:
         page_table[VIDEO_TERM_1] = VIDEO_LOC_1 | PTE_ENTRY_VAL;
         fish_page_table[VIDEO_TERM_1] = VIDEO_LOC_1 | PTE_ENTRY_VAL;
+        asm volatile ("movl %%cr3, %%eax  \n\
+               movl %%eax, %%cr3      \n\
+               "
+               :
+               :
+               : "eax", "memory", "cc"
+        );
         memcpy((char*)VIDEO_LOC_1, (char*)VIDEO_LOC, SCREEN_SIZE);
         break;
 
         case 2:
         page_table[VIDEO_TERM_2] = VIDEO_LOC_2 | PTE_ENTRY_VAL;
         fish_page_table[VIDEO_TERM_2] = VIDEO_LOC_2 | PTE_ENTRY_VAL;
+        asm volatile ("movl %%cr3, %%eax  \n\
+               movl %%eax, %%cr3      \n\
+               "
+               :
+               :
+               : "eax", "memory", "cc"
+        );
         memcpy((char*)VIDEO_LOC_2, (char*)VIDEO_LOC, SCREEN_SIZE);
         break;
     }
-    asm volatile ("movl %%cr3, %%eax  \n\
-           movl %%eax, %%cr3      \n\
-           "
-           :
-           :
-           : "eax", "memory", "cc"
-    );
+
 }

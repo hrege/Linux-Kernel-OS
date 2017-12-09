@@ -287,7 +287,6 @@ void keyboard_handler() {
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && active_term != 0){
       terminal_deactivate(active_term);
       terminal_activate(0);
-
       curr_pcb = (PCB_t*)(((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term))) & 0xFFFFE000);
       while(curr_pcb->child_process){
         curr_pcb = curr_pcb->child_process;
@@ -306,14 +305,12 @@ void keyboard_handler() {
 
       active_term = 0;
 
-
-      active_term = 0;
        alt_flag[terminal]--;
       alt_flag[active_term]++;
     //context switch etc 
       send_eoi(KEYBOARD_IRQ);
 
-      terminal_switch(0, esp_zero);
+      terminal_switch(0, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);
   }
   else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && active_term != 1){
       uint8_t* ptr = (uint8_t*)("shell");
@@ -361,7 +358,7 @@ void keyboard_handler() {
       }
 
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(1, esp_zero);
+      terminal_switch(1, esp_zero, dest_pcb->kern_esp, dest_pcb->kern_ebp);
     
   }
   else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && active_term != 2){
@@ -389,6 +386,7 @@ void keyboard_handler() {
       );
 
       active_term = 2;
+
       alt_flag[terminal]--;
       alt_flag[active_term]++;
 
@@ -428,7 +426,7 @@ void keyboard_handler() {
     line_buffer[terminal][buffer_length[terminal]] = '\n';
     putc('\n');
     flag[terminal] = buffer_length[terminal];
-    update_cursor(get_screen_x(), get_screen_y());
+    //update_cursor(get_screen_x(), get_screen_y());
     buffer_length[terminal] = 0;
     line_start[terminal] = 0;
     sti();
@@ -618,7 +616,6 @@ void terminal_switch(int term_number, uint32_t esp_zero, uint32_t* stored_esp, u
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;
       cli();
-
 
       asm volatile("movl %0, %%esp;"
       "movl %1, %%ebp;"
