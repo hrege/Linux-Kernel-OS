@@ -101,7 +101,9 @@ int32_t rtc_open(const uint8_t* filename){
 */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
 	occurred = 0;  
+	sti();
 	while(!occurred);  //wait for interrupt to occur
+	cli();
 	return 0;
 
 }

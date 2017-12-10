@@ -397,7 +397,9 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
   }
 
   //wait for flag
+  sti();
   while(flag[terminal] == 0);
+  cli();
   /*Check size of buffer*/
   if(nbytes < flag[terminal]){
     flag[terminal] = nbytes;
@@ -503,7 +505,7 @@ void terminal_switch(uint32_t* stored_esp, uint32_t* stored_ebp){
       curr_pcb = get_pcb();
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;
-      cli();
+      
 
       send_eoi(0);
 

@@ -19,7 +19,7 @@ Each time the PIT interrupt is triggered:
 3rd switch tasks */
 
 void schedule_init(){
-	visible_process = -1;
+	visible_process = 0;
 }
 
 
@@ -89,7 +89,7 @@ void process_switch(int curr_process) {
         return;
       }
 
-
+      send_eoi(PIT_IRQ);
       terminal_switch(dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
 }
 

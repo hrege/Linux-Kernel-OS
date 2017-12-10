@@ -322,6 +322,7 @@ int32_t sys_read(int32_t fd, void* buf, int32_t nbytes){
 	if(fd > MAX_FILES || fd < 0 ) {
 		return -1;
 	}
+
 	PCB_t* curr_pcb = get_pcb();
 	//check if the file is actually open
 	if(!(curr_pcb->file_array[fd].flags == 1)){

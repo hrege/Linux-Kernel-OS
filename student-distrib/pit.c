@@ -6,8 +6,8 @@
 
 /* Reference: https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer */
 
-#define milliseconds	1000	//how many milliseconds 
-
+#define milliseconds	50	//how many milliseconds 
+int i = 0;
 /* 
 *	pit_init
 *		Author: Jonathan
@@ -31,7 +31,13 @@ extern void pit_init(){
 /* Interrupt handler for PIT. */
 extern void pit_handler(){
 	//call task switch
+	i++;
+	if(i % 20 != 0) {
+		send_eoi(PIT_IRQ);
+		return;
+	}
 	if(!exe_flag){
+		send_eoi(PIT_IRQ);
 		return;
 	}
 	process_switch(active_term);

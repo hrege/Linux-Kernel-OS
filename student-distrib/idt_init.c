@@ -129,7 +129,6 @@ void idt_init() {
 
 		idt[KEYBOARD_IDT_ENTRY].dpl = 0;
 
-		//WHYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY??
 		idt[0x21].dpl = 3;
 
 		//Ignore initialization for 15
@@ -158,14 +157,6 @@ void idt_init() {
 }
 
 /* assembly linkage */
-void sys_call(){
-	__asm__("pusha\n\t"
-			"call sys_call_hlp\n\t"
-			"popa\n\t"
-			"leave\n\t"
-			"IRET\n\t");
-}
-
 void pit_hlp(){
 	__asm__("pusha\n\t"
 		"cli\n\t"
@@ -196,8 +187,4 @@ void rtc_int(){
 			"IRET\n\t");
 }
 
-void sys_call_hlp(){
-	printf("This is a system call\n");
-	while(1);
-}
 
