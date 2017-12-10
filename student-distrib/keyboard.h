@@ -32,6 +32,8 @@
 
 #define NUM_TERMS			3
 
+extern int line_start[NUM_TERMS];
+
 /* //// external drivers functions \\\\\ */
 /* Read for terminal driver */
 extern int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes);

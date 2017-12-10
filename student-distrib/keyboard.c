@@ -14,7 +14,7 @@
 static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
 static volatile int buffer_length[NUM_TERMS];
 static volatile int flag[NUM_TERMS]; //0 to sleep termianl_read() positive number for bytes to copy
-static int line_start[NUM_TERMS];
+int line_start[NUM_TERMS];
 static int rshift_flag[NUM_TERMS];
 static int lshift_flag[NUM_TERMS];
 static int caps_flag[NUM_TERMS];
