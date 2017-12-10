@@ -285,7 +285,7 @@ void keyboard_handler() {
   /*                 SWITCHING TERMINALS               */
   /*****************************************************/
 
-  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && active_term != 0){
+  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && visible_process != 0){
       terminal_deactivate(visible_process);
       terminal_activate(0);
 
@@ -295,7 +295,7 @@ void keyboard_handler() {
 
       send_eoi(KEYBOARD_IRQ);
   }
-  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && active_term != 1){
+  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && visible_process != 1){
       terminal_deactivate(visible_process);
       terminal_activate(1);
 
@@ -306,7 +306,7 @@ void keyboard_handler() {
       send_eoi(KEYBOARD_IRQ);
   }
 
-  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && active_term != 2){
+  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && visible_process != 2){
       terminal_deactivate(visible_process);
       terminal_activate(2);
 
@@ -362,7 +362,7 @@ void keyboard_handler() {
  */
 char getScancode(char input) {
   int terminal;
-  terminal = get_pcb()->term_num;
+  terminal = visible_process;
 
   return scancode_map[(int)input][(lshift_flag[terminal] | rshift_flag[terminal] | (caps_flag[terminal] << 1))];
 }

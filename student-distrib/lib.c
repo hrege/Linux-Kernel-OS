@@ -5,6 +5,7 @@
 #include "x86_desc.h"
 #include "sys_call.h"
 #include "paging.h"
+#include "scheduler.h"
 
 #define VIDEO         0xB8000
 #define VIDEO_0       0xB9000
@@ -53,7 +54,7 @@ PCB_t* get_pcb(){
 *       Returns: one color byte based on active terminal
 */
 uint8_t get_attrib(){
-    switch(active_term){
+    switch(visible_process){
     case 0:
         return (uint8_t)GREEN;
         break;
@@ -81,7 +82,7 @@ uint8_t get_attrib(){
 *       Returns: pointer to video memory
 */
 char* get_video_mem(){
-    switch(active_term){
+    switch(visible_process){
     case 0:
         return (char*)VIDEO_0;
         break;
@@ -110,7 +111,7 @@ char* get_video_mem(){
 *       Returns: pointer to video memory
 */
 char* get_fish_mem(){
-    switch(active_term){
+    switch(visible_process){
     case 0:
         return (char*)(VIDEO_0 + _132_MB);
         break;
@@ -140,7 +141,7 @@ char* get_fish_mem(){
 *       Side effect: screen x location changed
 */
 void set_screen_x(int new_x){
-    screen_x[active_term] = new_x;
+    screen_x[(int)visible_process] = new_x;
 }
 
 /*
@@ -153,7 +154,7 @@ void set_screen_x(int new_x){
 *       Side effect: screen y location changed
 */
 void set_screen_y(int new_y){
-    screen_y[active_term] = new_y;
+    screen_y[(int)visible_process] = new_y;
 
 }
 
@@ -166,7 +167,7 @@ void set_screen_y(int new_y){
 *       Return: screen_x - integer screen location in x
 */
 int get_screen_x(){
-    return screen_x[active_term];
+    return screen_x[(int)visible_process];
 }
 
 /*
@@ -178,7 +179,7 @@ int get_screen_x(){
 *       Return: screen_y - integer screen location in y
 */
 int get_screen_y(){
-    return screen_y[active_term];
+    return screen_y[(int)visible_process];
 }
 
 /*
@@ -381,7 +382,7 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     int terminal;
-    terminal = get_pcb()->term_num;
+    terminal = visible_process;
 
     if(c == '\n' || c == '\r') {
         screen_y[terminal]++;

@@ -32,10 +32,10 @@ extern void pit_init(){
 extern void pit_handler(){
 	//call task switch
 	i++;
-	if(i % 20 != 0) {
-		send_eoi(PIT_IRQ);
-		return;
-	}
+	// if(i % 20 != 0) {
+	// 	send_eoi(PIT_IRQ);
+	// 	return;
+	// }
 	if(!exe_flag){
 		send_eoi(PIT_IRQ);
 		return;
