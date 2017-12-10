@@ -1,10 +1,12 @@
 #include "lib.h"
 #include "pit.h"
+#include "scheduler.h"
 #include "i8259.h"
+#include "sys_call.h"
 
 /* Reference: https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer */
 
-#define milliseconds	50	//how many milliseconds 
+#define milliseconds	1000	//how many milliseconds 
 
 /* 
 *	pit_init
@@ -26,12 +28,12 @@ extern void pit_init(){
 	outb(high, PIT_CHAN_ZERO);
 	enable_irq(PIT_IRQ);
 }
-/* Interrupt handler for RTC. */
+/* Interrupt handler for PIT. */
 extern void pit_handler(){
-
-	//call rescheduler
-
 	//call task switch
-
+	if(!exe_flag){
+		return;
+	}
+	process_switch(active_term);
 }
 

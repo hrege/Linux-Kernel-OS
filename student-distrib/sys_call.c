@@ -13,7 +13,7 @@
 #include "sys_call_link.H"
 #include "lib.h"
 
-
+int exe_flag;
 uint32_t pid_bitmap[MAX_PID];
 int shell_2;
 int shell_3;
@@ -303,6 +303,7 @@ int32_t sys_execute(const uint8_t* command){
 			);
 
 	/* Set up stacks before IRET call to run user program. */
+  	exe_flag = 1;
 	user_prep(eip, USER_STACK_POINTER);
 
 	return 0;

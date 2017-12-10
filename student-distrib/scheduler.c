@@ -1,71 +1,96 @@
 #include "lib.h"
 #include "scheduler.h"
+#include "x86_desc.h"
 #include "sys_call.h"
 #include "pit.h"
+#include "i8259.h"
+#include "keyboard.h"
+#include "paging.h"
 
 
-int8_t active_process;
 int8_t visible_process;
 
 /* The schedule works as a round robin scheduler meaning if you had three 
 processes open then whole time you'd do 1 -> 2 -> 3 -> 1 -> 2 -> 3 -> 1 ...
-The scheduler allocated a certian length of time before switching.
-Each time the PIT interrupt is triggered 1st store needed data abotu where
-you are coming from. 2nd run the scheduling "algorithm" incase things have
-been opened or close or one task was closed and returned you to another etc. 
-Third switch tasks */
+The scheduler allocated a certain length of time before switching.
+Each time the PIT interrupt is triggered:
+1st store needed data about where you are coming from. 
+2nd run the scheduling "algorithm" incase things have been opened or closed or one task was closed and returned you to another etc. 
+3rd switch tasks */
 
 void schedule_init(){
-	active_process = -1;
 	visible_process = -1;
 }
 
-void scheduler(){
-	//get current process number
-	int8_t process = active_process;
-	//if not valid (i.e. if gets called while first process not yet started) return
-	if(process < 0 || process > 2){
-		return;
-	}
-	//get next process
-	process = next_process(process);
-	//return if no other processes to run
-	if(process == -1){
-		return;
-	}
 
-}
+void process_switch(int curr_process) {
+      uint8_t* ptr = (uint8_t*)("shell");
 
-/*
-*	next_process
-*		Author: Jonathan
-*		Description: Gets the next process to run
-*		Input: Current process(terminal) number
-*		Returns: next process(terminal) number 
-*				of -1 if no other processes to run
-*/
-uint8_t next_process(int8_t current){
-	uint8_t next = (uint8_t)((current + 1) % 3);
-	do{
-		if(check_pid(next)){
-			return next;
-		}
-		next = (next + 1) % 3;
-	}while(next != current);
-	return -1;
-}
+      PCB_t* curr_pcb;
+      PCB_t* dest_pcb;
+      curr_pcb = get_pcb();
 
-void process_switch(){
+	  active_term = (uint8_t)((active_term + 1) % 3);
 
-	//should we handle video memory here?  NO
+      dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)) & 0xFFFFE000);
+
+      while(dest_pcb->child_process){
+        dest_pcb = dest_pcb->child_process;
+      }
+
+      paging_switch(128, 4 * (dest_pcb->process_id + 2));
+
+      asm volatile("movl %%esp, %0;"
+        "movl %%ebp, %1;"
+        : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
+        :
+        : "eax"
+      );
+
+      if(active_term == 1) {
+	      shell_2++;
+      }
+
+      if(shell_2 == 1){ 
+        tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
+        tss.ss0 = KERNEL_DS;
+
+        asm volatile("movl %%esp, %0;"
+          "movl %%ebp, %1;"
+          : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
+          :
+          : "eax"
+        );
+
+        send_eoi(PIT_IRQ);
+        clear();
+        sys_execute(ptr);
+        return;
+      }
+
+      if(active_term == 2) {
+      	shell_3++;
+      }
+
+      if(shell_3 == 1){ 
+        tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB*2)));
+        tss.ss0 = KERNEL_DS;
+
+        asm volatile("movl %%esp, %0;"
+          "movl %%ebp, %1;"
+          : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
+          :
+          : "eax"
+        );
+
+        send_eoi(PIT_IRQ);
+        clear();
+        sys_execute(ptr);
+        return;
+      }
 
 
-	//update tss as approriate for where we are moving to
-
-	//could just call context switch?
-
-
-
+      terminal_switch(dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
 }
 
 

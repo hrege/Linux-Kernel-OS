@@ -168,7 +168,9 @@ void sys_call(){
 
 void pit_hlp(){
 	__asm__("pusha\n\t"
+		"cli\n\t"
 		"call pit_handler\n\t"
+		"sti\n\t"
 		"popa\n\t"
 		"leave\n\t"
 		"IRET\n\t");

@@ -205,12 +205,11 @@ void keyboard_handler() {
   int terminal;
   uint8_t keyboard_input = 0;
   char char_out = 0;
-  PCB_t* curr_pcb;
-  PCB_t* dest_pcb;
+
   /* Read keypress from keyboard data port. */
   keyboard_input = inb(KEYBOARD_DATA_PORT);
   char_out = getScancode(keyboard_input);
-  terminal = get_pcb()->term_num;
+  terminal = visible_process;
 
   if(keyboard_input == 0xB3 || keyboard_input == 0xBA || keyboard_input == 0xBC || keyboard_input == 0xA1){
   }
@@ -287,137 +286,35 @@ void keyboard_handler() {
   /*****************************************************/
 
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && active_term != 0){
-      terminal_deactivate(active_term);
+      terminal_deactivate(visible_process);
       terminal_activate(0);
 
-      curr_pcb = get_pcb();
-      dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE) & 0xFFFFE000);
-
-      while(dest_pcb->child_process){
-        dest_pcb = dest_pcb->child_process;
-      }
-
-
-      paging_switch(128, 4 * (dest_pcb->process_id + 2));
-
-      asm volatile("movl %%esp, %0;"
-        "movl %%ebp, %1;"
-        : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-        :
-        : "eax"
-      );
-
-      active_term = 0;
-      visible_process = active_term;
       alt_flag[terminal]--;
-      alt_flag[active_term]++;
-      send_eoi(KEYBOARD_IRQ);
+      alt_flag[0]++;
+      visible_process = 0;
 
-      terminal_switch(0, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
+      send_eoi(KEYBOARD_IRQ);
   }
   else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && active_term != 1){
-      uint8_t* ptr = (uint8_t*)("shell");
-
-      shell_2++;
-
-      terminal_deactivate(active_term);
+      terminal_deactivate(visible_process);
       terminal_activate(1);
 
-      curr_pcb = get_pcb();
-      dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)) & 0xFFFFE000);
-
-      while(dest_pcb->child_process){
-        dest_pcb = dest_pcb->child_process;
-      }
-
-      paging_switch(128, 4 * (dest_pcb->process_id + 2));
-
-      asm volatile("movl %%esp, %0;"
-      "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-      :
-      : "eax"
-      );
-
-      active_term = 1;
-      visible_process = active_term;
-
       alt_flag[terminal]--;
-      alt_flag[active_term]++;
-
-      if(shell_2 == 1){ 
-      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
-      tss.ss0 = KERNEL_DS;
-
-        asm volatile("movl %%esp, %0;"
-        "movl %%ebp, %1;"
-        : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-        :
-        : "eax"
-        );
-
-        send_eoi(KEYBOARD_IRQ);
-        clear();
-        //sti();
-        sys_execute(ptr);
-        return;
-      }
+      alt_flag[1]++;
+      visible_process = 1;
 
       send_eoi(KEYBOARD_IRQ);
-      terminal_switch(1, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
-
   }
+
   else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && active_term != 2){
-
-      uint8_t* ptr = (uint8_t*)("shell");
-
-      shell_3++;
-
-      terminal_deactivate(active_term);
+      terminal_deactivate(visible_process);
       terminal_activate(2);
 
-      curr_pcb = get_pcb();
-      dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)) & 0xFFFFE000);
-
-      while(dest_pcb->child_process){
-        dest_pcb = dest_pcb->child_process;
-      }
-
-      paging_switch(128, 4 * (dest_pcb->process_id + 2));
-      
-      asm volatile("movl %%esp, %0;"
-        "movl %%ebp, %1;"
-        : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-        :
-        : "eax"
-      );
-
-      active_term = 2;
-      visible_process = active_term;
-      
       alt_flag[terminal]--;
-      alt_flag[active_term]++;
-
-      if(shell_3 == 1){      
-      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
-      tss.ss0 = KERNEL_DS; 
+      alt_flag[2]++;
+      visible_process = 2;
 
       send_eoi(KEYBOARD_IRQ);
-      clear();
-      //sti();     
-      // asm volatile("movl %%esp, %0;"
-      // "movl %%ebp, %1;"
-      // : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-      // :
-      // : "eax"
-      // );
-      sys_execute(ptr);
-      return;
-    }
-
-    send_eoi(KEYBOARD_IRQ);
-    terminal_switch(2, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
-
   }
   /*Clear screen*/
   else if(char_out == 'l' && ctrl_flag[terminal] > 0){
@@ -601,13 +498,14 @@ int32_t terminal_close(int32_t fd){
   return 0;
 }
 
-void terminal_switch(int term_number, uint32_t* stored_esp, uint32_t* stored_ebp){
+void terminal_switch(uint32_t* stored_esp, uint32_t* stored_ebp){
       PCB_t* curr_pcb;
-      active_process = term_number;
       curr_pcb = get_pcb();
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;
       cli();
+
+      send_eoi(0);
 
       asm volatile("movl %0, %%esp;"
       "movl %1, %%ebp;"
