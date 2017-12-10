@@ -38,6 +38,9 @@ extern int shell_3;
 
 int get_first_pid();
 
+/* extern function to check pid */
+extern int check_pid(uint8_t pid);
+
 /* Declare functions */
 int32_t sys_halt(uint8_t status);
 int32_t sys_execute(const uint8_t* command);

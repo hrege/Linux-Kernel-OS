@@ -171,6 +171,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 
     file_system_init(file_system_addr);
+    schedule_init();
 
     /* Initialize Everything and turn on interrupts */
     /* Initialize PIC this must be before any irq inits as it diables all of them */

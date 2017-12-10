@@ -9,6 +9,7 @@
 #include "keyboard.h"
 #include "sys_call.h"
 #include "x86_desc.h"
+#include "scheduler.h"
 
 
 static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
@@ -307,7 +308,7 @@ void keyboard_handler() {
       );
 
       active_term = 0;
-
+      visible_process = active_term;
       alt_flag[terminal]--;
       alt_flag[active_term]++;
       send_eoi(KEYBOARD_IRQ);
@@ -339,7 +340,7 @@ void keyboard_handler() {
       );
 
       active_term = 1;
-
+      visible_process = active_term;
 
       alt_flag[terminal]--;
       alt_flag[active_term]++;
@@ -392,7 +393,8 @@ void keyboard_handler() {
       );
 
       active_term = 2;
-
+      visible_process = active_term;
+      
       alt_flag[terminal]--;
       alt_flag[active_term]++;
 
@@ -601,7 +603,7 @@ int32_t terminal_close(int32_t fd){
 
 void terminal_switch(int term_number, uint32_t* stored_esp, uint32_t* stored_ebp){
       PCB_t* curr_pcb;
-
+      active_process = term_number;
       curr_pcb = get_pcb();
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;

@@ -1,7 +1,11 @@
 #include "lib.h"
 #include "scheduler.h"
+#include "sys_call.h"
 #include "pit.h"
 
+
+int8_t active_process;
+int8_t visible_process;
 
 /* The schedule works as a round robin scheduler meaning if you had three 
 processes open then whole time you'd do 1 -> 2 -> 3 -> 1 -> 2 -> 3 -> 1 ...
@@ -11,9 +15,14 @@ you are coming from. 2nd run the scheduling "algorithm" incase things have
 been opened or close or one task was closed and returned you to another etc. 
 Third switch tasks */
 
+void schedule_init(){
+	active_process = -1;
+	visible_process = -1;
+}
+
 void scheduler(){
 	//get current process number
-	int8_t process = 5;
+	int8_t process = active_process;
 	//if not valid (i.e. if gets called while first process not yet started) return
 	if(process < 0 || process > 2){
 		return;
@@ -36,9 +45,9 @@ void scheduler(){
 *				of -1 if no other processes to run
 */
 uint8_t next_process(int8_t current){
-	int8_t next = (current + 1) % 3;
+	uint8_t next = (uint8_t)((current + 1) % 3);
 	do{
-		if(next - is active){
+		if(check_pid(next)){
 			return next;
 		}
 		next = (next + 1) % 3;
@@ -48,7 +57,7 @@ uint8_t next_process(int8_t current){
 
 void process_switch(){
 
-	//should we handle video memory here?
+	//should we handle video memory here?  NO
 
 
 	//update tss as approriate for where we are moving to

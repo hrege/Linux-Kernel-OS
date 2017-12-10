@@ -61,6 +61,7 @@ int get_first_pid(){
 	int i; // loop variable
 
 	/* start at 0 and check until you find one */
+	/* 0/1/2 reserved for the terminals */
 	for(i = 0; i < MAX_PID; i++){
 		if(pid_bitmap[i] == 0){
 			if((shell_2 == 1 || i != 1) && (shell_3 == 1 || i != 2)){
@@ -76,6 +77,19 @@ int get_first_pid(){
 	}
 	return -1;
 }
+/* check_pid
+*		Author: Jonathan
+*		Description: Check if the PID is active (used primarily to check terminals)
+*		Input: Process #
+*		Return: 0 if inactive 1 if active -1 if fail
+*/
+int check_pid(uint8_t pid){
+	if(pid > MAX_PID){
+		return -1;
+	}
+	return pid_bitmap[pid];
+}
+
 
 /*
 *	sys_halt
