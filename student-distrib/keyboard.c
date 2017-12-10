@@ -11,7 +11,6 @@
 #include "x86_desc.h"
 #include "scheduler.h"
 
-
 static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
 static volatile int buffer_length[NUM_TERMS];
 static volatile int flag[NUM_TERMS]; //0 to sleep termianl_read() positive number for bytes to copy
@@ -206,12 +205,17 @@ void keyboard_handler() {
   uint8_t keyboard_input = 0;
   char char_out = 0;
 
+  echo = 1;
+
   /* Read keypress from keyboard data port. */
   keyboard_input = inb(KEYBOARD_DATA_PORT);
   char_out = getScancode(keyboard_input);
   terminal = visible_process;
 
-  if(keyboard_input == 0xB3 || keyboard_input == 0xBA || keyboard_input == 0xBC || keyboard_input == 0xA1){
+  if(keyboard_input == BAD_SCAN_COMMA || keyboard_input == BAD_SCAN_F || keyboard_input == BAD_SCAN_F2 || keyboard_input == BAD_SCAN_CAPS){
+       echo = 0;
+    send_eoi(KEYBOARD_IRQ);
+    return;
   }
  else if(keyboard_input == LSHIFT_ON_SCAN){
         lshift_flag[terminal] = 1;
@@ -258,6 +262,7 @@ void keyboard_handler() {
       else{
         set_screen_x(line_start[terminal]);
         send_eoi(KEYBOARD_IRQ);
+        echo = 0;
         return;
       }
       /*Go back to previous video memory*/
@@ -294,6 +299,8 @@ void keyboard_handler() {
       visible_process = 0;
 
       send_eoi(KEYBOARD_IRQ);
+      echo = 0;
+      return;
   }
   else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && visible_process != 1){
       terminal_deactivate(visible_process);
@@ -304,6 +311,8 @@ void keyboard_handler() {
       visible_process = 1;
 
       send_eoi(KEYBOARD_IRQ);
+      echo = 0;
+      return;
   }
 
   else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && visible_process != 2){
@@ -315,6 +324,8 @@ void keyboard_handler() {
       visible_process = 2;
 
       send_eoi(KEYBOARD_IRQ);
+      echo = 0;
+      return;
   }
   /*Clear screen*/
   else if(char_out == 'l' && ctrl_flag[terminal] > 0){
@@ -349,6 +360,7 @@ void keyboard_handler() {
    }
 
   /* Send End-of-Interrupt signal to Master PIC. */
+   echo = 0;
   send_eoi(KEYBOARD_IRQ);
 }
 

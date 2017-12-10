@@ -55,7 +55,7 @@ void process_switch(int curr_process) {
       	shell_3++;
       }
 
-      if(shell_2 == 1){ 
+      if(shell_2 == 1 && active_term == 1){ 
         shell_2++;
         tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
         tss.ss0 = KERNEL_DS;
@@ -73,7 +73,7 @@ void process_switch(int curr_process) {
         return;
       }
 
-      if(shell_3 == 1){ 
+      if(shell_3 == 1 && active_term == 2){ 
         shell_3++;
         tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB*2)));
         tss.ss0 = KERNEL_DS;

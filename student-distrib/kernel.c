@@ -157,6 +157,8 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     exe_flag = 0;
+    echo = 0;
+
     /*Set up pid_bitmap with all free pids*/
     for(i = 1; i < MAX_PID; i++){
         pid_bitmap[i] = 0;

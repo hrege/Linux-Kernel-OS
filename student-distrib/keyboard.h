@@ -9,6 +9,10 @@
 #define KEYBOARD_DATA_PORT  0x60	//Port to read keyboard data
 #define max_buffer_size     128		//Maximum size of terminal buffer
 #define MAX_SCANCODE		0x3A	//Maximum scancode
+#define BAD_SCAN_COMMA		0xB3
+#define BAD_SCAN_F2 		0xBA
+#define BAD_SCAN_CAPS 		0xBC
+#define BAD_SCAN_F   		0xA1
 
 //specially handled scancodes
 #define BACKSPACE_SCAN     	0xE

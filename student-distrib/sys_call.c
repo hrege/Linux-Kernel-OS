@@ -13,6 +13,7 @@
 #include "sys_call_link.H"
 #include "lib.h"
 
+volatile int echo;
 int exe_flag;
 uint32_t pid_bitmap[MAX_PID];
 int shell_2;

@@ -32,6 +32,7 @@
 #define VID_MEM_VIRT_MB        132
 #define VID_MEM_PHYS_MB        0
 
+extern volatile int echo;
 extern int exe_flag;
 extern uint32_t pid_bitmap[MAX_PID];
 extern int shell_2;
