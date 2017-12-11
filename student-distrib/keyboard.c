@@ -188,8 +188,6 @@ const char scancode_map[NUM_SCANCODES][NUM_CASES] = {
 void keyboard_init() {
   terminal_open((uint8_t*)1);
   enable_irq(KEYBOARD_IRQ);
-
-
 }
 
 /*

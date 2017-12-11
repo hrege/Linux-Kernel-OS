@@ -8,6 +8,7 @@
 #define CRYSTAL_FREQ	11931820
 #define PIT_CONTROL_WORD	0x36
 #define PIT_IRQ			0
+#define QUANTUM         35  // Milliseconds for rate initialization
 
 
 /* Function to initialize RTC clock. */

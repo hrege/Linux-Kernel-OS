@@ -10,21 +10,34 @@
 
 int8_t visible_process;
 
-/* The schedule works as a round robin scheduler meaning if you had three 
-processes open then whole time you'd do 1 -> 2 -> 3 -> 1 -> 2 -> 3 -> 1 ...
-The scheduler allocated a certain length of time before switching.
-Each time the PIT interrupt is triggered:
-1st store needed data about where you are coming from. 
-2nd run the scheduling "algorithm" incase things have been opened or closed or one task was closed and returned you to another etc. 
-3rd switch tasks */
-
+/*
+ *	process_switch
+ *		Description: Initializes the external visible_process 
+                   and active_term variables.
+ *		Author: Sam, Jonathan, Hershel, Austin
+ *		Inputs: None
+ *		Outputs: None
+ *		Side effect: visible_process and active_term are set to 0.
+ */
 void schedule_init(){
 	visible_process = 0;
   active_term = 0;
 }
 
-
-void process_switch(int curr_process) {
+/*
+ *	process_switch
+ *		Description: The function called by pit_handler to perform an active terminal switch
+                   when the PIT interrupt is triggered.
+                   Active terminal is scheduled round-robin, so it goes 1 -> 2 -> 3 -> 1 -> ...
+                   First, data about previous terminal is stored. Then the scheduler
+                   checks if the second and third shells for terminals 2 and 3 are executed.
+                   Finally, performs the task switch.
+ *		Author: Sam, Jonathan, Hershel
+ *		Inputs: None
+ *		Outputs: None
+ *		Side effect: Performs a paging switch and terminal (context) switch
+ */
+void process_switch() {
       uint8_t* ptr = (uint8_t*)("shell");
 
       PCB_t* curr_pcb;
@@ -48,10 +61,10 @@ void process_switch(int curr_process) {
         : "eax"
       );
 
-      if((active_term == 1) && (shell_2 < 2)) {
+      if((active_term == 1) && (shell_2 < SHELL_INIT_DONE)) {
 	      shell_2++;
       }
-      if((active_term == 2) && (shell_3 < 2)) {
+      if((active_term == 2) && (shell_3 < SHELL_INIT_DONE)) {
       	shell_3++;
       }
 

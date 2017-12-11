@@ -41,8 +41,6 @@ extern void pit_handler(){
 		send_eoi(PIT_IRQ);
 		return;
 	}
-
-	/* Switches stack frame based on current active_term. */
-	process_switch(active_term);
+	process_switch();
 }
 
