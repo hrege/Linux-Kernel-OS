@@ -33,6 +33,15 @@ extern int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
 /* RTC Driver Write Function */
 extern int32_t rtc_write(int32_t fd, const void* buf, int32_t frequency);
 
+/*RTC Write Helpers */
+/*Sends info to rtc */
+void rtc_output(int8_t i);
+/*Handles rate increase variable changes*/
+void rate_increase(int new_rate);
+/*Handles rate decrease variable changes*/
+void rate_decrease(int new_rate);
+
+
 /* RTC Driver Close Function */
 extern int32_t rtc_close(int32_t fd);
 

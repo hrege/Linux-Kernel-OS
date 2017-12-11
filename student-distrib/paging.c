@@ -164,12 +164,15 @@ void paging_switch(uint32_t mb_va, uint32_t mb_pa){
                    : "eax", "memory", "cc"
     );
 }
-    // Extra notes for MP3.3 implementation:
-    //Map 128-132MB VM to 8-12MB PM
-    //page_directory[32] = 0x00800083;
 
-    //Map 128-132MB VM to 12-16MB PM
-    //page_directory[32] = 0x00C00083;
+/* void terminal_activate(int term_num)
+ *      Author: Hershel/Sam
+ *      Inputs: term_num - number of terminal to "activate"
+ *      Return Value: void
+ *      Function: Copies the correct recorded characters to the video memory,
+ *                flushes the TLB, and updates the cursor
+ *      Side effects: Flushes the entire TLB
+ */
 void terminal_activate(int term_num){
     switch(term_num){
         case 0:
@@ -199,8 +202,16 @@ void terminal_activate(int term_num){
     );
 
     update_cursor(screen_x[term_num], screen_y[term_num]);
-
 }
+
+/* void terminal_deactivate(int term_num)
+ *      Author: Hershel/Sam
+ *      Inputs: term_num - number of terminal to "deactivate"
+ *      Return Value: void
+ *      Function: Copies the visible terminal's characters into its own physical memory location,
+ *                flushes the TLB, and updates the cursor
+ *      Side effects: Flushes the entire TLB
+ */
 void terminal_deactivate(int term_num){
     switch(term_num){
         case 0:
@@ -242,5 +253,4 @@ void terminal_deactivate(int term_num){
         memcpy((char*)VIDEO_LOC_2, (char*)VIDEO_LOC, SCREEN_SIZE);
         break;
     }
-
 }

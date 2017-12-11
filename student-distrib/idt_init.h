@@ -8,6 +8,7 @@
 #define IDT_SIZE                  256
 #define NUM_EXCEPTIONS            20
 #define SYSTEM_CALL_IDT_ENTRY     0x80
+#define PIT_IDT_ENTRY			  0x20
 #define KEYBOARD_IDT_ENTRY        0x21
 #define RTC_IDT_ENTRY             0x28
 #define USER_PROTECTION           3
@@ -26,6 +27,9 @@ void get_char();
 
 /* RTC Handler */
 void rtc_int();
+
+/*PIT Handling*/
+void pit_hlp();
 
 #endif
 #endif /* IDT_INIT */

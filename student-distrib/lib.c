@@ -5,6 +5,7 @@
 #include "x86_desc.h"
 #include "sys_call.h"
 #include "paging.h"
+#include "scheduler.h"
 
 #define VIDEO         0xB8000
 #define VIDEO_0       0xB9000
@@ -34,9 +35,38 @@ int screen_y[NUM_TERMS];
 char* video_mem = (char *)VIDEO;
 int active_term;
 
+/*
+*   get_terminal
+*       Author: Sam
+*       Description: Returns either the active terminal or the visible process depending on 
+*                    if process being handled is in background or foreground.
+*       Input: none
+*       Output: none
+*       Returns: Either visible process or active term
+*/
+
+int get_terminal(){
+
+    if(echo){
+        return visible_process;
+    }
+    else{
+        return active_term;
+    }
+}
+
+/*
+*   get_pcb
+*       Author: Sam
+*       Description: Returns latest child PCB to set proper stack frame. 
+*       Input: none
+*       Output: none
+*       Returns: Latest child process PCB.
+*/
+
 PCB_t* get_pcb(){
     PCB_t* ret;
-    ret = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)) & 0xFFFFE000);
+    ret = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * get_terminal())) & 0xFFFFE000);
     while(ret->child_process){
         ret = ret->child_process;
     }
@@ -53,7 +83,7 @@ PCB_t* get_pcb(){
 *       Returns: one color byte based on active terminal
 */
 uint8_t get_attrib(){
-    switch(active_term){
+    switch(get_terminal()){
     case 0:
         return (uint8_t)GREEN;
         break;
@@ -81,7 +111,7 @@ uint8_t get_attrib(){
 *       Returns: pointer to video memory
 */
 char* get_video_mem(){
-    switch(active_term){
+    switch(get_terminal()){
     case 0:
         return (char*)VIDEO_0;
         break;
@@ -110,7 +140,7 @@ char* get_video_mem(){
 *       Returns: pointer to video memory
 */
 char* get_fish_mem(){
-    switch(active_term){
+    switch(get_terminal()){
     case 0:
         return (char*)(VIDEO_0 + _132_MB);
         break;
@@ -140,7 +170,7 @@ char* get_fish_mem(){
 *       Side effect: screen x location changed
 */
 void set_screen_x(int new_x){
-    screen_x[active_term] = new_x;
+    screen_x[get_terminal()] = new_x;
 }
 
 /*
@@ -153,7 +183,7 @@ void set_screen_x(int new_x){
 *       Side effect: screen y location changed
 */
 void set_screen_y(int new_y){
-    screen_y[active_term] = new_y;
+    screen_y[get_terminal()] = new_y;
 
 }
 
@@ -166,7 +196,7 @@ void set_screen_y(int new_y){
 *       Return: screen_x - integer screen location in x
 */
 int get_screen_x(){
-    return screen_x[active_term];
+    return screen_x[get_terminal()];
 }
 
 /*
@@ -178,7 +208,7 @@ int get_screen_x(){
 *       Return: screen_y - integer screen location in y
 */
 int get_screen_y(){
-    return screen_y[active_term];
+    return screen_y[get_terminal()];
 }
 
 /*
@@ -191,6 +221,9 @@ int get_screen_y(){
 *   Source: OSDev Text_mode_Cursor page
 */
 void update_cursor(int x, int y){
+    if(active_term != visible_process && !echo){
+        return;
+    }
   uint16_t pos = y * NUM_COLS + x;
   outb(CURSOR_LSB, INDEX_REG);
   outb((uint8_t) (pos & 0xFF), DATA_REG); //write to lower byte of cursor
@@ -224,7 +257,7 @@ void clear(void) {
     }
     set_screen_x(0);    //reset to top left
     set_screen_y(0);
-    update_cursor(screen_x[get_pcb()->term_num], screen_y[get_pcb()->term_num]);
+    update_cursor(screen_x[(int)visible_process], screen_y[(int)visible_process]);
 }
 
 /* Standard printf().
@@ -381,9 +414,9 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     int terminal;
-    terminal = get_pcb()->term_num;
+    terminal = get_terminal();
 
-    if(c == '\n') {
+    if(c == '\n' || c == '\r') {
         screen_y[terminal]++;
         screen_x[terminal] = 0;
     } else {

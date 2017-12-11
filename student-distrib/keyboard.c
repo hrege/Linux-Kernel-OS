@@ -9,17 +9,19 @@
 #include "keyboard.h"
 #include "sys_call.h"
 #include "x86_desc.h"
+#include "scheduler.h"
 
 
-static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
-static volatile int buffer_length[NUM_TERMS];
-static volatile int flag[NUM_TERMS]; //0 to sleep termianl_read() positive number for bytes to copy
-int line_start[NUM_TERMS];
+volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
+volatile int buffer_length[NUM_TERMS];
+static volatile int flag[NUM_TERMS]; //0 to sleep terminal_read() positive number for bytes to copy
 static int rshift_flag[NUM_TERMS];
 static int lshift_flag[NUM_TERMS];
 static int caps_flag[NUM_TERMS];
 static int ctrl_flag[NUM_TERMS];
 static int alt_flag[NUM_TERMS];
+
+int line_start[NUM_TERMS];
 
 
 /*
@@ -188,8 +190,6 @@ const char scancode_map[NUM_SCANCODES][NUM_CASES] = {
 void keyboard_init() {
   terminal_open((uint8_t*)1);
   enable_irq(KEYBOARD_IRQ);
-
-
 }
 
 /*
@@ -204,19 +204,24 @@ void keyboard_handler() {
   int terminal;
   uint8_t keyboard_input = 0;
   char char_out = 0;
-  PCB_t* curr_pcb;
-  PCB_t* dest_pcb;
+
+  /* Used to differentiate between updating visible terminal and background processes. */
+  echo = 1;
+
   /* Read keypress from keyboard data port. */
   keyboard_input = inb(KEYBOARD_DATA_PORT);
   char_out = getScancode(keyboard_input);
-  terminal = get_pcb()->term_num;
+  terminal = visible_process;
 
-  if(keyboard_input == 0xB3 || keyboard_input == 0xBA || keyboard_input == 0xBC || keyboard_input == 0xA1){
+  if(keyboard_input == BAD_SCAN_COMMA || keyboard_input == BAD_SCAN_F || keyboard_input == BAD_SCAN_F2 || keyboard_input == BAD_SCAN_CAPS || keyboard_input == F3_RELEASE){
+    echo = 0;
+    send_eoi(KEYBOARD_IRQ);
+    return;
   }
- else if(keyboard_input == LSHIFT_ON_SCAN){
+  else if(keyboard_input == LSHIFT_ON_SCAN){
         lshift_flag[terminal] = 1;
   }
- else if(keyboard_input == RSHIFT_ON_SCAN){
+  else if(keyboard_input == RSHIFT_ON_SCAN){
         rshift_flag[terminal] = 1;
   }
   else if(keyboard_input == LSHIFT_OFF_SCAN){
@@ -229,35 +234,27 @@ void keyboard_handler() {
         caps_flag[terminal] = (!caps_flag[terminal]) & 0x1;
   }
   else if(keyboard_input == CTRL_SCAN){
-    //Clear screen and start printing from top
       ctrl_flag[terminal]++;
-
   }
   else if(keyboard_input == CTRL_RELEASE_SCAN){
-    //Clear screen and start printing from top
       ctrl_flag[terminal]--;
-
   }
-
   else if(keyboard_input == ALT_SCAN){
-    //Clear screen and start printing from top
       alt_flag[terminal]++;
-
   }
   else if(keyboard_input == ALT_RELEASE_SCAN){
-    //Clear screen and start printing from top
     if(alt_flag[terminal] > 0){
       alt_flag[terminal]--;
     }
-
   }
   else if(keyboard_input == BACKSPACE_SCAN){
-      if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= 80)){
+      if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= NUM_COLS)){
         buffer_length[terminal]--;
       }
       else{
         set_screen_x(line_start[terminal]);
         send_eoi(KEYBOARD_IRQ);
+        echo = 0;
         return;
       }
       /*Go back to previous video memory*/
@@ -285,151 +282,33 @@ void keyboard_handler() {
   /*                 SWITCHING TERMINALS               */
   /*****************************************************/
 
-  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && active_term != 0){
-      terminal_deactivate(active_term);
-      terminal_activate(0);
-
-      curr_pcb = get_pcb();
-      dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE) & 0xFFFFE000);
-
-      while(dest_pcb->child_process){
-        dest_pcb = dest_pcb->child_process;
-      }
-
-
-      paging_switch(128, 4 * (dest_pcb->process_id + 2));
-
-      asm volatile("movl %%esp, %0;"
-        "movl %%ebp, %1;"
-        : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-        :
-        : "eax"
-      );
-
-      active_term = 0;
-
-      alt_flag[terminal]--;
-      alt_flag[active_term]++;
-      send_eoi(KEYBOARD_IRQ);
-
-      terminal_switch(0, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
-  }
-  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && active_term != 1){
-      uint8_t* ptr = (uint8_t*)("shell");
-
-      shell_2++;
-
-      terminal_deactivate(active_term);
-      terminal_activate(1);
-
-      curr_pcb = get_pcb();
-      dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)) & 0xFFFFE000);
-
-      while(dest_pcb->child_process){
-        dest_pcb = dest_pcb->child_process;
-      }
-
-      paging_switch(128, 4 * (dest_pcb->process_id + 2));
-
-      asm volatile("movl %%esp, %0;"
-      "movl %%ebp, %1;"
-      : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-      :
-      : "eax"
-      );
-
-      active_term = 1;
-
-
-      alt_flag[terminal]--;
-      alt_flag[active_term]++;
-
-      if(shell_2 == 1){ 
-      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB)));
-      tss.ss0 = KERNEL_DS;
-
-        asm volatile("movl %%esp, %0;"
-        "movl %%ebp, %1;"
-        : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-        :
-        : "eax"
-        );
-
-        send_eoi(KEYBOARD_IRQ);
-        clear();
-        //sti();
-        sys_execute(ptr);
-        return;
-      }
-
-      send_eoi(KEYBOARD_IRQ);
-      terminal_switch(1, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
-
-  }
-  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && active_term != 2){
-
-      uint8_t* ptr = (uint8_t*)("shell");
-
-      shell_3++;
-
-      terminal_deactivate(active_term);
-      terminal_activate(2);
-
-      curr_pcb = get_pcb();
-      dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)) & 0xFFFFE000);
-
-      while(dest_pcb->child_process){
-        dest_pcb = dest_pcb->child_process;
-      }
-
-      paging_switch(128, 4 * (dest_pcb->process_id + 2));
-      
-      asm volatile("movl %%esp, %0;"
-        "movl %%ebp, %1;"
-        : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-        :
-        : "eax"
-      );
-
-      active_term = 2;
-
-      alt_flag[terminal]--;
-      alt_flag[active_term]++;
-
-      if(shell_3 == 1){      
-      tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * 2)));
-      tss.ss0 = KERNEL_DS; 
-
-      send_eoi(KEYBOARD_IRQ);
-      clear();
-      //sti();     
-      // asm volatile("movl %%esp, %0;"
-      // "movl %%ebp, %1;"
-      // : "=m"(curr_pcb->kern_esp_context), "=m"(curr_pcb->kern_ebp_context)
-      // :
-      // : "eax"
-      // );
-      sys_execute(ptr);
+  else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && visible_process != 0){
+      display_new_terminal(0);
       return;
-    }
+  }
+  else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && visible_process != 1){
+      display_new_terminal(1);
+      return;
+  }
 
-    send_eoi(KEYBOARD_IRQ);
-    terminal_switch(2, dest_pcb->kern_esp_context, dest_pcb->kern_ebp_context);
-
+  else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && visible_process != 2){
+      display_new_terminal(2);
+      return;
   }
   /*Clear screen*/
-  else if(char_out == 'l' && ctrl_flag[terminal] > 0){
+  else if(keyboard_input == L_SCAN && ctrl_flag[terminal] > 0){
       clear();
+      line_start[terminal] = 0;
       buffer_length[terminal] = 0;
   }
 
-  else if(char_out == ENTER){
+  else if(keyboard_input == ENTER){
     line_buffer[terminal][buffer_length[terminal]] = '\n';
     putc('\n');
     flag[terminal] = buffer_length[terminal];
     buffer_length[terminal] = 0;
     line_start[terminal] = 0;
-
+    update_cursor(get_screen_x(), get_screen_y());
   }
 
   /* Print scancode-converted character to terminal. */
@@ -450,6 +329,7 @@ void keyboard_handler() {
    }
 
   /* Send End-of-Interrupt signal to Master PIC. */
+  echo = 0;
   send_eoi(KEYBOARD_IRQ);
 }
 
@@ -463,7 +343,7 @@ void keyboard_handler() {
  */
 char getScancode(char input) {
   int terminal;
-  terminal = get_pcb()->term_num;
+  terminal = visible_process;
 
   return scancode_map[(int)input][(lshift_flag[terminal] | rshift_flag[terminal] | (caps_flag[terminal] << 1))];
 }
@@ -476,8 +356,6 @@ char getScancode(char input) {
 *		Output: nada
 *		Returns: the number of bytes read if pass; -1 if fail
 */
-
-
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
 
   int i;//loop variable
@@ -491,14 +369,16 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     return -1;
   }
 
-  terminal = get_pcb()->term_num;
+  terminal = get_terminal();
 
   if(nbytes > max_buffer_size){
     nbytes = max_buffer_size;
   }
 
   //wait for flag
+  sti();
   while(flag[terminal] == 0);
+  cli();
   /*Check size of buffer*/
   if(nbytes < flag[terminal]){
     flag[terminal] = nbytes;
@@ -534,16 +414,15 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         return -1;
     }
 
-    terminal = get_pcb()->term_num;
+    terminal = get_terminal();
     /* read from buf */
     for(i = 0; i < nbytes; i++){
-      if(((char *)buf)[i] == ENTER){
-         putc('\n');	//enter is newline
+      if(((char *)buf)[i] == '\n'){
+         putc('\n');	
          line_start[terminal] = 0;
       }
-      else{ //if(((char *)buf)[i] != 0)
+      else{
         putc(((char *)buf)[i]);	//otherwise print the char and put it in line buffer
-        line_buffer[terminal][buffer_length[terminal]] = ((char *)buf)[i];
         line_start[terminal]++;
       }
 
@@ -556,6 +435,9 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         }
 
     }
+    for(i = 0; i < buffer_length[terminal]; i++){
+      putc(line_buffer[terminal][i]);
+    }
     update_cursor(get_screen_x(), get_screen_y());
 
     return 0;
@@ -564,8 +446,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 /*
 *	terminal_open
 *		Author: Sam
-*		Description: Doesn't do much at this point since multiple terminals isn't enabled
-*						-just initializes some vars
+*		Description: just initializes some variables
 *		Inputs: filename (not used)as is standard for open
 *		Outputs: Nada
 *		Returns: 0 always atm
@@ -589,7 +470,7 @@ int32_t terminal_open(const uint8_t* filename){
 /*
 *	terminal_close
 *		Author: collaborative project between all 4 team members
-*		Description: does nothing now since multiple terminals are not implemented
+*		Description: does nothing
 *		Inputs: fd as is required for close. Not used
 *		Outputs: none
 *		Returns: 0 always
@@ -599,14 +480,24 @@ int32_t terminal_close(int32_t fd){
   return 0;
 }
 
-void terminal_switch(int term_number, uint32_t* stored_esp, uint32_t* stored_ebp){
+/*
+ * terminal_switch
+ *   Author: Sam/Hershel/Jonathan
+ *   Description: Restores the saved context for scheduled program.
+ *   Inputs: stored_esp - the ESP used by the scheduled process
+ *           stored_ebp - the EBP used by scheduled process
+ *   Outputs: Updates ESP/EBP registers with scheduled program's stack frame.
+ *   Returns: void
+ */
+void terminal_switch(uint32_t* stored_esp, uint32_t* stored_ebp){
       PCB_t* curr_pcb;
-
       curr_pcb = get_pcb();
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;
-      cli();
+      
+      send_eoi(0);
 
+      /* Restore scheduled program's stack frame into ESP/EBP registers. */
       asm volatile("movl %0, %%esp;"
       "movl %1, %%ebp;"
       :
@@ -614,5 +505,28 @@ void terminal_switch(int term_number, uint32_t* stored_esp, uint32_t* stored_ebp
       : "eax"
       );
 
+      return;
+}
+
+/*
+* display_new_terminal
+*   Author: Hershel
+*   Description: Switch paging and update ALT flags to switch terminals on keypress.
+*   Inputs: new_terminal - the terminal being switched into
+*   Outputs: Sends End-of-Interrupt signal to PIC to signal end of keyboard interrupt.
+*   Returns: void
+*/
+void display_new_terminal(int new_terminal) {
+      /* Save old terminal's screen into memory, and load new terminal's screen to video memory. */
+      terminal_deactivate(visible_process);
+      terminal_activate(new_terminal);
+
+      /* Update ALT flags and visible_process to the terminal being switched to. */
+      alt_flag[(int)visible_process]--;
+      alt_flag[new_terminal]++;
+      visible_process = new_terminal;
+
+      send_eoi(KEYBOARD_IRQ);
+      echo = 0;  
       return;
 }

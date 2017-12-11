@@ -32,11 +32,16 @@
 #define VID_MEM_VIRT_MB        132
 #define VID_MEM_PHYS_MB        0
 
+extern volatile int echo;
+extern int exe_flag;
 extern uint32_t pid_bitmap[MAX_PID];
 extern int shell_2;
 extern int shell_3;
 
 int get_first_pid();
+
+/* extern function to check pid */
+extern int check_pid(uint8_t pid);
 
 /* Declare functions */
 int32_t sys_halt(uint8_t status);

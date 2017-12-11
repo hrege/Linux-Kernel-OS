@@ -13,6 +13,8 @@
 #include "paging.h"
 #include "filesystem.h"
 #include "sys_call.h"
+#include "pit.h"
+#include "scheduler.h"
 
 #define RUN_TESTS
 
@@ -154,6 +156,8 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
+    exe_flag = 0;
+    echo = 0;
 
     /*Set up pid_bitmap with all free pids*/
     for(i = 1; i < MAX_PID; i++){
@@ -170,9 +174,10 @@ void entry(unsigned long magic, unsigned long addr) {
 
 
     file_system_init(file_system_addr);
+    schedule_init();
 
     /* Initialize Everything and turn on interrupts */
-    /* Initialize PIC */
+    /* Initialize PIC this must be before any irq inits as it diables all of them */
     i8259_init();
 
     /* Initialize Paging */
@@ -181,6 +186,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize Devices (rtc & keyboard) */
     rtc_init();
     keyboard_init();
+    pit_init();
 
     /* Enable interrupts */
     /* Do not enable the following until after you have set up your

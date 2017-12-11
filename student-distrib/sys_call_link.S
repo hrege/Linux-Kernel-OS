@@ -18,6 +18,7 @@ ZERO:         .long 0x0
 
 .global sys_call_asm, user_prep
 sys_call_asm:
+cli
 pushl %ebp
 movl %esp, %ebp
 cmpl $0, %eax
@@ -38,7 +39,6 @@ pushl %edx
 pushl %ecx
 pushl %ebx
 movl $-4, %ebx #to account for indexing of the jump table
-sti
 call *sys_jump(%ebx, %eax, 4)
 
 done:
