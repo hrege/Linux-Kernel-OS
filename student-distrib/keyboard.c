@@ -412,7 +412,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         return -1;
     }
 
-    terminal = get_pcb()->term_num;
+    terminal = get_terminal();
     /* read from buf */
     for(i = 0; i < nbytes; i++){
       if(((char *)buf)[i] == ENTER){
