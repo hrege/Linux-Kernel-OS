@@ -35,17 +35,21 @@ int screen_y[NUM_TERMS];
 char* video_mem = (char *)VIDEO;
 int active_term;
 
-PCB_t* get_pcb(){
-    int terminal;
+
+int get_terminal(){
+
     if(echo){
-        terminal = visible_process;
+        return visible_process;
     }
     else{
-        terminal = active_term;
+        return active_term;
     }
+}
 
+
+PCB_t* get_pcb(){
     PCB_t* ret;
-    ret = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * terminal)) & 0xFFFFE000);
+    ret = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * get_terminal())) & 0xFFFFE000);
     while(ret->child_process){
         ret = ret->child_process;
     }
@@ -62,14 +66,7 @@ PCB_t* get_pcb(){
 *       Returns: one color byte based on active terminal
 */
 uint8_t get_attrib(){
-    int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
-    switch(terminal){
+    switch(get_terminal()){
     case 0:
         return (uint8_t)GREEN;
         break;
@@ -97,15 +94,7 @@ uint8_t get_attrib(){
 *       Returns: pointer to video memory
 */
 char* get_video_mem(){
-    int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
-
-    switch(terminal){
+    switch(get_terminal()){
     case 0:
         return (char*)VIDEO_0;
         break;
@@ -134,15 +123,7 @@ char* get_video_mem(){
 *       Returns: pointer to video memory
 */
 char* get_fish_mem(){
-    int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
-
-    switch(terminal){
+    switch(get_terminal()){
     case 0:
         return (char*)(VIDEO_0 + _132_MB);
         break;
@@ -172,15 +153,7 @@ char* get_fish_mem(){
 *       Side effect: screen x location changed
 */
 void set_screen_x(int new_x){
-    int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
-
-    screen_x[terminal] = new_x;
+    screen_x[get_terminal()] = new_x;
 }
 
 /*
@@ -193,14 +166,7 @@ void set_screen_x(int new_x){
 *       Side effect: screen y location changed
 */
 void set_screen_y(int new_y){
-        int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
-    screen_y[terminal] = new_y;
+    screen_y[get_terminal()] = new_y;
 
 }
 
@@ -213,14 +179,7 @@ void set_screen_y(int new_y){
 *       Return: screen_x - integer screen location in x
 */
 int get_screen_x(){
-        int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
-    return screen_x[terminal];
+    return screen_x[get_terminal()];
 }
 
 /*
@@ -232,15 +191,7 @@ int get_screen_x(){
 *       Return: screen_y - integer screen location in y
 */
 int get_screen_y(){
-        int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
-
-    return screen_y[terminal];
+    return screen_y[get_terminal()];
 }
 
 /*
@@ -446,12 +397,7 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     int terminal;
-    if(echo){
-        terminal = visible_process;
-    }
-    else{
-        terminal = active_term;
-    }
+    terminal = get_terminal();
 
     if(c == '\n' || c == '\r') {
         screen_y[terminal]++;

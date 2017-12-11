@@ -213,7 +213,7 @@ void keyboard_handler() {
   terminal = visible_process;
 
   if(keyboard_input == BAD_SCAN_COMMA || keyboard_input == BAD_SCAN_F || keyboard_input == BAD_SCAN_F2 || keyboard_input == BAD_SCAN_CAPS){
-       echo = 0;
+    echo = 0;
     send_eoi(KEYBOARD_IRQ);
     return;
   }
