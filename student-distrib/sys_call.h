@@ -31,6 +31,7 @@
 #define RTC_FILE_TYPE          0
 #define VID_MEM_VIRT_MB        132
 #define VID_MEM_PHYS_MB        0
+#define FILE_BUFFER_SIZE	   30
 
 extern volatile int echo;
 extern int exe_flag;

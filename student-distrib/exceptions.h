@@ -10,6 +10,8 @@
 
 #include "types.h"
 
+#define HALT_STATUS		256
+
 #ifndef ASM
 /* divide by zero handler */
 void divide_by_zero();

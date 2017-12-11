@@ -173,7 +173,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 			}
 			f = f*2;
 			i = i - 1;
-		}while(f<=1024);
+		}while(f<=MAX_FREQ);
 	}
 	return -1; //return fail
 }

@@ -149,7 +149,7 @@ int32_t sys_halt(uint8_t status){
  	//    	line_start[get_terminal()] = 0;
 	// }
 
-	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
+	paging_switch(USER_PROG_VM, 4 * (curr_pcb->parent_process->process_id + 2));
   	asm volatile("movl %0, %%eax;"
 		"movl %1, %%esp;"
 	  "movl %2, %%ebp;"
@@ -176,10 +176,10 @@ int32_t sys_halt(uint8_t status){
 int32_t sys_execute(const uint8_t* command){
 	uint32_t mag_num;
 	dentry_t exec;
-	uint8_t file_buffer[30];
+	uint8_t file_buffer[FILE_BUFFER_SIZE];
 	uint8_t exe_name[FILE_NAME_SIZE];
 	uint8_t exe_len = 0;
-	uint8_t temp_arg_buf[128];
+	uint8_t temp_arg_buf[max_buffer_size];
 	uint8_t arg_len_count = 0;
 	uint32_t* kern_stack_ptr;
 	uint32_t eip;
@@ -250,7 +250,7 @@ int32_t sys_execute(const uint8_t* command){
 	this_inode->length = *((uint32_t*)this_inode);
 
 	/* Read executable information into the file_buffer. */
-	if(-1 == read_data(exec.inode_number, 0, file_buffer, 30)) {
+	if(-1 == read_data(exec.inode_number, 0, file_buffer, FILE_BUFFER_SIZE)) {
 		return -1;
 	}
 

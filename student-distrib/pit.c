@@ -16,7 +16,7 @@
 *		Side-effect: PIT IRQ is enabled
 */
 extern void pit_init(){
-	uint32_t rate = 1000 / (uint32_t)QUANTUM;
+	uint32_t rate = 1000 / (uint32_t)QUANTUM;			//Quantums per second
 	uint16_t x_val = (uint16_t)(CRYSTAL_FREQ / rate);
 	uint8_t low = (uint8_t)(0x00FF & x_val);
 	uint8_t high = (uint8_t)(x_val >> 8);
