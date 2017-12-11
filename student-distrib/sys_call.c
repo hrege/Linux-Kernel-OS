@@ -91,6 +91,13 @@ int check_pid(uint8_t pid){
 	return pid_bitmap[pid];
 }
 
+/* non-shell
+*	Author: Jonathan
+*	Description: checks whether a terminal is running any non-shell process
+*	Input: Terminal Num
+*	Returns: 1 if running non-shell process 0 if not
+*/
+
 int non_shell(uint8_t term){
 	if(term > NUM_TERMS){
 		return -1;

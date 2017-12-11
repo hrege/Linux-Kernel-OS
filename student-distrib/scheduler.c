@@ -24,6 +24,17 @@ void schedule_init(){
   active_term = 0;
 }
 
+/* get_next_process
+*		Author: Jonathan
+*		Description: the scheduling algorithm - modified round robin
+*					-only switches to a terminal if it is running something other than a shell,
+*						it is visibile, or in the case it isn't open yet - then it opens it
+*		Input: none
+*		Output: none
+*		Returns: none
+*		Side-effect: active_term changed
+*/				   
+
 void get_next_process(){
 	int8_t term = active_term;
 	do{
@@ -59,10 +70,6 @@ void process_switch() {
 
       int8_t prev_term = active_term;
       get_next_process();
-	 // active_term = (uint8_t)((active_term + 1) % 3);
-      // if(prev_term == active_term){
-      // 	return;
-      // }
 
       dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)) & 0xFFFFE000);
 
