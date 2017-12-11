@@ -35,8 +35,9 @@
 //define screen size
 #define NUM_COLS    		80
 #define NUM_ROWS    		25
-
 #define NUM_TERMS			3
+
+extern int line_start[NUM_TERMS];
 
 /* //// external drivers functions \\\\\ */
 /* Read for terminal driver */

@@ -142,6 +142,10 @@ int32_t sys_halt(uint8_t status){
 	/* Restore ESP from calling Execute function. This works
 		 and sends program to sys_execute
 	 */
+	if(screen_x[active_term] != 0){
+		putc('\n');
+		line_start[active_term] = 0;
+	}
 	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
   	asm volatile("movl %0, %%eax;"
 		"movl %1, %%esp;"

@@ -161,7 +161,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes){
 */
 int32_t rtc_close(int32_t fd){
 	
-  PCB_t* curr_pcb = (PCB_t*)((int32_t)tss.esp0 & 0xFFFFE000);
+  PCB_t* curr_pcb = get_pcb();
 
   curr_pcb->file_array[fd].flags = 0;
   curr_pcb->file_array[fd].file_position = 0;
