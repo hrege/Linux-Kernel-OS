@@ -117,7 +117,7 @@ int32_t sys_halt(uint8_t status){
 				curr_pcb->file_array[i].file_operations.device_close(i);
 			}
 		}
-	call_from_kern = 0;
+		call_from_kern = 0;
 		clear();
 		uint8_t* ptr = (uint8_t*)("shell");
 		sys_execute(ptr);
@@ -143,11 +143,11 @@ int32_t sys_halt(uint8_t status){
 		 and sends program to sys_execute
 	 */
 
-	/* NEW LINE FOR HELLO */
-	// if(screen_x[get_terminal()] != 0){
- 	//    	putc('\n');
- 	//    	line_start[get_terminal()] = 0;
-	// }
+	/* ENSURE NEXT PROCESS STARTS ON NEW LINE */
+	if(screen_x[get_terminal()] != 0){
+		//char* new_line = "\n";
+ 	   	terminal_write(get_terminal(), "\n", 1);
+	}
 
 	paging_switch(USER_PROG_VM, 4 * (curr_pcb->parent_process->process_id + 2));
   	asm volatile("movl %0, %%eax;"
