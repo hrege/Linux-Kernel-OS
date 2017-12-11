@@ -88,8 +88,25 @@ Checkpoint 5:
 
 Bug: Switching with user processes active caused page faults and all terminals had the same counter running when that process was executed.
 Person: Sam
-Solution: Added paging_switch to for the active process when switching terminals
+Solution: Added paging_switch used in sys_execute.c to the active process when switching terminals
 
 Bug: After virtualizing RTC cannot switch between terminals after a while
 Person: Jonathan
 Solution: Click into QEMU window
+
+Bug: Terminal wackiness
+Person:Sam
+Solution:Must check PS/2 scan codes instead of character translations in keyboard handler. 
+
+Bug: Not able to backspace far into shell prompt line
+Person: Sam
+Solution: In terminal write for setting the line to start after a terminal write we used a macro for \n. This macro was changed to the scancode for enter to fix the 
+above bug(Terminal Wackiness). Swapping out the macro for the newline character corrected the issue.
+
+Bug: Ctrl discontinuous across terminal switches
+Person:Jonathan
+Solution: Updated the incoming terminal's ctrl flag variable with the current ctrl flag variable and then set current to 0.
+
+Bug: Context switching bug
+Person:Sam
+Solution:Needed to save separate stack frames for jumping to execute from halt and for terminal switches
