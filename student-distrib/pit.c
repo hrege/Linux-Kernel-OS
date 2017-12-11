@@ -42,5 +42,6 @@ extern void pit_handler(){
 		return;
 	}
 	process_switch();
+	return;
 }
 

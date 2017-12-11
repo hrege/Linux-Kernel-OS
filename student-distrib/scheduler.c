@@ -24,6 +24,19 @@ void schedule_init(){
   active_term = 0;
 }
 
+void get_next_process(){
+	int8_t term = active_term;
+	do{
+		term = (term + 1) % 3;
+		//switch to process if it is not open or it is running something other than shell or it is visible
+		if((!check_pid(term)) || (non_shell(term)) || visible_process == term){
+			active_term = term;
+			return;
+		}
+	}while(term != active_term);
+	return;
+}
+
 /*
  *	process_switch
  *		Description: The function called by pit_handler to perform an active terminal switch
@@ -44,7 +57,12 @@ void process_switch() {
       PCB_t* dest_pcb;
       curr_pcb = get_pcb();
 
-	  active_term = (uint8_t)((active_term + 1) % 3);
+      int8_t prev_term = active_term;
+      get_next_process();
+	 // active_term = (uint8_t)((active_term + 1) % 3);
+      // if(prev_term == active_term){
+      // 	return;
+      // }
 
       dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)) & 0xFFFFE000);
 
