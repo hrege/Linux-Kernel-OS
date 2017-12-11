@@ -29,12 +29,12 @@ extern void pit_init(){
 
 /* 
 *	pit_handler
-*		Author: Jonathan
-*		Description: Handles pit interrupt by checking the exe_flag, and
-					 performing a process switch if it is raised.
+*		Author: Jonathan/Sam/Hershel
+*		Description: Switches processes based on PIT interrupts. Also allows base Shell to open
+*					 by checking for "exe_flag".
 *		Input/Return: None
-*		Output: Sends EOI or performs process switch
-*		Side-effect: Performs process switch
+*		Output: Switches active process by updating current stack frames.
+*		Side-effect: Sends End-of-Interrupt
 */
 extern void pit_handler(){
 	if(!exe_flag){
