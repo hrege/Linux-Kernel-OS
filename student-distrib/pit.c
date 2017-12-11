@@ -26,12 +26,21 @@ extern void pit_init(){
 	outb(high, PIT_CHAN_ZERO);
 	enable_irq(PIT_IRQ);
 }
-/* Interrupt handler for PIT. */
+
+/* 
+*	pit_handler
+*		Author: Jonathan/Sam/Hershel
+*		Description: Switches processes based on PIT interrupts. Also allows base Shell to open
+*					 by checking for "exe_flag".
+*		Input/Return: None
+*		Output: Switches active process by updating current stack frames.
+*		Side-effect: Sends End-of-Interrupt
+*/
 extern void pit_handler(){
 	if(!exe_flag){
 		send_eoi(PIT_IRQ);
 		return;
 	}
-	process_switch(active_term);
+	process_switch();
 }
 

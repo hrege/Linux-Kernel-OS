@@ -9,7 +9,6 @@
 #define PIT_CONTROL_WORD	0x36
 #define PIT_IRQ			0
 
-
 /* Function to initialize RTC clock. */
 extern void pit_init();
 /* Interrupt handler for RTC. */

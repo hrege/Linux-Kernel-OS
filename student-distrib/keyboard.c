@@ -11,15 +11,16 @@
 #include "x86_desc.h"
 #include "scheduler.h"
 
-static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
-static volatile int buffer_length[NUM_TERMS];
+volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
+volatile int buffer_length[NUM_TERMS];
 static volatile int flag[NUM_TERMS]; //0 to sleep terminal_read() positive number for bytes to copy
-static int line_start[NUM_TERMS];
 static int rshift_flag[NUM_TERMS];
 static int lshift_flag[NUM_TERMS];
 static int caps_flag[NUM_TERMS];
 static int ctrl_flag[NUM_TERMS];
 static int alt_flag[NUM_TERMS];
+
+int line_start[NUM_TERMS];
 
 
 /*
@@ -188,8 +189,6 @@ const char scancode_map[NUM_SCANCODES][NUM_CASES] = {
 void keyboard_init() {
   terminal_open((uint8_t*)1);
   enable_irq(KEYBOARD_IRQ);
-
-
 }
 
 /*
@@ -248,7 +247,7 @@ void keyboard_handler() {
     }
   }
   else if(keyboard_input == BACKSPACE_SCAN){
-      if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= 80)){
+      if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= NUM_COLS)){
         buffer_length[terminal]--;
       }
       else{
@@ -296,17 +295,19 @@ void keyboard_handler() {
       return;
   }
   /*Clear screen*/
-  else if(char_out == 'l' && ctrl_flag[terminal] > 0){
+  else if(keyboard_input == L_SCAN && ctrl_flag[terminal] > 0){
       clear();
+      line_start[terminal] = 0;
       buffer_length[terminal] = 0;
   }
 
-  else if(char_out == ENTER){
+  else if(keyboard_input == ENTER){
     line_buffer[terminal][buffer_length[terminal]] = '\n';
     putc('\n');
     flag[terminal] = buffer_length[terminal];
     buffer_length[terminal] = 0;
     line_start[terminal] = 0;
+    update_cursor(get_screen_x(), get_screen_y());
   }
 
   /* Print scancode-converted character to terminal. */
@@ -367,7 +368,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     return -1;
   }
 
-  terminal = get_pcb()->term_num;
+  terminal = get_terminal();
 
   if(nbytes > max_buffer_size){
     nbytes = max_buffer_size;
@@ -412,16 +413,15 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         return -1;
     }
 
-    terminal = get_pcb()->term_num;
+    terminal = get_terminal();
     /* read from buf */
     for(i = 0; i < nbytes; i++){
-      if(((char *)buf)[i] == ENTER){
-         putc('\n');	//enter is newline
+      if(((char *)buf)[i] == '\n'){
+         putc('\n');	
          line_start[terminal] = 0;
       }
-      else{ //if(((char *)buf)[i] != 0)
+      else{
         putc(((char *)buf)[i]);	//otherwise print the char and put it in line buffer
-        line_buffer[terminal][buffer_length[terminal]] = ((char *)buf)[i];
         line_start[terminal]++;
       }
 
@@ -434,6 +434,9 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         }
 
     }
+    for(i = 0; i < buffer_length[terminal]; i++){
+      putc(line_buffer[terminal][i]);
+    }
     update_cursor(get_screen_x(), get_screen_y());
 
     return 0;
@@ -442,8 +445,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 /*
 *	terminal_open
 *		Author: Sam
-*		Description: Doesn't do much at this point since multiple terminals isn't enabled
-*						-just initializes some vars
+*		Description: just initializes some variables
 *		Inputs: filename (not used)as is standard for open
 *		Outputs: Nada
 *		Returns: 0 always atm
@@ -467,7 +469,7 @@ int32_t terminal_open(const uint8_t* filename){
 /*
 *	terminal_close
 *		Author: collaborative project between all 4 team members
-*		Description: does nothing now since multiple terminals are not implemented
+*		Description: does nothing
 *		Inputs: fd as is required for close. Not used
 *		Outputs: none
 *		Returns: 0 always

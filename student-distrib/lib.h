@@ -31,6 +31,7 @@ extern void set_screen_x(int new_x);
 extern void set_screen_y(int new_y);
 extern int get_screen_x();
 extern int get_screen_y();
+int get_terminal();
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

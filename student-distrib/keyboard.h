@@ -16,7 +16,8 @@
 
 //specially handled scancodes
 #define BACKSPACE_SCAN     	0xE
-#define ENTER         		0x0A
+#define ENTER         		0x1C
+#define L_SCAN 				0x26
 #define CTRL_SCAN    		0x1D
 #define ALT_SCAN 			0x38
 #define LSHIFT_ON_SCAN		0x2A
@@ -34,8 +35,11 @@
 //define screen size
 #define NUM_COLS    		80
 #define NUM_ROWS    		25
-
 #define NUM_TERMS			3
+
+extern int line_start[NUM_TERMS];
+extern volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
+extern volatile int buffer_length[NUM_TERMS];
 
 /* //// external drivers functions \\\\\ */
 /* Read for terminal driver */
