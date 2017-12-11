@@ -518,12 +518,14 @@ void terminal_switch(uint32_t* stored_esp, uint32_t* stored_ebp){
 */
 void display_new_terminal(int new_terminal) {
       /* Save old terminal's screen into memory, and load new terminal's screen to video memory. */
-      terminal_deactivate(visible_process);
+      terminal_deactivate((int)visible_process);
       terminal_activate(new_terminal);
 
       /* Update ALT flags and visible_process to the terminal being switched to. */
       alt_flag[(int)visible_process]--;
       alt_flag[new_terminal]++;
+      ctrl_flag[new_terminal] = ctrl_flag[(int)visible_process];
+      ctrl_flag[(int)visible_process]=0;
       visible_process = new_terminal;
 
       send_eoi(KEYBOARD_IRQ);
