@@ -89,3 +89,7 @@ Checkpoint 5:
 Bug: Switching with user processes active caused page faults and all terminals had the same counter running when that process was executed.
 Person: Sam
 Solution: Added paging_switch to for the active process when switching terminals
+
+Bug: After virtualizing RTC cannot switch between terminals after a while
+Person: Jonathan
+Solution: Click into QEMU window
