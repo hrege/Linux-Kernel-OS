@@ -52,7 +52,9 @@ void process_switch() {
         dest_pcb = dest_pcb->child_process;
       }
 
-      paging_switch(128, 4 * (dest_pcb->process_id + 2));
+      //paging set_up. Arg 2 - phys address - calculated by adding two mult *4. 
+      //Mult by 4 because need 4 mb for each. Add two so id 0 is at 8 which is first available locations
+      paging_switch(USER_PROG_VM, 4 * (dest_pcb->process_id + 2));
 
       asm volatile("movl %%esp, %0;"
         "movl %%ebp, %1;"
