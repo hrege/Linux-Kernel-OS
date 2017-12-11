@@ -6,8 +6,6 @@
 
 /* Reference: https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer */
 
-#define milliseconds	50	//how many milliseconds 
-int i = 0;
 /* 
 *	pit_init
 *		Author: Jonathan
@@ -18,7 +16,7 @@ int i = 0;
 *		Side-effect: PIT IRQ is enabled
 */
 extern void pit_init(){
-	uint32_t rate = 1000 / (uint32_t)milliseconds;
+	uint32_t rate = 1000 / (uint32_t)QUANTUM;
 	uint16_t x_val = (uint16_t)(CRYSTAL_FREQ / rate);
 	uint8_t low = (uint8_t)(0x00FF & x_val);
 	uint8_t high = (uint8_t)(x_val >> 8);
@@ -30,12 +28,6 @@ extern void pit_init(){
 }
 /* Interrupt handler for PIT. */
 extern void pit_handler(){
-	//call task switch
-	i++;
-	// if(i % 20 != 0) {
-	// 	send_eoi(PIT_IRQ);
-	// 	return;
-	// }
 	if(!exe_flag){
 		send_eoi(PIT_IRQ);
 		return;
