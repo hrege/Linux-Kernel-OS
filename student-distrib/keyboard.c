@@ -11,8 +11,8 @@
 #include "x86_desc.h"
 #include "scheduler.h"
 
-static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
-static volatile int buffer_length[NUM_TERMS];
+volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
+volatile int buffer_length[NUM_TERMS];
 static volatile int flag[NUM_TERMS]; //0 to sleep terminal_read() positive number for bytes to copy
 static int rshift_flag[NUM_TERMS];
 static int lshift_flag[NUM_TERMS];
@@ -445,8 +445,7 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
 /*
 *	terminal_open
 *		Author: Sam
-*		Description: Doesn't do much at this point since multiple terminals isn't enabled
-*						-just initializes some vars
+*		Description: just initializes some variables
 *		Inputs: filename (not used)as is standard for open
 *		Outputs: Nada
 *		Returns: 0 always atm
@@ -470,7 +469,7 @@ int32_t terminal_open(const uint8_t* filename){
 /*
 *	terminal_close
 *		Author: collaborative project between all 4 team members
-*		Description: does nothing now since multiple terminals are not implemented
+*		Description: does nothing
 *		Inputs: fd as is required for close. Not used
 *		Outputs: none
 *		Returns: 0 always

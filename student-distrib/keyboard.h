@@ -38,6 +38,8 @@
 #define NUM_TERMS			3
 
 extern int line_start[NUM_TERMS];
+extern volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
+extern volatile int buffer_length[NUM_TERMS];
 
 /* //// external drivers functions \\\\\ */
 /* Read for terminal driver */
