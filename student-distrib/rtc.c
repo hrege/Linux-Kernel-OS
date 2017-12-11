@@ -75,7 +75,6 @@ void rtc_handler() {
 
   /* Send EOI signals to both Slave PIC and Master PIC. */
   send_eoi(RTC_PIC_IRQ);
-  send_eoi(SLAVE_IRQ);
   //increment counters
   int i;
   for(i=0; i<NUM_TERMS; i++){
@@ -193,7 +192,6 @@ void rtc_output(int8_t i){
 	char prev = inb(RTC_PORT_CMOS); //get old to keep top 4
 	outb(RTC_A_REG, RTC_PORT);
 	outb((prev & 0xF0)|(i & 0x0F), RTC_PORT_CMOS); //keep same upper 4 put freq value into lower 4
-	//sti();
 	return;
 }
 
