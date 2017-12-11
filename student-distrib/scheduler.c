@@ -68,7 +68,6 @@ void process_switch() {
       PCB_t* dest_pcb;
       curr_pcb = get_pcb();
 
-      int8_t prev_term = active_term;
       get_next_process();
 
       dest_pcb = (PCB_t*)((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * active_term)) & 0xFFFFE000);
