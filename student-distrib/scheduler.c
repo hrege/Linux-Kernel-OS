@@ -24,6 +24,30 @@ void schedule_init(){
   active_term = 0;
 }
 
+/* get_next_process
+*		Author: Jonathan
+*		Description: the scheduling algorithm - modified round robin
+*					-only switches to a terminal if it is running something other than a shell,
+*						it is visibile, or in the case it isn't open yet - then it opens it
+*		Input: none
+*		Output: none
+*		Returns: none
+*		Side-effect: active_term changed
+*/				   
+
+void get_next_process(){
+	int8_t term = active_term;
+	do{
+		term = (term + 1) % 3;
+		//switch to process if it is not open or it is running something other than shell or it is visible
+		if((!check_pid(term)) || (non_shell(term)) || visible_process == term){
+			active_term = term;
+			return;
+		}
+	}while(term != active_term);
+	return;
+}
+
 /*
  *	process_switch
  *		Description: The function called by pit_handler to perform an active terminal switch
@@ -44,8 +68,8 @@ void process_switch() {
       PCB_t* dest_pcb;
       curr_pcb = get_pcb();
 
-      //round robin "algorithm"
-	  active_term = (uint8_t)((active_term + 1) % 3);
+      //scheduling algorithm
+      get_next_process();
 
       dest_pcb = get_pcb();
 

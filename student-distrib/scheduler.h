@@ -6,6 +6,9 @@
 
 extern int8_t visible_process;
 
+//scheduling algorithm
+void get_next_process();
+
 //extern void schedule_init();
 extern void schedule_init();
 extern void process_switch();

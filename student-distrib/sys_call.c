@@ -24,6 +24,7 @@ file_operations_t regular_ops = {file_open, file_read, file_write, file_close};
 file_operations_t directory_ops = {directory_open, directory_read, directory_write, directory_close};
 file_operations_t rtc_ops = {rtc_open, rtc_read, rtc_write, rtc_close};
 int call_from_kern = 0;
+int only_shell[] = {0,0,0};
 
 /*	get_first_fd
 *		Description:  Local function to find first fd available in fd_array of pcb
@@ -90,6 +91,20 @@ int check_pid(uint8_t pid){
 	return pid_bitmap[pid];
 }
 
+/* non-shell
+*	Author: Jonathan
+*	Description: checks whether a terminal is running any non-shell process
+*	Input: Terminal Num
+*	Returns: 1 if running non-shell process 0 if not
+*/
+
+int non_shell(uint8_t term){
+	if(term > NUM_TERMS){
+		return -1;
+	}
+	return only_shell[term];
+}
+
 /*
 *	sys_halt
 *		Description: the system call to halt a process (the process called)
@@ -148,7 +163,7 @@ int32_t sys_halt(uint8_t status){
 		//char* new_line = "\n";
  	   	terminal_write(get_terminal(), "\n", 1);
 	}
-
+	only_shell[get_terminal()] = 0;
 	paging_switch(USER_PROG_VM, 4 * (curr_pcb->parent_process->process_id + 2));
   	asm volatile("movl %0, %%eax;"
 		"movl %1, %%esp;"
@@ -292,6 +307,10 @@ int32_t sys_execute(const uint8_t* command){
 	}
 
 	pid_bitmap[exec_pcb->process_id] = 1;
+			int8_t* ptr = (int8_t*)("shell");
+	if(strncmp((int8_t *)exe_name, ptr, 5) != 0){
+		only_shell[get_terminal()] = 1;
+	}
 
 	/* Load first instruction location into EIP (reverse order since it's little-endian). */
 	eip = ((uint32_t)(file_buffer[EIP_LOC]) << 24) | ((uint32_t)(file_buffer[EIP_LOC - 1]) << 16) | ((uint32_t)(file_buffer[EIP_LOC - 2]) << 8) | ((uint32_t)(file_buffer[EIP_LOC - 3]));
