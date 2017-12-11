@@ -35,6 +35,15 @@ int screen_y[NUM_TERMS];
 char* video_mem = (char *)VIDEO;
 int active_term;
 
+/*
+*   get_terminal
+*       Author: Sam
+*       Description: Returns either the active terminal or the visible process depending on 
+*                    if process being handled is in background or foreground.
+*       Input: none
+*       Output: none
+*       Returns: Either visible process or active term
+*/
 
 int get_terminal(){
 
@@ -46,6 +55,14 @@ int get_terminal(){
     }
 }
 
+/*
+*   get_pcb
+*       Author: Sam
+*       Description: Returns latest child PCB to set proper stack frame. 
+*       Input: none
+*       Output: none
+*       Returns: Latest child process PCB.
+*/
 
 PCB_t* get_pcb(){
     PCB_t* ret;

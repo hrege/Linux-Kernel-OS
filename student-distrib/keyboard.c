@@ -296,12 +296,13 @@ void keyboard_handler() {
       return;
   }
   /*Clear screen*/
-  else if(char_out == 'l' && ctrl_flag[terminal] > 0){
+  else if(keyboard_input == L_SCAN && ctrl_flag[terminal] > 0){
       clear();
+      line_start[terminal] = 0;
       buffer_length[terminal] = 0;
   }
 
-  else if(char_out == ENTER){
+  else if(keyboard_input == ENTER){
     line_buffer[terminal][buffer_length[terminal]] = '\n';
     putc('\n');
     flag[terminal] = buffer_length[terminal];
