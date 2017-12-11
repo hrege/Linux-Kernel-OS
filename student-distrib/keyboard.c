@@ -237,7 +237,9 @@ void keyboard_handler() {
       ctrl_flag[terminal]++;
   }
   else if(keyboard_input == CTRL_RELEASE_SCAN){
-      ctrl_flag[terminal]--;
+      if(ctrl_flag[terminal]>0){
+         ctrl_flag[terminal]--;
+    }
   }
   else if(keyboard_input == ALT_SCAN){
       alt_flag[terminal]++;
@@ -524,6 +526,7 @@ void display_new_terminal(int new_terminal) {
       /* Update ALT flags and visible_process to the terminal being switched to. */
       alt_flag[(int)visible_process]--;
       alt_flag[new_terminal]++;
+
       ctrl_flag[new_terminal] = ctrl_flag[(int)visible_process];
       ctrl_flag[(int)visible_process]=0;
       visible_process = new_terminal;
