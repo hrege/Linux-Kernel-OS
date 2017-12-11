@@ -248,7 +248,7 @@ void keyboard_handler() {
     }
   }
   else if(keyboard_input == BACKSPACE_SCAN){
-      if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= 80)){
+      if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= NUM_COLS)){
         buffer_length[terminal]--;
       }
       else{
@@ -308,6 +308,7 @@ void keyboard_handler() {
     flag[terminal] = buffer_length[terminal];
     buffer_length[terminal] = 0;
     line_start[terminal] = 0;
+    update_cursor(get_screen_x(), get_screen_y());
   }
 
   /* Print scancode-converted character to terminal. */
@@ -368,7 +369,7 @@ int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
     return -1;
   }
 
-  terminal = get_pcb()->term_num;
+  terminal = get_terminal();
 
   if(nbytes > max_buffer_size){
     nbytes = max_buffer_size;
@@ -416,13 +417,12 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     terminal = get_terminal();
     /* read from buf */
     for(i = 0; i < nbytes; i++){
-      if(((char *)buf)[i] == ENTER){
-         putc('\n');	//enter is newline
+      if(((char *)buf)[i] == '\n'){
+         putc('\n');	
          line_start[terminal] = 0;
       }
-      else{ //if(((char *)buf)[i] != 0)
+      else{
         putc(((char *)buf)[i]);	//otherwise print the char and put it in line buffer
-        line_buffer[terminal][buffer_length[terminal]] = ((char *)buf)[i];
         line_start[terminal]++;
       }
 
@@ -434,6 +434,9 @@ int32_t terminal_write(int32_t fd, const void* buf, int32_t nbytes){
          buffer_length[terminal] = 0;
         }
 
+    }
+    for(i = 0; i < buffer_length[terminal]; i++){
+      putc(line_buffer[terminal][i]);
     }
     update_cursor(get_screen_x(), get_screen_y());
 
