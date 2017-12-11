@@ -26,12 +26,21 @@ extern void pit_init(){
 	outb(high, PIT_CHAN_ZERO);
 	enable_irq(PIT_IRQ);
 }
-/* Interrupt handler for PIT. */
+
+/* 
+*	pit_handler
+*		Author: Jonathan
+*		Description: Handles pit interrupt by checking the exe_flag, and
+					 performing a process switch if it is raised.
+*		Input/Return: None
+*		Output: Sends EOI or performs process switch
+*		Side-effect: Performs process switch
+*/
 extern void pit_handler(){
 	if(!exe_flag){
 		send_eoi(PIT_IRQ);
 		return;
 	}
-	process_switch(active_term);
+	process_switch();
 }
 

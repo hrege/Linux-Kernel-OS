@@ -33,7 +33,6 @@ int call_from_kern = 0;
 *		Returns: Number of first available fd;
 *					-1 if fd_array is full
 */
-
 int get_first_fd(){
 	int i; // loop variable
 
@@ -57,7 +56,6 @@ int get_first_fd(){
 *		Returns: Number of first available pid;
 *					-1 if pid_bitmap is full
 */
-
 int get_first_pid(){
 	int i; // loop variable
 
@@ -78,6 +76,7 @@ int get_first_pid(){
 	}
 	return -1;
 }
+
 /* check_pid
 *		Author: Jonathan
 *		Description: Check if the PID is active (used primarily to check terminals)
@@ -90,7 +89,6 @@ int check_pid(uint8_t pid){
 	}
 	return pid_bitmap[pid];
 }
-
 
 /*
 *	sys_halt
@@ -145,7 +143,7 @@ int32_t sys_halt(uint8_t status){
 		 and sends program to sys_execute
 	 */
 	paging_switch(128, 4 * (curr_pcb->parent_process->process_id + 2));
-  asm volatile("movl %0, %%eax;"
+  	asm volatile("movl %0, %%eax;"
 		"movl %1, %%esp;"
 	  "movl %2, %%ebp;"
 	  "leave;"
@@ -158,7 +156,6 @@ int32_t sys_halt(uint8_t status){
 
 	return 0;
 }
-
 
 /*
 *	sys_execute
@@ -297,7 +294,7 @@ int32_t sys_execute(const uint8_t* command){
 	tss.ss0 = KERNEL_DS;
 
 	/* Save current process ESP/EBP into PCB in order to return to the correct parent process kernel stack. */
-  asm volatile("movl %%esp, %0;"
+  	asm volatile("movl %%esp, %0;"
 			"movl %%ebp, %1;"
 			: "=m"(exec_pcb->kern_esp_exe), "=m"(exec_pcb->kern_ebp_exe)
 			:
@@ -516,12 +513,32 @@ int32_t sys_sigreturn(void){
 	return -1;
 }
 
-
-/* Below are place holders for calls table
-	Return fail to indicate you aren't allowed to do that */
+/*
+*	blank_write
+*		Description: The placeholder write function called by sys_write
+*		Author: Sam, Jonathan, Austin, Hershel
+*		Inputs: fd - file descriptor number
+				buf - buffer for arguments
+				nbytes - size of buffer
+*		Outputs: None
+*		Returns: -1 to indicate that this function is not allowed
+*		Side effect: None
+*/
 int32_t blank_write(int32_t fd, const void* buf, int32_t nbytes) {
 	return -1;
 }
+
+/*
+*	blank_read
+*		Description: The placeholder write function called by sys_read
+*		Author: Sam, Jonathan, Austin, Hershel
+*		Inputs: fd - file descriptor number
+				buf - buffer for arguments
+				nbytes - size of buffer
+*		Outputs: None
+*		Returns: -1 to indicate that this function is not allowed
+*		Side effect: None
+*/
 int32_t blank_read(int32_t fd, void* buf, int32_t nbytes) {
 	return -1;
 }
