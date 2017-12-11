@@ -29,6 +29,7 @@
 #define F1_PRESS			0x3B
 #define F2_PRESS			0x3C
 #define F3_PRESS			0x3D
+#define F3_RELEASE			0xBD
 
 //define screen size
 #define NUM_COLS    		80
@@ -53,6 +54,10 @@ void keyboard_handler();
 /* gets a scancode from the table */
 char getScancode(char input);
 
+/* Switches task frame to run new scheduled process. */
 void terminal_switch(uint32_t* stored_esp, uint32_t* stored_ebp);
+
+/* Modifies paging to switch to new terminal on keypress. */
+void display_new_terminal(int new_terminal);
 
 #endif

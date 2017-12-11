@@ -13,7 +13,7 @@
 
 static volatile uint8_t line_buffer[NUM_TERMS][max_buffer_size];
 static volatile int buffer_length[NUM_TERMS];
-static volatile int flag[NUM_TERMS]; //0 to sleep termianl_read() positive number for bytes to copy
+static volatile int flag[NUM_TERMS]; //0 to sleep terminal_read() positive number for bytes to copy
 static int line_start[NUM_TERMS];
 static int rshift_flag[NUM_TERMS];
 static int lshift_flag[NUM_TERMS];
@@ -205,6 +205,7 @@ void keyboard_handler() {
   uint8_t keyboard_input = 0;
   char char_out = 0;
 
+  /* Used to differentiate between updating visible terminal and background processes. */
   echo = 1;
 
   /* Read keypress from keyboard data port. */
@@ -212,15 +213,15 @@ void keyboard_handler() {
   char_out = getScancode(keyboard_input);
   terminal = visible_process;
 
-  if(keyboard_input == BAD_SCAN_COMMA || keyboard_input == BAD_SCAN_F || keyboard_input == BAD_SCAN_F2 || keyboard_input == BAD_SCAN_CAPS){
-       echo = 0;
+  if(keyboard_input == BAD_SCAN_COMMA || keyboard_input == BAD_SCAN_F || keyboard_input == BAD_SCAN_F2 || keyboard_input == BAD_SCAN_CAPS || keyboard_input == F3_RELEASE){
+    echo = 0;
     send_eoi(KEYBOARD_IRQ);
     return;
   }
- else if(keyboard_input == LSHIFT_ON_SCAN){
+  else if(keyboard_input == LSHIFT_ON_SCAN){
         lshift_flag[terminal] = 1;
   }
- else if(keyboard_input == RSHIFT_ON_SCAN){
+  else if(keyboard_input == RSHIFT_ON_SCAN){
         rshift_flag[terminal] = 1;
   }
   else if(keyboard_input == LSHIFT_OFF_SCAN){
@@ -233,27 +234,18 @@ void keyboard_handler() {
         caps_flag[terminal] = (!caps_flag[terminal]) & 0x1;
   }
   else if(keyboard_input == CTRL_SCAN){
-    //Clear screen and start printing from top
       ctrl_flag[terminal]++;
-
   }
   else if(keyboard_input == CTRL_RELEASE_SCAN){
-    //Clear screen and start printing from top
       ctrl_flag[terminal]--;
-
   }
-
   else if(keyboard_input == ALT_SCAN){
-    //Clear screen and start printing from top
       alt_flag[terminal]++;
-
   }
   else if(keyboard_input == ALT_RELEASE_SCAN){
-    //Clear screen and start printing from top
     if(alt_flag[terminal] > 0){
       alt_flag[terminal]--;
     }
-
   }
   else if(keyboard_input == BACKSPACE_SCAN){
       if(buffer_length[terminal] > 0 && (get_screen_x() > line_start[terminal] || (buffer_length[terminal] + line_start[terminal]) >= 80)){
@@ -291,40 +283,16 @@ void keyboard_handler() {
   /*****************************************************/
 
   else if(keyboard_input == F1_PRESS && alt_flag[terminal] > 0 && visible_process != 0){
-      terminal_deactivate(visible_process);
-      terminal_activate(0);
-
-      alt_flag[terminal]--;
-      alt_flag[0]++;
-      visible_process = 0;
-
-      send_eoi(KEYBOARD_IRQ);
-      echo = 0;
+      display_new_terminal(0);
       return;
   }
   else if(keyboard_input == F2_PRESS && alt_flag[terminal] > 0 && visible_process != 1){
-      terminal_deactivate(visible_process);
-      terminal_activate(1);
-
-      alt_flag[terminal]--;
-      alt_flag[1]++;
-      visible_process = 1;
-
-      send_eoi(KEYBOARD_IRQ);
-      echo = 0;
+      display_new_terminal(1);
       return;
   }
 
   else if(keyboard_input == F3_PRESS && alt_flag[terminal] > 0 && visible_process != 2){
-      terminal_deactivate(visible_process);
-      terminal_activate(2);
-
-      alt_flag[terminal]--;
-      alt_flag[2]++;
-      visible_process = 2;
-
-      send_eoi(KEYBOARD_IRQ);
-      echo = 0;
+      display_new_terminal(2);
       return;
   }
   /*Clear screen*/
@@ -339,7 +307,6 @@ void keyboard_handler() {
     flag[terminal] = buffer_length[terminal];
     buffer_length[terminal] = 0;
     line_start[terminal] = 0;
-
   }
 
   /* Print scancode-converted character to terminal. */
@@ -360,7 +327,7 @@ void keyboard_handler() {
    }
 
   /* Send End-of-Interrupt signal to Master PIC. */
-   echo = 0;
+  echo = 0;
   send_eoi(KEYBOARD_IRQ);
 }
 
@@ -387,8 +354,6 @@ char getScancode(char input) {
 *		Output: nada
 *		Returns: the number of bytes read if pass; -1 if fail
 */
-
-
 int32_t terminal_read(int32_t fd, void* buf, int32_t nbytes){
 
   int i;//loop variable
@@ -512,15 +477,24 @@ int32_t terminal_close(int32_t fd){
   return 0;
 }
 
+/*
+ * terminal_switch
+ *   Author: Sam/Hershel/Jonathan
+ *   Description: Restores the saved context for scheduled program.
+ *   Inputs: stored_esp - the ESP used by the scheduled process
+ *           stored_ebp - the EBP used by scheduled process
+ *   Outputs: Updates ESP/EBP registers with scheduled program's stack frame.
+ *   Returns: void
+ */
 void terminal_switch(uint32_t* stored_esp, uint32_t* stored_ebp){
       PCB_t* curr_pcb;
       curr_pcb = get_pcb();
       tss.esp0 = ((uint32_t)(EIGHT_MB - STACK_ROW_SIZE - (EIGHT_KB * curr_pcb->process_id)));
       tss.ss0 = KERNEL_DS;
       
-
       send_eoi(0);
 
+      /* Restore scheduled program's stack frame into ESP/EBP registers. */
       asm volatile("movl %0, %%esp;"
       "movl %1, %%ebp;"
       :
@@ -528,5 +502,28 @@ void terminal_switch(uint32_t* stored_esp, uint32_t* stored_ebp){
       : "eax"
       );
 
+      return;
+}
+
+/*
+* display_new_terminal
+*   Author: Hershel
+*   Description: Switch paging and update ALT flags to switch terminals on keypress.
+*   Inputs: new_terminal - the terminal being switched into
+*   Outputs: Sends End-of-Interrupt signal to PIC to signal end of keyboard interrupt.
+*   Returns: void
+*/
+void display_new_terminal(int new_terminal) {
+      /* Save old terminal's screen into memory, and load new terminal's screen to video memory. */
+      terminal_deactivate(visible_process);
+      terminal_activate(new_terminal);
+
+      /* Update ALT flags and visible_process to the terminal being switched to. */
+      alt_flag[(int)visible_process]--;
+      alt_flag[new_terminal]++;
+      visible_process = new_terminal;
+
+      send_eoi(KEYBOARD_IRQ);
+      echo = 0;  
       return;
 }
